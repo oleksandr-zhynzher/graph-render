@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+coverage
+.nx
+tmp
+*.log
+.DS_Store
+storybook-static

@@ -1,0 +1,8 @@
+node_modules
+dist
+build
+tmp
+.next
+.cache
+storybook-static
+coverage

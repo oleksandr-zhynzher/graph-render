@@ -1,0 +1,22 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./src/types" },
+    { "path": "./src/core-graph-render" },
+    { "path": "./src/react-graph-render" },
+    { "path": "./src/react-tournament-tree" }
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@graph-render/types": ["./src/types/src"],
+      "@graph-render/types/*": ["./src/types/src/*"],
+      "@graph-render/core": ["./src/core-graph-render/src"],
+      "@graph-render/core/*": ["./src/core-graph-render/src/*"],
+      "@graph-render/react": ["./src/react-graph-render/src"],
+      "@graph-render/react/*": ["./src/react-graph-render/src/*"],
+      "@graph-render/tournament-tree": ["./src/react-tournament-tree/src"],
+      "@graph-render/tournament-tree/*": ["./src/react-tournament-tree/src/*"]
+    }
+  }
+}

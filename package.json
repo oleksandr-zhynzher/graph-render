@@ -1,0 +1,45 @@
+{
+  "name": "graph-render-monorepo",
+  "private": true,
+  "workspaces": [
+    "src/types",
+    "src/core-graph-render",
+    "src/react-graph-render",
+    "src/react-tournament-tree"
+  ],
+  "scripts": {
+    "build:all": "nx run-many -t build",
+    "build": "nx run-many -t build",
+    "build:affected": "nx affected -t build",
+    "test": "nx run-many -t test",
+    "test:affected": "nx affected -t test",
+    "lint": "nx run-many -t lint",
+    "lint:affected": "nx affected -t lint",
+    "format": "nx run-many -t format",
+    "format:affected": "nx affected -t format",
+    "format:all": "prettier --write .",
+    "format:check": "prettier --check .",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "graph": "nx graph"
+  },
+  "devDependencies": {
+    "@nx/js": "^22.3.3",
+    "@nx/vite": "^22.3.3",
+    "@nx/workspace": "^22.3.3",
+    "@storybook/addon-essentials": "^8.6.15",
+    "@storybook/addon-interactions": "^8.6.15",
+    "@storybook/react": "^8.6.15",
+    "@storybook/react-vite": "^8.6.15",
+    "@storybook/test": "^8.6.15",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "nx": "^22.3.3",
+    "prettier": "^3.8.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "storybook": "^8.6.15",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10"
+  }
+}
