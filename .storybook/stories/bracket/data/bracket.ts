@@ -493,5 +493,3 @@ export const bracketGraph: NxGraphInput = {
     'sf-2': { final: { id: 'sf-2-final', type: 'undirected', sourcePlayer: 0 } },
   },
 };
-
-

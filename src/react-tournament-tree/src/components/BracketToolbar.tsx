@@ -21,9 +21,7 @@ export const BracketToolbar = React.memo<BracketToolbarProps>(function BracketTo
     background: isDarkMode ? '#334155' : '#ffffff',
     color: isDarkMode ? '#f1f5f9' : '#0f1728',
     cursor: 'pointer',
-    boxShadow: isDarkMode 
-      ? '0 2px 8px rgba(0, 0, 0, 0.4)' 
-      : '0 2px 8px rgba(0, 0, 0, 0.1)',
+    boxShadow: isDarkMode ? '0 2px 8px rgba(0, 0, 0, 0.4)' : '0 2px 8px rgba(0, 0, 0, 0.1)',
     transition: 'all 150ms ease',
   };
 

@@ -244,7 +244,6 @@ export const bracketGraphR16: NxGraphInput = {
   },
 };
 
-
 export const bracketGraph: NxGraphInput = {
   nodes: {
     'r16-1': {

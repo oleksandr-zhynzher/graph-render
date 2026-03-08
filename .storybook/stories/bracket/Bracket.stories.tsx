@@ -58,9 +58,9 @@ export const LiveMatches: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Demonstrates live match indicators (blue border, pulsing dot), winning score highlighting in blue for live matches, tiebreak score display below set scores, and upcoming match styling.',
+        story:
+          'Demonstrates live match indicators (blue border, pulsing dot), winning score highlighting in blue for live matches, tiebreak score display below set scores, and upcoming match styling.',
       },
     },
   },
 };
-

@@ -21,6 +21,7 @@ Before you begin, ensure you have the following installed:
 - **Yarn** (v1.22 or higher)
 
 Check your versions:
+
 ```bash
 node --version
 yarn --version
@@ -29,23 +30,26 @@ yarn --version
 ### Installation
 
 1. **Clone the repository** (if you haven't already):
+
    ```bash
    git clone <repository-url>
    cd graph-render
    ```
 
 2. **Install dependencies**:
+
    ```bash
    yarn install
    ```
 
 3. **Build all packages**:
+
    ```bash
    yarn build:all
    ```
-   
+
    This will compile all TypeScript packages in the correct dependency order.
-   
+
    > **Note**: The build system uses TypeScript path mappings that reference the compiled `dist` folders. The types package must be built first, followed by core, then the React packages. The `yarn build:all` command handles this automatically using Nx.
 
 ### Running the Development Environment
@@ -61,27 +65,32 @@ This will start the Storybook development server at **http://localhost:6006**
 ## 🛠️ Available Scripts
 
 ### Build Commands
+
 - `yarn build:all` - Build all packages in the monorepo
 - `yarn build` - Alias for `build:all`
 - `yarn build:affected` - Build only affected packages (Nx)
 
 ### Development
+
 - `yarn storybook` - Start Storybook development server on port 6006
 - `yarn build-storybook` - Build Storybook for production
 
 ### Testing & Quality
+
 - `yarn test` - Run tests across all packages
 - `yarn test:affected` - Run tests for affected packages only
 - `yarn lint` - Run linting across all packages
 - `yarn lint:affected` - Lint affected packages only
 
 ### Code Formatting
+
 - `yarn format:all` - Format all files with Prettier
 - `yarn format:check` - Check formatting without making changes
 - `yarn format` - Format changed files
 - `yarn format:affected` - Format affected files only
 
 ### Visualization
+
 - `yarn graph` - View the dependency graph of the monorepo (Nx)
 
 ## 📁 Project Structure
