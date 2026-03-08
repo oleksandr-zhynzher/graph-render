@@ -1,5 +1,5 @@
-import React from 'react';
-import { PositionedNode, VertexComponent } from '@graph-render/types';
+import React, { useLayoutEffect, useRef } from 'react';
+import { PositionedNode, Size, VertexComponent } from '@graph-render/types';
 
 interface GraphNodeProps {
   node: PositionedNode;
@@ -14,6 +14,7 @@ interface GraphNodeProps {
   hoverNodeOutColor: string;
   hoverNodeHighlight: boolean;
   hoveredNodeStates: Map<string, { in?: boolean; out?: boolean }> | undefined;
+  onNodeMeasure?: (nodeId: string, size: Size) => void;
   onNodeClick?: (node: PositionedNode) => void;
   onNodeMouseEnter: (nodeId: string) => void;
   onNodeMouseLeave: () => void;
@@ -35,12 +36,14 @@ export const GraphNode = React.memo<GraphNodeProps>(
     hoverNodeOutColor,
     hoverNodeHighlight,
     hoveredNodeStates,
+    onNodeMeasure,
     onNodeClick,
     onNodeMouseEnter,
     onNodeMouseLeave,
     onPathHover,
     onPathLeave,
   }) => {
+    const groupRef = useRef<SVGGElement>(null);
     const width = node.size?.width ?? 180;
     const height = node.size?.height ?? 72;
     const radius = 8;
@@ -75,10 +78,33 @@ export const GraphNode = React.memo<GraphNodeProps>(
       borderOpacity = hoverNodeHighlight && isHoveredNode ? 1 : 0.4;
     }
 
+    useLayoutEffect(() => {
+      if (!groupRef.current || !onNodeMeasure) {
+        return;
+      }
+
+      const frame = requestAnimationFrame(() => {
+        try {
+          const bounds = groupRef.current?.getBBox();
+          if (bounds && bounds.width > 0 && bounds.height > 0) {
+            onNodeMeasure(node.id, {
+              width: Math.ceil(bounds.width),
+              height: Math.ceil(bounds.height),
+            });
+          }
+        } catch {
+          // Ignore measurement failures in unsupported environments.
+        }
+      });
+
+      return () => cancelAnimationFrame(frame);
+    }, [node.id, node.label, node.meta, onNodeMeasure, width, height, isSelected, isHoveredNode]);
+
     const borderWidth = isSelected ? Math.max(2, nodeBorderWidth) : hasBorder ? nodeBorderWidth : 0;
 
     return (
       <g
+        ref={groupRef}
         transform={`translate(${node.position.x}, ${node.position.y})`}
         data-graph-node-interactive="true"
         role="button"

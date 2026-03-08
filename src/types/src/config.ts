@@ -1,3 +1,5 @@
+import { NodeSizingMode, Size } from './node';
+
 export enum EdgeType {
   Directed = 'directed',
   Undirected = 'undirected',
@@ -31,6 +33,12 @@ export interface GraphConfig {
   width?: number;
   height?: number;
   padding?: number;
+  nodeSizing?: NodeSizingMode;
+  fixedNodeSize?: Size;
+  labelMeasurementPaddingX?: number;
+  labelMeasurementPaddingY?: number;
+  labelMeasurementCharWidth?: number;
+  labelMeasurementLineHeight?: number;
   theme?: GraphTheme;
   curveEdges?: boolean;
   curveStrength?: number;

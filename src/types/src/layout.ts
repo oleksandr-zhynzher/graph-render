@@ -11,6 +11,12 @@ export interface LayoutOptions {
   width?: number;
   height?: number;
   layoutDirection?: GraphConfig['layoutDirection'];
+  nodeSizing?: GraphConfig['nodeSizing'];
+  fixedNodeSize?: GraphConfig['fixedNodeSize'];
+  labelMeasurementPaddingX?: GraphConfig['labelMeasurementPaddingX'];
+  labelMeasurementPaddingY?: GraphConfig['labelMeasurementPaddingY'];
+  labelMeasurementCharWidth?: GraphConfig['labelMeasurementCharWidth'];
+  labelMeasurementLineHeight?: GraphConfig['labelMeasurementLineHeight'];
 }
 
 export interface GraphTopology {

@@ -13,6 +13,11 @@ export const DEFAULT_CONFIG: Required<
     | 'layoutDirection'
     | 'autoLabels'
     | 'labelOffset'
+    | 'nodeSizing'
+    | 'labelMeasurementPaddingX'
+    | 'labelMeasurementPaddingY'
+    | 'labelMeasurementCharWidth'
+    | 'labelMeasurementLineHeight'
     | 'hoverHighlight'
     | 'hoverEdgeColor'
     | 'hoverNodeInColor'
@@ -31,6 +36,11 @@ export const DEFAULT_CONFIG: Required<
   layoutDirection: LayoutDirection.LTR,
   autoLabels: false,
   labelOffset: 32,
+  nodeSizing: 'fixed',
+  labelMeasurementPaddingX: 18,
+  labelMeasurementPaddingY: 12,
+  labelMeasurementCharWidth: 8,
+  labelMeasurementLineHeight: 18,
   hoverHighlight: true,
   hoverEdgeColor: '#4da3ff',
   hoverNodeInColor: '#2ecc71',

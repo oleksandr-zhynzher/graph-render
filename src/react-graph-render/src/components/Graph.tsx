@@ -145,6 +145,9 @@ const GraphInner = (
     nodeIds: defaultSelectedNodeIds ?? [],
     edgeIds: defaultSelectedEdgeIds ?? [],
   });
+  const [measuredNodeSizes, setMeasuredNodeSizes] = useState<
+    Record<string, { width: number; height: number }>
+  >({});
   const dragRef = useRef<DragState>({
     active: false,
     startX: 0,
@@ -244,6 +247,15 @@ const GraphInner = (
     [graph, cfg.defaultEdgeType]
   );
 
+  const nodesWithMeasuredSize = useMemo(
+    () =>
+      sourceNodes.map((node) => ({
+        ...node,
+        measuredSize: measuredNodeSizes[node.id] ?? node.measuredSize,
+      })),
+    [sourceNodes, measuredNodeSizes]
+  );
+
   const normalizedEdges = useMemo(
     () =>
       sourceEdges.map((edge) => ({
@@ -255,7 +267,7 @@ const GraphInner = (
 
   const layoutOptions = useMemo(
     () => ({
-      nodes: sourceNodes,
+      nodes: nodesWithMeasuredSize,
       edges: normalizedEdges,
       theme: mergedTheme,
       padding: cfg.padding,
@@ -263,9 +275,15 @@ const GraphInner = (
       width: cfg.width,
       height: cfg.height,
       layoutDirection: cfg.layoutDirection,
+      nodeSizing: cfg.nodeSizing,
+      fixedNodeSize: cfg.fixedNodeSize,
+      labelMeasurementPaddingX: cfg.labelMeasurementPaddingX,
+      labelMeasurementPaddingY: cfg.labelMeasurementPaddingY,
+      labelMeasurementCharWidth: cfg.labelMeasurementCharWidth,
+      labelMeasurementLineHeight: cfg.labelMeasurementLineHeight,
     }),
     [
-      sourceNodes,
+      nodesWithMeasuredSize,
       normalizedEdges,
       mergedTheme,
       cfg.padding,
@@ -273,7 +291,34 @@ const GraphInner = (
       cfg.width,
       cfg.height,
       cfg.layoutDirection,
+      cfg.nodeSizing,
+      cfg.fixedNodeSize,
+      cfg.labelMeasurementPaddingX,
+      cfg.labelMeasurementPaddingY,
+      cfg.labelMeasurementCharWidth,
+      cfg.labelMeasurementLineHeight,
     ]
+  );
+
+  const handleNodeMeasure = useCallback(
+    (nodeId: string, size: { width: number; height: number }) => {
+      if (cfg.nodeSizing !== 'measured') {
+        return;
+      }
+
+      setMeasuredNodeSizes((current) => {
+        const previous = current[nodeId];
+        if (previous && previous.width === size.width && previous.height === size.height) {
+          return current;
+        }
+
+        return {
+          ...current,
+          [nodeId]: size,
+        };
+      });
+    },
+    [cfg.nodeSizing]
   );
 
   const positionedNodes: PositionedNode[] = useMemo(
@@ -832,6 +877,7 @@ const GraphInner = (
               hoverNodeOutColor={cfg.hoverNodeOutColor}
               hoverNodeHighlight={cfg.hoverNodeHighlight}
               hoveredNodeStates={hoveredNodeStates ?? undefined}
+              onNodeMeasure={handleNodeMeasure}
               onNodeClick={handleNodeSelection}
               onNodeMouseEnter={handleNodeMouseEnter}
               onNodeMouseLeave={handleNodeMouseLeave}

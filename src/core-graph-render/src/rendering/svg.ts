@@ -178,6 +178,12 @@ export const renderGraphToSvg = (
     width: config.width,
     height: config.height,
     layoutDirection: config.layoutDirection,
+    nodeSizing: options?.config?.nodeSizing,
+    fixedNodeSize: options?.config?.fixedNodeSize,
+    labelMeasurementPaddingX: options?.config?.labelMeasurementPaddingX,
+    labelMeasurementPaddingY: options?.config?.labelMeasurementPaddingY,
+    labelMeasurementCharWidth: options?.config?.labelMeasurementCharWidth,
+    labelMeasurementLineHeight: options?.config?.labelMeasurementLineHeight,
   });
 
   const positionedEdges = routeEdges(positionedNodes, normalizedEdges, {

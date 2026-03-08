@@ -13,3 +13,4 @@ export {
   DEFAULT_TEXT_SIZE,
 } from './constants';
 export { groupEdgesByTarget, sortEdgesBySourcePosition } from './graphTraversal';
+export { applyNodeSizing } from './nodeSizing';
