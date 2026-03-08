@@ -7,11 +7,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { layoutNodes, routeEdges, fromNxGraph, DEFAULT_THEME } from '@graph-render/core';
+import { DEFAULT_THEME, fromNxGraph, layoutNodes, routeEdges } from '@graph-render/core';
 import {
   DragState,
-  GraphHandle,
   GraphControlsPosition,
+  GraphHandle,
   GraphProps,
   GraphRenderContext,
   GraphSelection,
@@ -19,12 +19,12 @@ import {
   PositionedEdge,
   PositionedNode,
 } from '@graph-render/types';
+import { DEFAULT_CONFIG } from '../constants/defaults';
+import { useGraphHover } from '../hooks/useGraphHover';
+import { centerViewportOnNode, clampZoom, getFitViewport, getGraphBounds } from '../utils/viewport';
 import { EdgePath } from './EdgePath';
 import { GraphLabels } from './GraphLabels';
 import { GraphNode } from './GraphNode';
-import { useGraphHover } from '../hooks/useGraphHover';
-import { DEFAULT_CONFIG } from '../constants/defaults';
-import { centerViewportOnNode, clampZoom, getFitViewport, getGraphBounds } from '../utils/viewport';
 
 const DEFAULT_VIEWPORT: GraphViewport = { x: 0, y: 0, zoom: 1 };
 const DEFAULT_SELECTION: GraphSelection = { nodeIds: [], edgeIds: [] };
@@ -33,6 +33,8 @@ const DEFAULT_MAX_ZOOM = 2.5;
 const DEFAULT_ZOOM_STEP = 0.12;
 const DEFAULT_SELECTION_COLOR = '#f59e0b';
 const DEFAULT_CONTROLS_POSITION: GraphControlsPosition = 'top-left';
+const CONTROL_BUTTON_SIZE = 26;
+const CONTROL_BUTTON_GAP = 8;
 
 type PointerState = { x: number; y: number };
 type PinchState = {
@@ -42,43 +44,12 @@ type PinchState = {
   worldX: number;
   worldY: number;
 };
-
-const CONTROL_BUTTON_SIZE = 26;
-const CONTROL_BUTTON_GAP = 8;
-
-const getControlPosition = (
-  width: number,
-  height: number,
-  position: GraphControlsPosition
-): { x: number; y: number } => {
-  const controlsWidth = CONTROL_BUTTON_SIZE * 4 + CONTROL_BUTTON_GAP * 3;
-  const controlsHeight = CONTROL_BUTTON_SIZE;
-  const inset = 12;
-
-  switch (position) {
-    case 'top-right':
-      return { x: width - controlsWidth - inset, y: inset };
-    case 'bottom-left':
-      return { x: inset, y: height - controlsHeight - inset };
-    case 'bottom-right':
-      return {
-        x: width - controlsWidth - inset,
-        y: height - controlsHeight - inset,
-      };
-    case 'top-left':
-    default:
-      return { x: inset, y: inset };
-  }
+type SelectionBox = {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
 };
-
-const getPointerDistance = (a: PointerState, b: PointerState): number => {
-  return Math.hypot(a.x - b.x, a.y - b.y);
-};
-
-const getPointerMidpoint = (a: PointerState, b: PointerState): PointerState => ({
-  x: (a.x + b.x) / 2,
-  y: (a.y + b.y) / 2,
-});
 
 const normalizeViewport = (
   viewport: GraphViewport,
@@ -96,6 +67,123 @@ const toggleId = (values: string[], id: string, selectionMode: 'single' | 'multi
   }
 
   return values.includes(id) ? values.filter((value) => value !== id) : [...values, id];
+};
+
+const getControlPosition = (
+  width: number,
+  height: number,
+  position: GraphControlsPosition
+): { x: number; y: number } => {
+  const controlsWidth = 120 + CONTROL_BUTTON_GAP * 3;
+  const inset = 12;
+
+  switch (position) {
+    case 'top-right':
+      return { x: width - controlsWidth - inset, y: inset };
+    case 'bottom-left':
+      return { x: inset, y: height - CONTROL_BUTTON_SIZE - inset };
+    case 'bottom-right':
+      return {
+        x: width - controlsWidth - inset,
+        y: height - CONTROL_BUTTON_SIZE - inset,
+      };
+    case 'top-left':
+    default:
+      return { x: inset, y: inset };
+  }
+};
+
+const getPointerDistance = (a: PointerState, b: PointerState): number => {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+};
+
+const getPointerMidpoint = (a: PointerState, b: PointerState): PointerState => ({
+  x: (a.x + b.x) / 2,
+  y: (a.y + b.y) / 2,
+});
+
+const normalizeRect = (box: SelectionBox) => ({
+  x: Math.min(box.startX, box.endX),
+  y: Math.min(box.startY, box.endY),
+  width: Math.abs(box.endX - box.startX),
+  height: Math.abs(box.endY - box.startY),
+});
+
+const isPointInsideRect = (
+  x: number,
+  y: number,
+  rect: { x: number; y: number; width: number; height: number }
+): boolean => {
+  return x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height;
+};
+
+const getRelativeSvgPoint = (
+  svg: SVGSVGElement | null,
+  clientX: number,
+  clientY: number
+): PointerState => {
+  if (!svg) {
+    return { x: clientX, y: clientY };
+  }
+
+  const rect = svg.getBoundingClientRect();
+  return {
+    x: clientX - rect.left,
+    y: clientY - rect.top,
+  };
+};
+
+const getNearestNodeInDirection = (
+  currentNode: PositionedNode,
+  nodes: PositionedNode[],
+  direction: 'left' | 'right' | 'up' | 'down'
+): PositionedNode | null => {
+  const currentCenter = {
+    x: currentNode.position.x + (currentNode.size?.width ?? 0) / 2,
+    y: currentNode.position.y + (currentNode.size?.height ?? 0) / 2,
+  };
+
+  const candidates = nodes.filter((node) => {
+    if (node.id === currentNode.id) {
+      return false;
+    }
+
+    const center = {
+      x: node.position.x + (node.size?.width ?? 0) / 2,
+      y: node.position.y + (node.size?.height ?? 0) / 2,
+    };
+
+    if (direction === 'left') {
+      return center.x < currentCenter.x;
+    }
+    if (direction === 'right') {
+      return center.x > currentCenter.x;
+    }
+    if (direction === 'up') {
+      return center.y < currentCenter.y;
+    }
+    return center.y > currentCenter.y;
+  });
+
+  if (!candidates.length) {
+    return null;
+  }
+
+  return (
+    candidates
+      .map((node) => {
+        const center = {
+          x: node.position.x + (node.size?.width ?? 0) / 2,
+          y: node.position.y + (node.size?.height ?? 0) / 2,
+        };
+
+        return {
+          node,
+          distance: Math.hypot(center.x - currentCenter.x, center.y - currentCenter.y),
+        };
+      })
+      .sort((a, b) => a.distance - b.distance)[0]?.node ?? null
+  );
 };
 
 const GraphInner = (
@@ -118,6 +206,10 @@ const GraphInner = (
     keyboardNavigation = true,
     showControls = false,
     controlsPosition = DEFAULT_CONTROLS_POSITION,
+    marqueeSelectionEnabled = true,
+    focusedNodeId: controlledFocusedNodeId,
+    defaultFocusedNodeId = null,
+    onFocusedNodeChange,
     selectedNodeIds,
     selectedEdgeIds,
     defaultSelectedNodeIds,
@@ -132,6 +224,8 @@ const GraphInner = (
     routeEdgesOverride,
     renderBackground,
     renderOverlay,
+    onNodeHoverChange,
+    onEdgeHoverChange,
     onNodeClick,
     onEdgeClick,
   }: GraphProps,
@@ -145,6 +239,10 @@ const GraphInner = (
     nodeIds: defaultSelectedNodeIds ?? [],
     edgeIds: defaultSelectedEdgeIds ?? [],
   });
+  const [internalFocusedNodeId, setInternalFocusedNodeId] = useState<string | null>(
+    defaultFocusedNodeId
+  );
+  const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
   const [measuredNodeSizes, setMeasuredNodeSizes] = useState<
     Record<string, { width: number; height: number }>
   >({});
@@ -169,7 +267,6 @@ const GraphInner = (
     () => ({ ...DEFAULT_THEME, ...(config?.theme ?? {}) }),
     [config?.theme]
   );
-
   const cfg = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config]);
   const selectionEdgeColor = edgeSelectionColor ?? selectionColor;
   const hoverNodeBorderColor = useMemo(
@@ -191,7 +288,6 @@ const GraphInner = (
     () => normalizeViewport(controlledViewport ?? internalViewport, minZoom, maxZoom),
     [controlledViewport, internalViewport, minZoom, maxZoom]
   );
-
   const selection = useMemo<GraphSelection>(
     () => ({
       nodeIds: selectedNodeIds ?? internalSelection.nodeIds,
@@ -199,7 +295,7 @@ const GraphInner = (
     }),
     [selectedNodeIds, selectedEdgeIds, internalSelection]
   );
-
+  const focusedNodeId = controlledFocusedNodeId ?? internalFocusedNodeId;
   const selectedNodeSet = useMemo(() => new Set(selection.nodeIds), [selection.nodeIds]);
   const selectedEdgeSet = useMemo(() => new Set(selection.edgeIds), [selection.edgeIds]);
 
@@ -209,15 +305,8 @@ const GraphInner = (
         | Partial<GraphViewport>
         | ((current: GraphViewport) => Partial<GraphViewport> | GraphViewport)
     ) => {
-      const rawNext = typeof next === 'function' ? next(viewport) : next;
-      const normalized = normalizeViewport(
-        {
-          ...viewport,
-          ...rawNext,
-        },
-        minZoom,
-        maxZoom
-      );
+      const resolved = typeof next === 'function' ? next(viewport) : next;
+      const normalized = normalizeViewport({ ...viewport, ...resolved }, minZoom, maxZoom);
 
       if (!controlledViewport) {
         setInternalViewport(normalized);
@@ -225,7 +314,7 @@ const GraphInner = (
       onViewportChange?.(normalized);
       return normalized;
     },
-    [viewport, minZoom, maxZoom, controlledViewport, onViewportChange]
+    [controlledViewport, maxZoom, minZoom, onViewportChange, viewport]
   );
 
   const updateSelection = useCallback(
@@ -239,12 +328,22 @@ const GraphInner = (
       }
       onSelectionChange?.(resolved);
     },
-    [selection, selectedNodeIds, selectedEdgeIds, onSelectionChange]
+    [onSelectionChange, selectedEdgeIds, selectedNodeIds, selection]
+  );
+
+  const updateFocusedNode = useCallback(
+    (nodeId: string | null) => {
+      if (controlledFocusedNodeId == null) {
+        setInternalFocusedNodeId(nodeId);
+      }
+      onFocusedNodeChange?.(nodeId);
+    },
+    [controlledFocusedNodeId, onFocusedNodeChange]
   );
 
   const { nodes: sourceNodes, edges: sourceEdges } = useMemo(
     () => fromNxGraph(graph, cfg.defaultEdgeType),
-    [graph, cfg.defaultEdgeType]
+    [cfg.defaultEdgeType, graph]
   );
 
   const nodesWithMeasuredSize = useMemo(
@@ -253,7 +352,7 @@ const GraphInner = (
         ...node,
         measuredSize: measuredNodeSizes[node.id] ?? node.measuredSize,
       })),
-    [sourceNodes, measuredNodeSizes]
+    [measuredNodeSizes, sourceNodes]
   );
 
   const normalizedEdges = useMemo(
@@ -262,7 +361,7 @@ const GraphInner = (
         ...edge,
         type: edge.type ?? cfg.defaultEdgeType,
       })),
-    [sourceEdges, cfg.defaultEdgeType]
+    [cfg.defaultEdgeType, sourceEdges]
   );
 
   const layoutOptions = useMemo(
@@ -283,20 +382,20 @@ const GraphInner = (
       labelMeasurementLineHeight: cfg.labelMeasurementLineHeight,
     }),
     [
-      nodesWithMeasuredSize,
-      normalizedEdges,
-      mergedTheme,
-      cfg.padding,
-      cfg.layout,
-      cfg.width,
-      cfg.height,
-      cfg.layoutDirection,
-      cfg.nodeSizing,
       cfg.fixedNodeSize,
-      cfg.labelMeasurementPaddingX,
-      cfg.labelMeasurementPaddingY,
+      cfg.height,
       cfg.labelMeasurementCharWidth,
       cfg.labelMeasurementLineHeight,
+      cfg.labelMeasurementPaddingX,
+      cfg.labelMeasurementPaddingY,
+      cfg.layout,
+      cfg.layoutDirection,
+      cfg.nodeSizing,
+      cfg.padding,
+      cfg.width,
+      mergedTheme,
+      nodesWithMeasuredSize,
+      normalizedEdges,
     ]
   );
 
@@ -339,10 +438,10 @@ const GraphInner = (
     [
       cfg.arrowPadding,
       cfg.curveEdges,
-      cfg.layoutDirection,
-      cfg.forceRightToLeft,
-      cfg.routingStyle,
       cfg.edgeSeparation,
+      cfg.forceRightToLeft,
+      cfg.layoutDirection,
+      cfg.routingStyle,
       cfg.selfLoopRadius,
     ]
   );
@@ -352,7 +451,7 @@ const GraphInner = (
       routeEdgesOverride
         ? routeEdgesOverride(positionedNodes, normalizedEdges, edgeRoutingOptions)
         : routeEdges(positionedNodes, normalizedEdges, edgeRoutingOptions),
-    [routeEdgesOverride, positionedNodes, normalizedEdges, edgeRoutingOptions]
+    [edgeRoutingOptions, normalizedEdges, positionedNodes, routeEdgesOverride]
   );
 
   const graphBounds = useMemo(() => getGraphBounds(positionedNodes), [positionedNodes]);
@@ -361,18 +460,18 @@ const GraphInner = (
     (padding: number = fitViewPadding) => {
       updateViewport(getFitViewport(graphBounds, cfg.width, cfg.height, padding, minZoom, maxZoom));
     },
-    [updateViewport, graphBounds, cfg.width, cfg.height, fitViewPadding, minZoom, maxZoom]
+    [cfg.height, cfg.width, fitViewPadding, graphBounds, maxZoom, minZoom, updateViewport]
   );
 
   const centerOnNode = useCallback(
     (nodeId: string) => {
-      const node = positionedNodes.find((item) => item.id === nodeId);
+      const node = positionedNodes.find((entry) => entry.id === nodeId);
       if (!node) {
         return;
       }
       updateViewport(centerViewportOnNode(node, cfg.width, cfg.height, viewport.zoom));
     },
-    [positionedNodes, cfg.width, cfg.height, updateViewport, viewport.zoom]
+    [cfg.height, cfg.width, positionedNodes, updateViewport, viewport.zoom]
   );
 
   useImperativeHandle(
@@ -388,14 +487,14 @@ const GraphInner = (
       setViewport: updateViewport,
       clearSelection: () => updateSelection(DEFAULT_SELECTION),
     }),
-    [fitView, centerOnNode, updateViewport, updateSelection, viewport, zoomStep]
+    [centerOnNode, fitView, updateSelection, updateViewport, viewport, zoomStep]
   );
 
   useEffect(() => {
     if (fitViewOnMount) {
       fitView();
     }
-  }, [fitViewOnMount, fitView, graphBounds]);
+  }, [fitView, fitViewOnMount, graphBounds]);
 
   const {
     hoveredEdgeId,
@@ -417,14 +516,91 @@ const GraphInner = (
       viewport,
       selection,
     }),
-    [graph, positionedNodes, positionedEdges, cfg, viewport, selection]
+    [cfg, graph, positionedEdges, positionedNodes, selection, viewport]
+  );
+
+  const emitNodeHover = useCallback(
+    (node: PositionedNode, hovered: boolean, trigger: 'pointer' | 'path' = 'pointer') => {
+      onNodeHoverChange?.(node, hovered, {
+        viewport,
+        selection,
+        trigger,
+      });
+    },
+    [onNodeHoverChange, selection, viewport]
+  );
+
+  const emitEdgeHover = useCallback(
+    (edge: PositionedEdge, hovered: boolean, trigger: 'pointer' | 'path' = 'pointer') => {
+      onEdgeHoverChange?.(edge, hovered, {
+        viewport,
+        selection,
+        trigger,
+      });
+    },
+    [onEdgeHoverChange, selection, viewport]
+  );
+
+  const handleNodeSelection = useCallback(
+    (node: PositionedNode) => {
+      if (!nodeSelectionEnabled) {
+        updateFocusedNode(node.id);
+        onNodeClick?.(node);
+        return;
+      }
+
+      updateSelection((current) => ({
+        nodeIds: toggleId(current.nodeIds, node.id, selectionMode),
+        edgeIds: selectionMode === 'single' ? [] : current.edgeIds,
+      }));
+      updateFocusedNode(node.id);
+      onNodeClick?.(node);
+    },
+    [nodeSelectionEnabled, onNodeClick, selectionMode, updateFocusedNode, updateSelection]
+  );
+
+  const handleEdgeSelection = useCallback(
+    (edge: PositionedEdge) => {
+      if (!edgeSelectionEnabled) {
+        onEdgeClick?.(edge);
+        return;
+      }
+
+      updateSelection((current) => ({
+        nodeIds: selectionMode === 'single' ? [] : current.nodeIds,
+        edgeIds: toggleId(current.edgeIds, edge.id, selectionMode),
+      }));
+      onEdgeClick?.(edge);
+    },
+    [edgeSelectionEnabled, onEdgeClick, selectionMode, updateSelection]
   );
 
   const handlePointerDown = useCallback(
     (event: React.PointerEvent<SVGSVGElement>) => {
-      if (event.pointerType === 'touch') {
-        activePointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      const target = event.target as Element;
+      const isInteractiveTarget = Boolean(
+        target.closest('[data-graph-node-interactive="true"], [data-graph-edge-interactive="true"]')
+      );
+      const relativePoint = getRelativeSvgPoint(svgRef.current, event.clientX, event.clientY);
 
+      if (
+        !isInteractiveTarget &&
+        selectionMode === 'multiple' &&
+        marqueeSelectionEnabled &&
+        event.shiftKey
+      ) {
+        setSelectionBox({
+          startX: relativePoint.x,
+          startY: relativePoint.y,
+          endX: relativePoint.x,
+          endY: relativePoint.y,
+        });
+        dragRef.current.active = false;
+        return;
+      }
+
+      if (event.pointerType === 'touch') {
+        activePointersRef.current.set(event.pointerId, relativePoint);
         if (pinchZoomEnabled && zoomEnabled && activePointersRef.current.size === 2) {
           const [first, second] = Array.from(activePointersRef.current.values());
           const midpoint = getPointerMidpoint(first, second);
@@ -436,38 +612,33 @@ const GraphInner = (
             worldY: (midpoint.y - viewport.y) / viewport.zoom,
           };
           dragRef.current.active = false;
-          (event.target as Element).setPointerCapture?.(event.pointerId);
+          target.setPointerCapture?.(event.pointerId);
           return;
         }
       }
 
-      if (!panEnabled || event.button !== 0) {
-        return;
-      }
-
-      const target = event.target as Element;
-      if (
-        target.closest('[data-graph-node-interactive="true"], [data-graph-edge-interactive="true"]')
-      ) {
+      if (!panEnabled || event.button !== 0 || isInteractiveTarget) {
         return;
       }
 
       dragRef.current = {
         active: true,
-        startX: event.clientX,
-        startY: event.clientY,
+        startX: relativePoint.x,
+        startY: relativePoint.y,
         originX: viewport.x,
         originY: viewport.y,
       };
       target.setPointerCapture?.(event.pointerId);
     },
-    [panEnabled, viewport.x, viewport.y]
+    [marqueeSelectionEnabled, panEnabled, pinchZoomEnabled, selectionMode, viewport, zoomEnabled]
   );
 
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<SVGSVGElement>) => {
+      const relativePoint = getRelativeSvgPoint(svgRef.current, event.clientX, event.clientY);
+
       if (event.pointerType === 'touch' && activePointersRef.current.has(event.pointerId)) {
-        activePointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        activePointersRef.current.set(event.pointerId, relativePoint);
 
         if (pinchRef.current.active && activePointersRef.current.size >= 2) {
           const [first, second] = Array.from(activePointersRef.current.values());
@@ -488,30 +659,81 @@ const GraphInner = (
         }
       }
 
+      if (selectionBox) {
+        setSelectionBox((current) =>
+          current
+            ? {
+                ...current,
+                endX: relativePoint.x,
+                endY: relativePoint.y,
+              }
+            : current
+        );
+        return;
+      }
+
       if (!panEnabled || !dragRef.current.active) {
         return;
       }
 
-      const dx = event.clientX - dragRef.current.startX;
-      const dy = event.clientY - dragRef.current.startY;
       updateViewport({
-        x: dragRef.current.originX + dx,
-        y: dragRef.current.originY + dy,
+        x: dragRef.current.originX + (relativePoint.x - dragRef.current.startX),
+        y: dragRef.current.originY + (relativePoint.y - dragRef.current.startY),
       });
     },
-    [panEnabled, updateViewport]
+    [maxZoom, minZoom, panEnabled, selectionBox, updateViewport]
   );
 
-  const handlePointerUp = useCallback((event: React.PointerEvent<SVGSVGElement>) => {
-    activePointersRef.current.delete(event.pointerId);
+  const handlePointerUp = useCallback(
+    (event: React.PointerEvent<SVGSVGElement>) => {
+      activePointersRef.current.delete(event.pointerId);
+      if (activePointersRef.current.size < 2) {
+        pinchRef.current.active = false;
+      }
 
-    if (activePointersRef.current.size < 2) {
-      pinchRef.current.active = false;
-    }
+      if (selectionBox) {
+        const box = normalizeRect(selectionBox);
+        const worldRect = {
+          x: (box.x - viewport.x) / viewport.zoom,
+          y: (box.y - viewport.y) / viewport.zoom,
+          width: box.width / viewport.zoom,
+          height: box.height / viewport.zoom,
+        };
 
-    dragRef.current.active = false;
-    (event.target as Element).releasePointerCapture?.(event.pointerId);
-  }, []);
+        const nodeIds = positionedNodes
+          .filter((node) => {
+            const width = node.size?.width ?? 0;
+            const height = node.size?.height ?? 0;
+            return !(
+              node.position.x + width < worldRect.x ||
+              node.position.x > worldRect.x + worldRect.width ||
+              node.position.y + height < worldRect.y ||
+              node.position.y > worldRect.y + worldRect.height
+            );
+          })
+          .map((node) => node.id);
+
+        const edgeIds = positionedEdges
+          .filter((edge) => {
+            if (edge.labelPosition) {
+              return isPointInsideRect(edge.labelPosition.x, edge.labelPosition.y, worldRect);
+            }
+            return edge.points.some((point) => isPointInsideRect(point.x, point.y, worldRect));
+          })
+          .map((edge) => edge.id);
+
+        updateSelection((current) => ({
+          nodeIds: Array.from(new Set([...current.nodeIds, ...nodeIds])),
+          edgeIds: Array.from(new Set([...current.edgeIds, ...edgeIds])),
+        }));
+        setSelectionBox(null);
+      }
+
+      dragRef.current.active = false;
+      (event.target as Element).releasePointerCapture?.(event.pointerId);
+    },
+    [positionedEdges, positionedNodes, selectionBox, updateSelection, viewport]
+  );
 
   const handleWheel = useCallback(
     (event: React.WheelEvent<SVGSVGElement>) => {
@@ -520,11 +742,9 @@ const GraphInner = (
       }
 
       event.preventDefault();
-      const rect = svgRef.current.getBoundingClientRect();
-      const pointerX = event.clientX - rect.left;
-      const pointerY = event.clientY - rect.top;
-      const worldX = (pointerX - viewport.x) / viewport.zoom;
-      const worldY = (pointerY - viewport.y) / viewport.zoom;
+      const pointer = getRelativeSvgPoint(svgRef.current, event.clientX, event.clientY);
+      const worldX = (pointer.x - viewport.x) / viewport.zoom;
+      const worldY = (pointer.y - viewport.y) / viewport.zoom;
       const nextZoom = clampZoom(
         viewport.zoom + (event.deltaY < 0 ? zoomStep : -zoomStep),
         minZoom,
@@ -533,11 +753,11 @@ const GraphInner = (
 
       updateViewport({
         zoom: nextZoom,
-        x: pointerX - worldX * nextZoom,
-        y: pointerY - worldY * nextZoom,
+        x: pointer.x - worldX * nextZoom,
+        y: pointer.y - worldY * nextZoom,
       });
     },
-    [zoomEnabled, viewport, zoomStep, minZoom, maxZoom, updateViewport]
+    [maxZoom, minZoom, updateViewport, viewport, zoomEnabled, zoomStep]
   );
 
   const handleKeyDown = useCallback(
@@ -562,48 +782,110 @@ const GraphInner = (
           fitView();
           break;
         case 'ArrowLeft':
-          event.preventDefault();
-          updateViewport((current) => ({ x: current.x + 32 }));
-          break;
         case 'ArrowRight':
-          event.preventDefault();
-          updateViewport((current) => ({ x: current.x - 32 }));
-          break;
         case 'ArrowUp':
+        case 'ArrowDown': {
           event.preventDefault();
-          updateViewport((current) => ({ y: current.y + 32 }));
+          if (focusedNodeId) {
+            const currentNode = positionedNodes.find((node) => node.id === focusedNodeId);
+            if (currentNode) {
+              const direction =
+                event.key === 'ArrowLeft'
+                  ? 'left'
+                  : event.key === 'ArrowRight'
+                    ? 'right'
+                    : event.key === 'ArrowUp'
+                      ? 'up'
+                      : 'down';
+              const nextNode = getNearestNodeInDirection(currentNode, positionedNodes, direction);
+              if (nextNode) {
+                updateFocusedNode(nextNode.id);
+              }
+              break;
+            }
+          }
+
+          updateViewport((current) => {
+            if (event.key === 'ArrowLeft') {
+              return { x: current.x + 32 };
+            }
+            if (event.key === 'ArrowRight') {
+              return { x: current.x - 32 };
+            }
+            if (event.key === 'ArrowUp') {
+              return { y: current.y + 32 };
+            }
+            return { y: current.y - 32 };
+          });
           break;
-        case 'ArrowDown':
+        }
+        case 'Enter':
+        case ' ': {
+          if (!focusedNodeId) {
+            break;
+          }
           event.preventDefault();
-          updateViewport((current) => ({ y: current.y - 32 }));
+          const focusedNode = positionedNodes.find((node) => node.id === focusedNodeId);
+          if (focusedNode) {
+            handleNodeSelection(focusedNode);
+          }
           break;
+        }
         case 'Escape':
           event.preventDefault();
           setFocusedPath(null);
           updateSelection(DEFAULT_SELECTION);
+          updateFocusedNode(null);
           break;
         default:
           break;
       }
     },
-    [keyboardNavigation, updateViewport, zoomStep, fitView, setFocusedPath, updateSelection]
+    [
+      fitView,
+      focusedNodeId,
+      handleNodeSelection,
+      keyboardNavigation,
+      positionedNodes,
+      setFocusedPath,
+      updateFocusedNode,
+      updateSelection,
+      updateViewport,
+      zoomStep,
+    ]
   );
 
   const handleNodeMouseEnter = useCallback(
-    (nodeId: string) => setHoveredNodeId(nodeId),
-    [setHoveredNodeId]
+    (nodeId: string) => {
+      setHoveredNodeId(nodeId);
+      const node = positionedNodes.find((entry) => entry.id === nodeId);
+      if (node) {
+        emitNodeHover(node, true);
+      }
+    },
+    [emitNodeHover, positionedNodes, setHoveredNodeId]
   );
 
   const handleNodeMouseLeave = useCallback(() => {
+    if (hoveredNodeId) {
+      const node = positionedNodes.find((entry) => entry.id === hoveredNodeId);
+      if (node) {
+        emitNodeHover(node, false);
+      }
+    }
     setHoveredNodeId(null);
     setFocusedPath(null);
-  }, [setHoveredNodeId, setFocusedPath]);
+  }, [emitNodeHover, hoveredNodeId, positionedNodes, setFocusedPath, setHoveredNodeId]);
 
   const handlePathHover = useCallback(
     (nodeId: string, sourceIndex: number, pathKey?: string) => {
       setFocusedPath({ nodeId, sourceIndex, pathKey });
+      const node = positionedNodes.find((entry) => entry.id === nodeId);
+      if (node) {
+        emitNodeHover(node, true, 'path');
+      }
     },
-    [setFocusedPath]
+    [emitNodeHover, positionedNodes, setFocusedPath]
   );
 
   const handlePathLeave = useCallback(() => {
@@ -612,47 +894,21 @@ const GraphInner = (
 
   const handleEdgeHoverChange = useCallback(
     (edgeId: string, isHovered: boolean) => {
+      const edge = positionedEdges.find((entry) => entry.id === edgeId);
+      if (edge) {
+        emitEdgeHover(edge, isHovered);
+      }
+
       if (!cfg.hoverHighlight) {
         return;
       }
+
       setHoveredEdgeId(isHovered ? edgeId : null);
       if (isHovered) {
         setHoveredNodeId(null);
       }
     },
-    [cfg.hoverHighlight, setHoveredEdgeId, setHoveredNodeId]
-  );
-
-  const handleNodeSelection = useCallback(
-    (node: PositionedNode) => {
-      if (!nodeSelectionEnabled) {
-        onNodeClick?.(node);
-        return;
-      }
-
-      updateSelection((current) => ({
-        nodeIds: toggleId(current.nodeIds, node.id, selectionMode),
-        edgeIds: selectionMode === 'single' ? [] : current.edgeIds,
-      }));
-      onNodeClick?.(node);
-    },
-    [nodeSelectionEnabled, onNodeClick, selectionMode, updateSelection]
-  );
-
-  const handleEdgeSelection = useCallback(
-    (edge: PositionedEdge) => {
-      if (!edgeSelectionEnabled) {
-        onEdgeClick?.(edge);
-        return;
-      }
-
-      updateSelection((current) => ({
-        nodeIds: selectionMode === 'single' ? [] : current.nodeIds,
-        edgeIds: toggleId(current.edgeIds, edge.id, selectionMode),
-      }));
-      onEdgeClick?.(edge);
-    },
-    [edgeSelectionEnabled, onEdgeClick, selectionMode, updateSelection]
+    [cfg.hoverHighlight, emitEdgeHover, positionedEdges, setHoveredEdgeId, setHoveredNodeId]
   );
 
   const svgStyle = useMemo(
@@ -670,8 +926,10 @@ const GraphInner = (
 
   const controlsOrigin = useMemo(
     () => getControlPosition(cfg.width, cfg.height, controlsPosition),
-    [cfg.width, cfg.height, controlsPosition]
+    [cfg.height, cfg.width, controlsPosition]
   );
+
+  const selectionRect = selectionBox ? normalizeRect(selectionBox) : null;
 
   const viewportControls = showControls ? (
     <g
@@ -682,32 +940,34 @@ const GraphInner = (
         {
           key: 'zoom-in',
           label: '+',
+          width: CONTROL_BUTTON_SIZE,
           onClick: () => updateViewport((current) => ({ zoom: current.zoom + zoomStep })),
         },
         {
           key: 'zoom-out',
           label: '−',
+          width: CONTROL_BUTTON_SIZE,
           onClick: () => updateViewport((current) => ({ zoom: current.zoom - zoomStep })),
         },
         {
           key: 'fit-view',
           label: 'Fit',
+          width: 34,
           onClick: () => fitView(),
         },
         {
           key: 'reset-view',
           label: '1:1',
+          width: 34,
           onClick: () => updateViewport(DEFAULT_VIEWPORT),
         },
       ].map((control, index) => {
-        const x = index * (CONTROL_BUTTON_SIZE + CONTROL_BUTTON_GAP);
-        const width = control.label.length > 1 ? CONTROL_BUTTON_SIZE + 10 : CONTROL_BUTTON_SIZE;
-        const adjustedX = index === 0 ? 0 : x + (index > 1 ? 10 : 0);
+        const x = [0, 34, 68, 110][index] ?? index * (CONTROL_BUTTON_SIZE + CONTROL_BUTTON_GAP);
 
         return (
           <g
             key={control.key}
-            transform={`translate(${adjustedX}, 0)`}
+            transform={`translate(${x}, 0)`}
             role="button"
             tabIndex={0}
             onClick={(event) => {
@@ -723,7 +983,7 @@ const GraphInner = (
             }}
           >
             <rect
-              width={width}
+              width={control.width}
               height={CONTROL_BUTTON_SIZE}
               rx={7}
               ry={7}
@@ -731,7 +991,7 @@ const GraphInner = (
               stroke="rgba(15,23,42,0.18)"
             />
             <text
-              x={width / 2}
+              x={control.width / 2}
               y={CONTROL_BUTTON_SIZE / 2 + 4}
               textAnchor="middle"
               fontSize={control.label.length > 1 ? 10 : 16}
@@ -759,6 +1019,7 @@ const GraphInner = (
         if (event.target === event.currentTarget) {
           updateSelection(DEFAULT_SELECTION);
           setFocusedPath(null);
+          updateFocusedNode(null);
         }
       }}
       onPointerDown={handlePointerDown}
@@ -880,6 +1141,7 @@ const GraphInner = (
               node={node}
               Vertex={Vertex}
               isSelected={selectedNodeSet.has(node.id)}
+              isFocused={focusedNodeId === node.id}
               selectionColor={selectionColor}
               nodeBorderColor={nodeBorderColor}
               nodeBorderWidth={nodeBorderWidth}
@@ -890,6 +1152,7 @@ const GraphInner = (
               hoverNodeHighlight={cfg.hoverNodeHighlight}
               hoveredNodeStates={hoveredNodeStates ?? undefined}
               onNodeMeasure={handleNodeMeasure}
+              onNodeFocus={updateFocusedNode}
               onNodeClick={handleNodeSelection}
               onNodeMouseEnter={handleNodeMouseEnter}
               onNodeMouseLeave={handleNodeMouseLeave}
@@ -901,6 +1164,19 @@ const GraphInner = (
 
         {renderOverlay?.(renderContext)}
       </g>
+
+      {selectionRect ? (
+        <rect
+          x={selectionRect.x}
+          y={selectionRect.y}
+          width={selectionRect.width}
+          height={selectionRect.height}
+          fill="rgba(59, 130, 246, 0.12)"
+          stroke="rgba(59, 130, 246, 0.8)"
+          strokeDasharray="6 4"
+          pointerEvents="none"
+        />
+      ) : null}
 
       {viewportControls}
     </svg>

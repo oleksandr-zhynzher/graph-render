@@ -5,6 +5,7 @@ interface GraphNodeProps {
   node: PositionedNode;
   Vertex: VertexComponent;
   isSelected: boolean;
+  isFocused: boolean;
   selectionColor: string;
   nodeBorderColor?: string;
   nodeBorderWidth: number;
@@ -15,6 +16,7 @@ interface GraphNodeProps {
   hoverNodeHighlight: boolean;
   hoveredNodeStates: Map<string, { in?: boolean; out?: boolean }> | undefined;
   onNodeMeasure?: (nodeId: string, size: Size) => void;
+  onNodeFocus?: (nodeId: string) => void;
   onNodeClick?: (node: PositionedNode) => void;
   onNodeMouseEnter: (nodeId: string) => void;
   onNodeMouseLeave: () => void;
@@ -27,6 +29,7 @@ export const GraphNode = React.memo<GraphNodeProps>(
     node,
     Vertex,
     isSelected,
+    isFocused,
     selectionColor,
     nodeBorderColor,
     nodeBorderWidth,
@@ -37,6 +40,7 @@ export const GraphNode = React.memo<GraphNodeProps>(
     hoverNodeHighlight,
     hoveredNodeStates,
     onNodeMeasure,
+    onNodeFocus,
     onNodeClick,
     onNodeMouseEnter,
     onNodeMouseLeave,
@@ -101,6 +105,7 @@ export const GraphNode = React.memo<GraphNodeProps>(
     }, [node.id, node.label, node.meta, onNodeMeasure, width, height, isSelected, isHoveredNode]);
 
     const borderWidth = isSelected ? Math.max(2, nodeBorderWidth) : hasBorder ? nodeBorderWidth : 0;
+    const focusStrokeWidth = isFocused ? Math.max(2, borderWidth || 2) : 0;
 
     return (
       <g
@@ -110,6 +115,7 @@ export const GraphNode = React.memo<GraphNodeProps>(
         role="button"
         tabIndex={0}
         aria-selected={isSelected}
+        onFocus={() => onNodeFocus?.(node.id)}
         onClick={() => onNodeClick?.(node)}
         onMouseEnter={() => onNodeMouseEnter(node.id)}
         onMouseLeave={onNodeMouseLeave}
@@ -133,6 +139,22 @@ export const GraphNode = React.memo<GraphNodeProps>(
           strokeWidth={borderWidth}
           pointerEvents="none"
         />
+        {isFocused ? (
+          <rect
+            x={-3}
+            y={-3}
+            width={width + 6}
+            height={height + 6}
+            rx={radius + 2}
+            ry={radius + 2}
+            fill="none"
+            stroke={selectionColor}
+            strokeOpacity={0.7}
+            strokeWidth={focusStrokeWidth}
+            strokeDasharray="4 3"
+            pointerEvents="none"
+          />
+        ) : null}
         <Vertex
           node={node}
           isSelected={isSelected}

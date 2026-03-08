@@ -70,6 +70,12 @@ export interface GraphRenderContext {
   selection: GraphSelection;
 }
 
+export interface GraphHoverMeta {
+  viewport: GraphViewport;
+  selection: GraphSelection;
+  trigger: 'pointer' | 'path';
+}
+
 export interface GraphHandle {
   fitView: (padding?: number) => void;
   centerOnNode: (nodeId: string) => void;
@@ -119,6 +125,10 @@ export interface GraphProps {
   keyboardNavigation?: boolean;
   showControls?: boolean;
   controlsPosition?: GraphControlsPosition;
+  marqueeSelectionEnabled?: boolean;
+  focusedNodeId?: string | null;
+  defaultFocusedNodeId?: string | null;
+  onFocusedNodeChange?: (nodeId: string | null) => void;
   selectedNodeIds?: string[];
   selectedEdgeIds?: string[];
   defaultSelectedNodeIds?: string[];
@@ -137,6 +147,16 @@ export interface GraphProps {
   ) => CorePositionedEdge[];
   renderBackground?: (context: GraphRenderContext) => ReactNode;
   renderOverlay?: (context: GraphRenderContext) => ReactNode;
+  onNodeHoverChange?: (
+    node: CorePositionedNode,
+    hovered: boolean,
+    meta: GraphHoverMeta
+  ) => void;
+  onEdgeHoverChange?: (
+    edge: CorePositionedEdge,
+    hovered: boolean,
+    meta: GraphHoverMeta
+  ) => void;
   onNodeClick?: (node: CorePositionedNode) => void;
   onEdgeClick?: (edge: CorePositionedEdge) => void;
 }
