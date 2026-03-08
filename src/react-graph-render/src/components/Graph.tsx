@@ -11,6 +11,7 @@ import { layoutNodes, routeEdges, fromNxGraph, DEFAULT_THEME } from '@graph-rend
 import {
   DragState,
   GraphHandle,
+  GraphControlsPosition,
   GraphProps,
   GraphRenderContext,
   GraphSelection,
@@ -31,6 +32,53 @@ const DEFAULT_MIN_ZOOM = 0.25;
 const DEFAULT_MAX_ZOOM = 2.5;
 const DEFAULT_ZOOM_STEP = 0.12;
 const DEFAULT_SELECTION_COLOR = '#f59e0b';
+const DEFAULT_CONTROLS_POSITION: GraphControlsPosition = 'top-left';
+
+type PointerState = { x: number; y: number };
+type PinchState = {
+  active: boolean;
+  startDistance: number;
+  startZoom: number;
+  worldX: number;
+  worldY: number;
+};
+
+const CONTROL_BUTTON_SIZE = 26;
+const CONTROL_BUTTON_GAP = 8;
+
+const getControlPosition = (
+  width: number,
+  height: number,
+  position: GraphControlsPosition
+): { x: number; y: number } => {
+  const controlsWidth = CONTROL_BUTTON_SIZE * 4 + CONTROL_BUTTON_GAP * 3;
+  const controlsHeight = CONTROL_BUTTON_SIZE;
+  const inset = 12;
+
+  switch (position) {
+    case 'top-right':
+      return { x: width - controlsWidth - inset, y: inset };
+    case 'bottom-left':
+      return { x: inset, y: height - controlsHeight - inset };
+    case 'bottom-right':
+      return {
+        x: width - controlsWidth - inset,
+        y: height - controlsHeight - inset,
+      };
+    case 'top-left':
+    default:
+      return { x: inset, y: inset };
+  }
+};
+
+const getPointerDistance = (a: PointerState, b: PointerState): number => {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+};
+
+const getPointerMidpoint = (a: PointerState, b: PointerState): PointerState => ({
+  x: (a.x + b.x) / 2,
+  y: (a.y + b.y) / 2,
+});
 
 const normalizeViewport = (
   viewport: GraphViewport,
@@ -66,7 +114,10 @@ const GraphInner = (
     zoomStep = DEFAULT_ZOOM_STEP,
     panEnabled = true,
     zoomEnabled = true,
+    pinchZoomEnabled = true,
     keyboardNavigation = true,
+    showControls = false,
+    controlsPosition = DEFAULT_CONTROLS_POSITION,
     selectedNodeIds,
     selectedEdgeIds,
     defaultSelectedNodeIds,
@@ -100,6 +151,14 @@ const GraphInner = (
     startY: 0,
     originX: 0,
     originY: 0,
+  });
+  const activePointersRef = useRef<Map<number, PointerState>>(new Map());
+  const pinchRef = useRef<PinchState>({
+    active: false,
+    startDistance: 0,
+    startZoom: 1,
+    worldX: 0,
+    worldY: 0,
   });
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -267,6 +326,7 @@ const GraphInner = (
       centerOnNode,
       zoomIn: () => updateViewport((current) => ({ zoom: current.zoom + zoomStep })),
       zoomOut: () => updateViewport((current) => ({ zoom: current.zoom - zoomStep })),
+      zoomTo: (zoom: number) => updateViewport({ zoom }),
       resetViewport: () => updateViewport(DEFAULT_VIEWPORT),
       getViewport: () => viewport,
       setViewport: updateViewport,
@@ -306,6 +366,25 @@ const GraphInner = (
 
   const handlePointerDown = useCallback(
     (event: React.PointerEvent<SVGSVGElement>) => {
+      if (event.pointerType === 'touch') {
+        activePointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+        if (pinchZoomEnabled && zoomEnabled && activePointersRef.current.size === 2) {
+          const [first, second] = Array.from(activePointersRef.current.values());
+          const midpoint = getPointerMidpoint(first, second);
+          pinchRef.current = {
+            active: true,
+            startDistance: getPointerDistance(first, second),
+            startZoom: viewport.zoom,
+            worldX: (midpoint.x - viewport.x) / viewport.zoom,
+            worldY: (midpoint.y - viewport.y) / viewport.zoom,
+          };
+          dragRef.current.active = false;
+          (event.target as Element).setPointerCapture?.(event.pointerId);
+          return;
+        }
+      }
+
       if (!panEnabled || event.button !== 0) {
         return;
       }
@@ -331,6 +410,28 @@ const GraphInner = (
 
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<SVGSVGElement>) => {
+      if (event.pointerType === 'touch' && activePointersRef.current.has(event.pointerId)) {
+        activePointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+        if (pinchRef.current.active && activePointersRef.current.size >= 2) {
+          const [first, second] = Array.from(activePointersRef.current.values());
+          const midpoint = getPointerMidpoint(first, second);
+          const distance = getPointerDistance(first, second);
+          const nextZoom = clampZoom(
+            pinchRef.current.startZoom * (distance / Math.max(1, pinchRef.current.startDistance)),
+            minZoom,
+            maxZoom
+          );
+
+          updateViewport({
+            zoom: nextZoom,
+            x: midpoint.x - pinchRef.current.worldX * nextZoom,
+            y: midpoint.y - pinchRef.current.worldY * nextZoom,
+          });
+          return;
+        }
+      }
+
       if (!panEnabled || !dragRef.current.active) {
         return;
       }
@@ -346,6 +447,12 @@ const GraphInner = (
   );
 
   const handlePointerUp = useCallback((event: React.PointerEvent<SVGSVGElement>) => {
+    activePointersRef.current.delete(event.pointerId);
+
+    if (activePointersRef.current.size < 2) {
+      pinchRef.current.active = false;
+    }
+
     dragRef.current.active = false;
     (event.target as Element).releasePointerCapture?.(event.pointerId);
   }, []);
@@ -505,6 +612,84 @@ const GraphInner = (
     [mergedTheme.background, mergedTheme.fontFamily, panEnabled, zoomEnabled]
   );
 
+  const controlsOrigin = useMemo(
+    () => getControlPosition(cfg.width, cfg.height, controlsPosition),
+    [cfg.width, cfg.height, controlsPosition]
+  );
+
+  const viewportControls = showControls ? (
+    <g
+      aria-label="viewport-controls"
+      transform={`translate(${controlsOrigin.x}, ${controlsOrigin.y})`}
+    >
+      {[
+        {
+          key: 'zoom-in',
+          label: '+',
+          onClick: () => updateViewport((current) => ({ zoom: current.zoom + zoomStep })),
+        },
+        {
+          key: 'zoom-out',
+          label: '−',
+          onClick: () => updateViewport((current) => ({ zoom: current.zoom - zoomStep })),
+        },
+        {
+          key: 'fit-view',
+          label: 'Fit',
+          onClick: () => fitView(),
+        },
+        {
+          key: 'reset-view',
+          label: '1:1',
+          onClick: () => updateViewport(DEFAULT_VIEWPORT),
+        },
+      ].map((control, index) => {
+        const x = index * (CONTROL_BUTTON_SIZE + CONTROL_BUTTON_GAP);
+        const width = control.label.length > 1 ? CONTROL_BUTTON_SIZE + 10 : CONTROL_BUTTON_SIZE;
+        const adjustedX = index === 0 ? 0 : x + (index > 1 ? 10 : 0);
+
+        return (
+          <g
+            key={control.key}
+            transform={`translate(${adjustedX}, 0)`}
+            role="button"
+            tabIndex={0}
+            onClick={(event) => {
+              event.stopPropagation();
+              control.onClick();
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                event.stopPropagation();
+                control.onClick();
+              }
+            }}
+          >
+            <rect
+              width={width}
+              height={CONTROL_BUTTON_SIZE}
+              rx={7}
+              ry={7}
+              fill="rgba(255,255,255,0.92)"
+              stroke="rgba(15,23,42,0.18)"
+            />
+            <text
+              x={width / 2}
+              y={CONTROL_BUTTON_SIZE / 2 + 4}
+              textAnchor="middle"
+              fontSize={control.label.length > 1 ? 10 : 16}
+              fontWeight={700}
+              fill="#0f172a"
+            >
+              {control.label}
+            </text>
+          </g>
+        );
+      })}
+    </g>
+  ) : null;
+
   return (
     <svg
       ref={svgRef}
@@ -658,6 +843,8 @@ const GraphInner = (
 
         {renderOverlay?.(renderContext)}
       </g>
+
+      {viewportControls}
     </svg>
   );
 };

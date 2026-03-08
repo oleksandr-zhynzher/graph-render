@@ -74,6 +74,7 @@ export interface GraphHandle {
   centerOnNode: (nodeId: string) => void;
   zoomIn: () => void;
   zoomOut: () => void;
+  zoomTo: (zoom: number) => void;
   resetViewport: () => void;
   getViewport: () => GraphViewport;
   setViewport: (
@@ -92,6 +93,12 @@ export type DragState = {
   originY: number;
 };
 
+export type GraphControlsPosition =
+  | 'top-left'
+  | 'top-right'
+  | 'bottom-left'
+  | 'bottom-right';
+
 export interface GraphProps {
   graph: NxGraphInput;
   vertexComponent: VertexComponent;
@@ -107,7 +114,10 @@ export interface GraphProps {
   zoomStep?: number;
   panEnabled?: boolean;
   zoomEnabled?: boolean;
+  pinchZoomEnabled?: boolean;
   keyboardNavigation?: boolean;
+  showControls?: boolean;
+  controlsPosition?: GraphControlsPosition;
   selectedNodeIds?: string[];
   selectedEdgeIds?: string[];
   defaultSelectedNodeIds?: string[];
