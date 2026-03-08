@@ -11,7 +11,7 @@ export default defineConfig({
       fileName: (format) => (format === 'es' ? 'index.js' : 'index.cjs'),
     },
     rollupOptions: {
-      external: ['react', 'react-dom', '@graph-render/react'],
+      external: ['react', 'react-dom', '@graph-render/react', '@graph-render/types'],
     },
   },
   server: {

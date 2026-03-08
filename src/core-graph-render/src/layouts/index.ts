@@ -1,10 +1,10 @@
 import { PositionedNode, LayoutOptions, LayoutType, LayoutDirection } from '@graph-render/types';
-import { DEFAULT_NODE_GAP, DEFAULT_PADDING } from '../utils/constants';
+import { DEFAULT_NODE_GAP, DEFAULT_PADDING } from '../utils';
 import { gridLayout } from './grid';
 import { centeredLayout } from './centered';
 import { treeLayout } from './tree';
 
-export function layoutNodes(options: LayoutOptions): PositionedNode[] {
+export const layoutNodes = (options: LayoutOptions): PositionedNode[] => {
   const { nodes, edges, padding, theme, layout, width, height, layoutDirection } = options;
   const gap = theme?.nodeGap ?? DEFAULT_NODE_GAP;
   const pad = padding ?? DEFAULT_PADDING;
@@ -24,6 +24,6 @@ export function layoutNodes(options: LayoutOptions): PositionedNode[] {
   }
 
   return gridLayout(nodes, pad, gap);
-}
+};
 
 export { gridLayout, centeredLayout, treeLayout };

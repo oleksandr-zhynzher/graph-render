@@ -1,23 +1,30 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { VertexComponentProps } from '@graph-render/types';
 import type { SquashMatchMeta } from '../types';
 import { NODE_DIMENSIONS, DEFAULT_PLAYERS } from '../constants';
 import { useBracketTheme } from '../contexts/BracketThemeContext';
 
-// Add keyframes for pulse animation
-const styleTag = document.createElement('style');
-styleTag.textContent = `
-  @keyframes pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.5;
-    }
+function ensureSquashNodeAnimations(): void {
+  if (typeof document === 'undefined') {
+    return;
   }
-`;
-if (!document.querySelector('style[data-squash-node-animations]')) {
+
+  if (document.querySelector('style[data-squash-node-animations]')) {
+    return;
+  }
+
+  const styleTag = document.createElement('style');
   styleTag.setAttribute('data-squash-node-animations', 'true');
+  styleTag.textContent = `
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+  `;
   document.head.appendChild(styleTag);
 }
 
@@ -27,6 +34,10 @@ export const SquashNode = React.memo<VertexComponentProps>(function SquashNode({
   onPathHover,
   onPathLeave,
 }) {
+  useEffect(() => {
+    ensureSquashNodeAnimations();
+  }, []);
+
   const { colors: THEME_COLORS } = useBracketTheme();
 
   const meta = (node.meta as SquashMatchMeta | undefined) ?? {
@@ -136,7 +147,7 @@ export const SquashNode = React.memo<VertexComponentProps>(function SquashNode({
                   background: THEME_COLORS.ROW_BG,
                   opacity: playerOpacity,
                 }}
-                onMouseEnter={() => !isTBD && onPathHover?.(idx, { playerKey: p.name })}
+                onMouseEnter={() => !isTBD && onPathHover?.(idx, { pathKey: p.name })}
                 onMouseLeave={() => !isTBD && onPathLeave?.()}
               >
                 <div

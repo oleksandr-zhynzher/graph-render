@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useId, useMemo, useRef, useState } from 'react';
 import { layoutNodes, routeEdges, fromNxGraph, DEFAULT_THEME } from '@graph-render/core';
 import { GraphProps, PositionedNode, PositionedEdge, DragState } from '@graph-render/types';
 import { EdgePath } from './EdgePath';
@@ -14,6 +14,7 @@ export const Graph = React.memo<GraphProps>(function Graph({
   onNodeClick,
   onEdgeClick,
 }) {
+  const markerPrefix = useId().replace(/:/g, '-');
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const dragRef = useRef<DragState>({
     active: false,
@@ -40,8 +41,11 @@ export const Graph = React.memo<GraphProps>(function Graph({
     [cfg.hoverNodeBothColor, cfg.hoverEdgeColor]
   );
 
-  const nodeBorderColor = (mergedTheme as any).nodeBorderColor;
-  const nodeBorderWidth = (mergedTheme as any).nodeBorderWidth ?? 0;
+  const nodeBorderColor = mergedTheme.nodeBorderColor;
+  const nodeBorderWidth = mergedTheme.nodeBorderWidth ?? 0;
+  const arrowMarkerId = `${markerPrefix}-arrow`;
+  const hoverArrowMarkerId = `${markerPrefix}-arrow-hover`;
+  const hoverIncomingArrowMarkerId = `${markerPrefix}-arrow-hover-in`;
 
   const { nodes: sourceNodes, edges: sourceEdges } = useMemo(
     () => fromNxGraph(graph, cfg.defaultEdgeType),
@@ -64,10 +68,10 @@ export const Graph = React.memo<GraphProps>(function Graph({
         edges: normalizedEdges,
         theme: mergedTheme,
         padding: cfg.padding,
-        layout: cfg.layout as any,
+        layout: cfg.layout,
         width: cfg.width,
         height: cfg.height,
-        layoutDirection: cfg.layoutDirection as any,
+        layoutDirection: cfg.layoutDirection,
       }),
     [
       sourceNodes,
@@ -86,9 +90,17 @@ export const Graph = React.memo<GraphProps>(function Graph({
       routeEdges(positionedNodes, normalizedEdges, {
         arrowPadding: cfg.arrowPadding,
         straight: !cfg.curveEdges,
+        layoutDirection: cfg.layoutDirection,
         forceRightToLeft: cfg.forceRightToLeft,
       }),
-    [positionedNodes, normalizedEdges, cfg.arrowPadding, cfg.curveEdges, cfg.forceRightToLeft]
+    [
+      positionedNodes,
+      normalizedEdges,
+      cfg.arrowPadding,
+      cfg.curveEdges,
+      cfg.layoutDirection,
+      cfg.forceRightToLeft,
+    ]
   );
 
   const {
@@ -142,8 +154,8 @@ export const Graph = React.memo<GraphProps>(function Graph({
   }, [setHoveredNodeId, setFocusedPath]);
 
   const handlePathHover = useCallback(
-    (nodeId: string, sourceIndex: number, playerKey?: string) => {
-      setFocusedPath({ nodeId, sourceIndex, playerKey });
+    (nodeId: string, sourceIndex: number, pathKey?: string) => {
+      setFocusedPath({ nodeId, sourceIndex, pathKey });
     },
     [setFocusedPath]
   );
@@ -161,7 +173,6 @@ export const Graph = React.memo<GraphProps>(function Graph({
     [cfg.hoverHighlight, setHoveredEdgeId, setHoveredNodeId]
   );
 
-  // Memoize SVG style to avoid recreating object
   const svgStyle = useMemo(
     () => ({
       background: mergedTheme.background,
@@ -185,7 +196,7 @@ export const Graph = React.memo<GraphProps>(function Graph({
     >
       <defs>
         <marker
-          id="arrow"
+          id={arrowMarkerId}
           viewBox="0 0 10 10"
           refX="6"
           refY="5"
@@ -196,7 +207,7 @@ export const Graph = React.memo<GraphProps>(function Graph({
           <path d="M 0 0 L 10 5 L 0 10 z" fill={mergedTheme.edgeColor} />
         </marker>
         <marker
-          id="arrow-hover"
+          id={hoverArrowMarkerId}
           viewBox="0 0 10 10"
           refX="6"
           refY="5"
@@ -207,7 +218,7 @@ export const Graph = React.memo<GraphProps>(function Graph({
           <path d="M 0 0 L 10 5 L 0 10 z" fill={cfg.hoverEdgeColor} />
         </marker>
         <marker
-          id="arrow-hover-in"
+          id={hoverIncomingArrowMarkerId}
           viewBox="0 0 10 10"
           refX="6"
           refY="5"
@@ -222,8 +233,8 @@ export const Graph = React.memo<GraphProps>(function Graph({
       <g transform={`translate(${pan.x}, ${pan.y})`}>
         <GraphLabels
           positionedNodes={positionedNodes}
-          layout={cfg.layout as any}
-          layoutDirection={cfg.layoutDirection as any}
+          layout={cfg.layout}
+          layoutDirection={cfg.layoutDirection}
           labels={cfg.labels}
           autoLabels={cfg.autoLabels}
           labelOffset={cfg.labelOffset}
@@ -252,13 +263,18 @@ export const Graph = React.memo<GraphProps>(function Graph({
                 width={mergedTheme.edgeWidth}
                 curveEdges={cfg.curveEdges}
                 curveStrength={cfg.curveStrength}
+                markerEnd={`url(#${arrowMarkerId})`}
                 isHovered={edgeHovered}
                 hoverColor={isIncomingToHovered ? cfg.hoverNodeOutColor : cfg.hoverEdgeColor}
-                hoverMarker={isIncomingToHovered ? 'url(#arrow-hover-in)' : 'url(#arrow-hover)'}
+                hoverMarker={
+                  isIncomingToHovered
+                    ? `url(#${hoverIncomingArrowMarkerId})`
+                    : `url(#${hoverArrowMarkerId})`
+                }
                 hoverEnabled={cfg.hoverHighlight}
                 hitStrokeWidth={mergedTheme.edgeWidth + 8}
                 hoverStrokeWidth={mergedTheme.edgeWidth + 1.5}
-                onHoverChange={(v) => handleEdgeHoverChange(edge.id, v)}
+                onHoverChange={(value) => handleEdgeHoverChange(edge.id, value)}
                 onClick={() => onEdgeClick?.(edge)}
               />
             );

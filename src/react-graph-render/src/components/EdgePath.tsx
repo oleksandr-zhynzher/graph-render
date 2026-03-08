@@ -7,6 +7,7 @@ export interface EdgePathProps {
   width: number;
   curveEdges: boolean;
   curveStrength: number;
+  markerEnd?: string;
   isHovered?: boolean;
   hoverColor: string;
   hoverMarker?: string;
@@ -23,6 +24,7 @@ export function EdgePath({
   width,
   curveEdges,
   curveStrength,
+  markerEnd,
   isHovered,
   hoverColor,
   hoverMarker,
@@ -45,6 +47,7 @@ export function EdgePath({
         pointerEvents="stroke"
         onMouseEnter={() => hoverEnabled && onHoverChange?.(true)}
         onMouseLeave={() => hoverEnabled && onHoverChange?.(false)}
+        onClick={onClick}
       />
       <path
         d={d}
@@ -55,11 +58,10 @@ export function EdgePath({
           edge.type === 'directed'
             ? isHovered
               ? (hoverMarker ?? 'url(#arrow-hover)')
-              : 'url(#arrow)'
+              : markerEnd
             : undefined
         }
         pointerEvents="none"
-        onClick={onClick}
       />
     </>
   );

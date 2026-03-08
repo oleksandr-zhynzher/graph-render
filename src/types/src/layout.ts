@@ -1,4 +1,4 @@
-import { NodeData, PositionedNode } from './node';
+import { NodeData } from './node';
 import { EdgeData } from './edge';
 import { GraphTheme, GraphConfig } from './config';
 

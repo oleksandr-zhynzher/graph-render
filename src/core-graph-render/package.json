@@ -1,7 +1,7 @@
 {
   "name": "@graph-render/core",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,8 +13,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "render": "ts-node src/render.ts"
+    "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@graph-render/types": "^0.1.0"

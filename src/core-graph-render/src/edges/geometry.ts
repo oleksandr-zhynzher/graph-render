@@ -3,17 +3,17 @@ import { PositionedNode, Point, Size, NodeSide } from '@graph-render/types';
 /**
  * Calculate the center point of a node
  */
-export function getNodeCenter(node: PositionedNode, size: Size): Point {
+export const getNodeCenter = (node: PositionedNode, size: Size): Point => {
   return {
     x: node.position.x + size.width / 2,
     y: node.position.y + size.height / 2,
   };
-}
+};
 
 /**
  * Get the point at the center of a node's side
  */
-export function getSideCenter(node: PositionedNode, size: Size, side: NodeSide): Point {
+export const getSideCenter = (node: PositionedNode, size: Size, side: NodeSide): Point => {
   const cx = node.position.x + size.width / 2;
   const cy = node.position.y + size.height / 2;
   switch (side) {
@@ -26,18 +26,18 @@ export function getSideCenter(node: PositionedNode, size: Size, side: NodeSide):
     case NodeSide.Bottom:
       return { x: cx, y: node.position.y + size.height };
   }
-}
+};
 
 /**
  * Get anchor point on a node's side with offset and inset
  */
-export function getAnchorPoint(
+export const getAnchorPoint = (
   node: PositionedNode,
   size: Size,
   side: NodeSide,
   offset: number,
   inset: number
-): Point {
+): Point => {
   const cx = node.position.x + size.width / 2;
   const cy = node.position.y + size.height / 2;
   switch (side) {
@@ -50,12 +50,12 @@ export function getAnchorPoint(
     case NodeSide.Bottom:
       return { x: cx + offset, y: node.position.y + size.height + inset };
   }
-}
+};
 
 /**
  * Get the normal vector for a given side
  */
-export function getSideNormal(side: NodeSide): Point {
+export const getSideNormal = (side: NodeSide): Point => {
   switch (side) {
     case NodeSide.Left:
       return { x: -1, y: 0 };
@@ -66,12 +66,12 @@ export function getSideNormal(side: NodeSide): Point {
     case NodeSide.Bottom:
       return { x: 0, y: 1 };
   }
-}
+};
 
 /**
  * Get the inward normal vector for a given side
  */
-export function getSideInwardNormal(side: NodeSide): Point {
+export const getSideInwardNormal = (side: NodeSide): Point => {
   switch (side) {
     case NodeSide.Left:
       return { x: 1, y: 0 };
@@ -82,4 +82,4 @@ export function getSideInwardNormal(side: NodeSide): Point {
     case NodeSide.Bottom:
       return { x: 0, y: -1 };
   }
-}
+};

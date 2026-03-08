@@ -20,6 +20,8 @@ export interface GraphTheme {
   edgeWidth?: number;
   nodeGap?: number;
   fontFamily?: string;
+  nodeBorderColor?: string;
+  nodeBorderWidth?: number;
 }
 
 export interface GraphConfig {

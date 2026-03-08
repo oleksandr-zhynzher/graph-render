@@ -1,14 +1,34 @@
-import { EdgeType } from '@graph-render/types';
+import { EdgeType, GraphConfig, LayoutDirection, LayoutType } from '@graph-render/types';
 
-export const DEFAULT_CONFIG = {
+export const DEFAULT_CONFIG: Required<
+  Pick<
+    GraphConfig,
+    | 'width'
+    | 'height'
+    | 'defaultEdgeType'
+    | 'curveEdges'
+    | 'curveStrength'
+    | 'arrowPadding'
+    | 'layout'
+    | 'layoutDirection'
+    | 'autoLabels'
+    | 'labelOffset'
+    | 'hoverHighlight'
+    | 'hoverEdgeColor'
+    | 'hoverNodeInColor'
+    | 'hoverNodeOutColor'
+    | 'hoverNodeHighlight'
+  >
+> &
+  Pick<GraphConfig, 'hoverNodeBorderColor' | 'hoverNodeBothColor' | 'forceRightToLeft'> = {
   width: 960,
   height: 720,
-  defaultEdgeType: 'directed' as EdgeType,
+  defaultEdgeType: EdgeType.Directed,
   curveEdges: true,
   curveStrength: 0.3,
   arrowPadding: 6,
-  layout: 'centered' as const,
-  layoutDirection: 'ltr' as const,
+  layout: LayoutType.Centered,
+  layoutDirection: LayoutDirection.LTR,
   autoLabels: false,
   labelOffset: 32,
   hoverHighlight: true,

@@ -1,4 +1,5 @@
 import { PositionedNode, Size } from './node';
+import { LayoutDirection } from './config';
 
 export enum NodeSide {
   Left = 'left',
@@ -11,6 +12,7 @@ export interface RouteEdgesOptions {
   arrowPadding?: number;
   straight?: boolean;
   forceRightToLeft?: boolean;
+  layoutDirection?: LayoutDirection;
 }
 
 export interface EdgeRoutingContext {
@@ -22,5 +24,6 @@ export interface EdgeRoutingContext {
   arrowPadding: number;
   straight: boolean;
   forceRightToLeft: boolean;
+  layoutDirection: LayoutDirection;
   otherRects: Array<{ x: number; y: number; w: number; h: number }>;
 }

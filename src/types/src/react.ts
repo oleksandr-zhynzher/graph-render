@@ -2,9 +2,15 @@ import { ComponentType } from 'react';
 import { PositionedNode as CorePositionedNode } from './node';
 import { PositionedEdge as CorePositionedEdge, PositionedEdge } from './edge';
 import { GraphConfig } from './config';
+import { NxGraphInput } from './graph';
+
+export interface PathHoverOptions {
+  pathKey?: string;
+  playerKey?: string;
+}
 
 export interface VertexComponentProps {
-  node: CorePositionedNode & { label?: any };
+  node: CorePositionedNode;
   isSelected?: boolean;
   isHovered?: boolean;
   isHoveredIn?: boolean;
@@ -13,7 +19,7 @@ export interface VertexComponentProps {
   hoverInColor?: string;
   hoverOutColor?: string;
   hoverBothColor?: string;
-  onPathHover?: (sourceIndex: number | null, opts?: { playerKey?: string }) => void;
+  onPathHover?: (sourceIndex: number | null, opts?: PathHoverOptions) => void;
   onPathLeave?: () => void;
 }
 
@@ -43,13 +49,10 @@ export type DragState = {
   originY: number;
 };
 
-export interface GraphProps<TNodeAttrs = any, TEdgeAttrs = any> {
-  graph: {
-    nodes?: Record<string, TNodeAttrs>;
-    adj: Record<string, Record<string, TEdgeAttrs | TEdgeAttrs[]>>;
-  };
+export interface GraphProps {
+  graph: NxGraphInput;
   vertexComponent: VertexComponent;
   config?: GraphConfig;
-  onNodeClick?: (node: CorePositionedNode & { label?: any }) => void;
-  onEdgeClick?: (edge: CorePositionedEdge & { label?: any }) => void;
+  onNodeClick?: (node: CorePositionedNode) => void;
+  onEdgeClick?: (edge: CorePositionedEdge) => void;
 }

@@ -1,10 +1,10 @@
 import { Point } from '@graph-render/types';
 
-export function segmentIntersectsRect(
+export const segmentIntersectsRect = (
   p1: Point,
   p2: Point,
   rect: { x: number; y: number; w: number; h: number }
-): boolean {
+): boolean => {
   const { x, y, w, h } = rect;
   const minX = Math.min(p1.x, p2.x);
   const maxX = Math.max(p1.x, p2.x);
@@ -28,4 +28,4 @@ export function segmentIntersectsRect(
   const r3 = intersectsEdge(x + w, y + h, x, y + h);
   const r4 = intersectsEdge(x, y + h, x, y);
   return r1 || r2 || r3 || r4;
-}
+};

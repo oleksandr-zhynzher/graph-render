@@ -18,11 +18,18 @@ export function GraphLabels({
   autoLabels,
   labelOffset,
 }: GraphLabelsProps) {
-  const xs = Array.from(new Set(positionedNodes.map((n) => n.position.x))).sort((a, b) => a - b);
+  const columns = new Map<number, PositionedNode[]>();
+  positionedNodes.forEach((node) => {
+    const column = columns.get(node.position.x) ?? [];
+    column.push(node);
+    columns.set(node.position.x, column);
+  });
+
+  const xs = Array.from(columns.keys()).sort((a, b) => a - b);
 
   if (!xs.length) return null;
 
-  const levelCounts = xs.map((x) => positionedNodes.filter((n) => n.position.x === x).length);
+  const levelCounts = xs.map((x) => columns.get(x)?.length ?? 0);
 
   const inferred = levelCounts.map((count) => {
     const denom = count * 2;
@@ -36,9 +43,10 @@ export function GraphLabels({
 
   const minY = Math.min(...positionedNodes.map((n) => n.position.y));
   const y = minY - labelOffset;
-  const orderedXs = layout === 'tree' && layoutDirection === 'rtl' ? [...xs].reverse() : xs;
+  const orderedXs =
+    layout === LayoutType.Tree && layoutDirection === LayoutDirection.RTL ? [...xs].reverse() : xs;
   const orderedLabels =
-    layout === 'tree' && layoutDirection === 'rtl'
+    layout === LayoutType.Tree && layoutDirection === LayoutDirection.RTL
       ? [...effectiveLabels].reverse()
       : effectiveLabels;
 
@@ -50,7 +58,7 @@ export function GraphLabels({
     <g aria-label="labels">
       {orderedXs.map((x, idx) => {
         const label = orderedLabels[idx] ?? '';
-        const nodeWidth = positionedNodes.find((n) => n.position.x === x)?.size?.width ?? 0;
+        const nodeWidth = columns.get(x)?.[0]?.size?.width ?? 0;
         const cx = x + nodeWidth / 2;
 
         return (

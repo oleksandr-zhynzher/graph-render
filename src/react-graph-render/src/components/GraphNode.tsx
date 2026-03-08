@@ -56,7 +56,9 @@ export const GraphNode = React.memo<GraphNodeProps>(
             ? hoverNodeOutColor
             : isHoveredIn
               ? hoverNodeInColor
-              : nodeBorderColor
+              : isHoveredNode
+                ? hoverNodeBorderColor
+                : nodeBorderColor
         : nodeBorderColor;
 
     const borderOpacity = hasBorder ? (hoverNodeHighlight && isHoveredNode ? 1 : 0.4) : 0;
@@ -91,7 +93,8 @@ export const GraphNode = React.memo<GraphNodeProps>(
           hoverOutColor={hoverNodeOutColor}
           hoverBothColor={hoverNodeBothColor}
           onPathHover={(sourceIndex, opts) =>
-            sourceIndex !== null && onPathHover(node.id, sourceIndex, opts?.playerKey)
+            sourceIndex !== null &&
+            onPathHover(node.id, sourceIndex, opts?.pathKey ?? opts?.playerKey)
           }
           onPathLeave={onPathLeave}
         />

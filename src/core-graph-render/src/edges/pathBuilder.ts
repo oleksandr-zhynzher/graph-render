@@ -3,15 +3,15 @@ import { PositionedEdge, Point } from '@graph-render/types';
 /**
  * Build a straight line path from edge points
  */
-function buildStraightPath(points: Point[]): string {
+const buildStraightPath = (points: Point[]): string => {
   const [start, ...rest] = points;
   return [`M ${start.x} ${start.y}`, ...rest.map((pt) => `L ${pt.x} ${pt.y}`)].join(' ');
-}
+};
 
 /**
  * Build a curved path for two-point edges
  */
-function buildTwoPointCurvedPath(start: Point, end: Point, curveStrength: number): string {
+const buildTwoPointCurvedPath = (start: Point, end: Point, curveStrength: number): string => {
   if (start.y === end.y) {
     return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
   }
@@ -39,19 +39,19 @@ function buildTwoPointCurvedPath(start: Point, end: Point, curveStrength: number
     `Q ${midX} ${end.y} ${p4x} ${p4y}`,
     `L ${end.x} ${end.y}`,
   ].join(' ');
-}
+};
 
 /**
  * Build a quadratic bezier path for three-point edges
  */
-function buildThreePointPath(start: Point, control: Point, end: Point): string {
+const buildThreePointPath = (start: Point, control: Point, end: Point): string => {
   return `M ${start.x} ${start.y} Q ${control.x} ${control.y} ${end.x} ${end.y}`;
-}
+};
 
 /**
  * Build a cubic bezier path for six-point edges (standard curved edge)
  */
-function buildSixPointPath(points: Point[]): string {
+const buildSixPointPath = (points: Point[]): string => {
   const [start, out, c1, c2, straightIn, end] = points;
   return [
     `M ${start.x} ${start.y}`,
@@ -59,12 +59,12 @@ function buildSixPointPath(points: Point[]): string {
     `C ${c1.x} ${c1.y} ${c2.x} ${c2.y} ${straightIn.x} ${straightIn.y}`,
     `L ${end.x} ${end.y}`,
   ].join(' ');
-}
+};
 
 /**
  * Build a path with multiple quadratic curves for variable-length edges
  */
-function buildMultiPointPath(points: Point[]): string {
+const buildMultiPointPath = (points: Point[]): string => {
   const [start, ...rest] = points;
   const commands = [`M ${start.x} ${start.y}`];
 
@@ -90,16 +90,16 @@ function buildMultiPointPath(points: Point[]): string {
   }
 
   return commands.join(' ');
-}
+};
 
 /**
  * Build an SVG path string from edge points
  */
-export function buildEdgePath(
+export const buildEdgePath = (
   edge: PositionedEdge,
   curveEdges: boolean,
   curveStrength: number
-): string {
+): string => {
   if (edge.points.length < 2) return '';
 
   if (!curveEdges) {
@@ -121,4 +121,4 @@ export function buildEdgePath(
   }
 
   return buildMultiPointPath(edge.points);
-}
+};

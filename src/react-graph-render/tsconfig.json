@@ -1,16 +1,12 @@
 {
   "extends": "../../tsconfig.react.json",
   "compilerOptions": {
+    "composite": true,
     "outDir": "./dist",
     "emitDeclarationOnly": false,
-    "allowImportingTsExtensions": false,
-    "baseUrl": ".",
-    "paths": {
-      "@graph-render/core": ["../core-graph-render/dist"],
-      "@graph-render/types": ["../types/dist"]
-    }
+    "allowImportingTsExtensions": false
   },
   "include": ["src"],
   "exclude": ["dist", "node_modules"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "references": [{ "path": "./tsconfig.node.json" }, { "path": "../types" }, { "path": "../core-graph-render" }]
 }

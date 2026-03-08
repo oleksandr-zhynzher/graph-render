@@ -1,19 +1,19 @@
 {
   "extends": "../../tsconfig.react.json",
   "compilerOptions": {
+    "composite": true,
     "outDir": "./dist",
     "noEmit": false,
     "emitDeclarationOnly": false,
     "allowImportingTsExtensions": false,
-    "useDefineForClassFields": true,
-    "baseUrl": ".",
-    "paths": {
-      "@graph-render/react": ["../react-graph-render/dist"],
-      "@graph-render/core": ["../core-graph-render/dist"],
-      "@graph-render/types": ["../types/dist"]
-    }
+    "useDefineForClassFields": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "references": [
+    { "path": "./tsconfig.node.json" },
+    { "path": "../types" },
+    { "path": "../core-graph-render" },
+    { "path": "../react-graph-render" }
+  ]
 }

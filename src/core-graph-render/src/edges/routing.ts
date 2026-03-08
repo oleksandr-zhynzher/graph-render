@@ -8,8 +8,9 @@ import {
   Point,
   Size,
   EdgeType,
+  LayoutDirection,
 } from '@graph-render/types';
-import { DEFAULT_NODE_SIZE } from '../utils/constants';
+import { DEFAULT_NODE_SIZE } from '../utils';
 import { getNodeCenter, getAnchorPoint, getSideNormal, getSideInwardNormal } from './geometry';
 import {
   sortSidesByDistance,
@@ -25,7 +26,7 @@ import {
 /**
  * Create routing context for an edge
  */
-function createRoutingContext(
+const createRoutingContext = (
   source: PositionedNode,
   target: PositionedNode,
   sourceSize: Size,
@@ -34,8 +35,9 @@ function createRoutingContext(
   isUndirected: boolean,
   arrowPadding: number,
   straight: boolean,
-  forceRightToLeft: boolean
-): EdgeRoutingContext {
+  forceRightToLeft: boolean,
+  layoutDirection: LayoutDirection
+): EdgeRoutingContext => {
   return {
     source,
     target,
@@ -45,6 +47,7 @@ function createRoutingContext(
     arrowPadding,
     straight,
     forceRightToLeft,
+    layoutDirection,
     otherRects: nodes
       .filter((n) => n.id !== source.id && n.id !== target.id)
       .map((n) => ({
@@ -54,19 +57,19 @@ function createRoutingContext(
         h: n.size?.height ?? DEFAULT_NODE_SIZE.height,
       })),
   };
-}
+};
 
 /**
  * Find the best connection sides between source and target nodes
  */
-function findConnectionSides(
+const findConnectionSides = (
   source: PositionedNode,
   target: PositionedNode,
   sourceSize: Size,
   targetSize: Size,
   context: EdgeRoutingContext,
   isDirected: boolean
-): { sourceSide: NodeSide; targetSide: NodeSide } {
+): { sourceSide: NodeSide; targetSide: NodeSide } => {
   // If forceRightToLeft is enabled, always use right side for source and left side for target
   if (context.forceRightToLeft) {
     return { sourceSide: NodeSide.Right, targetSide: NodeSide.Left };
@@ -77,15 +80,19 @@ function findConnectionSides(
 
   const sortedTargetSides = sortSidesByDistance(target, targetSize, srcCenter);
   const sortedSourceSidesBase = sortSidesByDistance(source, sourceSize, tgtCenter);
-  const sortedSourceSides = applyDirectionalPreference(sortedSourceSidesBase, isDirected);
+  const sortedSourceSides = applyDirectionalPreference(
+    sortedSourceSidesBase,
+    isDirected,
+    context.layoutDirection
+  );
 
   return findNonIntersectingSides(context, sortedSourceSides, sortedTargetSides);
-}
+};
 
 /**
  * Calculate edge path points based on connection sides
  */
-function calculateEdgePoints(
+const calculateEdgePoints = (
   source: PositionedNode,
   target: PositionedNode,
   sourceSize: Size,
@@ -95,7 +102,7 @@ function calculateEdgePoints(
   isUndirected: boolean,
   arrowPadding: number,
   straight: boolean
-): Point[] {
+): Point[] => {
   const targetInset = isUndirected ? 0 : arrowPadding;
   const startPoint = getAnchorPoint(source, sourceSize, sourceSide, 0, 0);
   const endPoint = getAnchorPoint(target, targetSize, targetSide, 0, targetInset);
@@ -121,19 +128,20 @@ function calculateEdgePoints(
         leadOut,
         isUndirected
       );
-}
+};
 
 /**
  * Route a single edge between two nodes
  */
-function routeSingleEdge(
+const routeSingleEdge = (
   edge: EdgeData,
   nodeMap: Map<string, PositionedNode>,
   nodes: PositionedNode[],
   arrowPadding: number,
   straight: boolean,
-  forceRightToLeft: boolean
-): PositionedEdge {
+  forceRightToLeft: boolean,
+  layoutDirection: LayoutDirection
+): PositionedEdge => {
   const source = nodeMap.get(edge.source);
   const target = nodeMap.get(edge.target);
 
@@ -155,7 +163,8 @@ function routeSingleEdge(
     isUndirected,
     arrowPadding,
     straight,
-    forceRightToLeft
+    forceRightToLeft,
+    layoutDirection
   );
 
   const { sourceSide, targetSide } = findConnectionSides(
@@ -183,22 +192,23 @@ function routeSingleEdge(
     ...edge,
     points: edge.points ?? defaultPoints,
   };
-}
+};
 
 /**
  * Route edges between nodes, calculating the path points for each edge
  */
-export function routeEdges(
+export const routeEdges = (
   nodes: PositionedNode[],
   edges: EdgeData[],
   opts?: RouteEdgesOptions
-): PositionedEdge[] {
+): PositionedEdge[] => {
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
   const arrowPadding = Math.max(2, opts?.arrowPadding ?? 6);
   const straight = opts?.straight ?? false;
   const forceRightToLeft = opts?.forceRightToLeft ?? false;
+  const layoutDirection = opts?.layoutDirection ?? LayoutDirection.LTR;
 
   return edges.map((edge) =>
-    routeSingleEdge(edge, nodeMap, nodes, arrowPadding, straight, forceRightToLeft)
+    routeSingleEdge(edge, nodeMap, nodes, arrowPadding, straight, forceRightToLeft, layoutDirection)
   );
-}
+};

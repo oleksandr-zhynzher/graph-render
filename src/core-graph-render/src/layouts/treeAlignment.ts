@@ -5,13 +5,13 @@ import {
   TreeMetrics,
   LayoutDirection,
 } from '@graph-render/types';
-import { DEFAULT_NODE_SIZE } from '../utils/constants';
+import { DEFAULT_NODE_SIZE } from '../utils';
 import { calculateXPosition, calculateYPosition } from './treePositioning';
 
 /**
  * Position all nodes initially based on their level
  */
-export function positionNodesInLevels(
+export const positionNodesInLevels = (
   nodes: NodeData[],
   levels: string[][],
   levelMap: Map<string, number>,
@@ -19,7 +19,7 @@ export function positionNodesInLevels(
   gap: number,
   padding: number,
   direction: LayoutDirection
-): PositionedNode[] {
+): PositionedNode[] => {
   return nodes.map((node) => {
     if (node.position) return node as PositionedNode;
 
@@ -40,22 +40,22 @@ export function positionNodesInLevels(
 
     return { ...node, position: { x, y } } as PositionedNode;
   });
-}
+};
 
 /**
  * Get parent nodes for a given node
  */
-function getParentNodes(nodeId: string, edges: EdgeData[]): string[] {
+const getParentNodes = (nodeId: string, edges: EdgeData[]): string[] => {
   return edges.filter((e) => e.target === nodeId).map((e) => e.source);
-}
+};
 
 /**
  * Calculate average Y center of parent nodes
  */
-function calculateParentCentersAverage(
+const calculateParentCentersAverage = (
   parentIds: string[],
   posMap: Map<string, PositionedNode>
-): number | null {
+): number | null => {
   const centers = parentIds
     .map((src) => posMap.get(src))
     .filter((n): n is PositionedNode => !!n)
@@ -63,17 +63,17 @@ function calculateParentCentersAverage(
 
   if (!centers.length) return null;
   return centers.reduce((a, b) => a + b, 0) / centers.length;
-}
+};
 
 /**
  * Align nodes with multiple parents to their parent's average position
  */
-export function alignNodesToParents(
+export const alignNodesToParents = (
   positioned: PositionedNode[],
   edges: EdgeData[],
   levels: string[][],
   maxLevel: number
-): PositionedNode[] {
+): PositionedNode[] => {
   const posMap = new Map<string, PositionedNode>();
   positioned.forEach((n) => posMap.set(n.id, n));
 
@@ -100,4 +100,4 @@ export function alignNodesToParents(
   }
 
   return Array.from(posMap.values());
-}
+};

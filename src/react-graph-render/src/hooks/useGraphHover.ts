@@ -1,20 +1,18 @@
 import { useMemo, useState } from 'react';
 import { PositionedEdge, EdgeId } from '@graph-render/types';
+import { groupEdgesByTarget, sortEdgesBySourcePosition } from '@graph-render/core';
 import {
-  traverseGraphPath,
-  extractPlayerNamesFromNodes,
-  groupEdgesByTarget,
-  sortEdgesBySourcePosition,
-} from '@graph-render/core';
-
-export interface FocusedPath {
-  nodeId: string;
-  sourceIndex: number | null;
-  playerKey?: string;
-}
+  extractPathKeysFromNodes,
+  FocusedPath,
+  traverseHighlightedPath,
+} from '../utils/pathHighlight';
 
 export function useGraphHover(
-  positionedNodes: Array<{ id: string; position: { x: number; y: number }; meta?: any }>,
+  positionedNodes: Array<{
+    id: string;
+    position: { x: number; y: number };
+    meta?: Record<string, unknown>;
+  }>,
   positionedEdges: PositionedEdge[],
   hoverHighlight: boolean
 ) {
@@ -28,8 +26,8 @@ export function useGraphHover(
     return m;
   }, [positionedNodes]);
 
-  const playerNamesByNode = useMemo(
-    () => extractPlayerNamesFromNodes(positionedNodes),
+  const pathKeysByNode = useMemo(
+    () => extractPathKeysFromNodes(positionedNodes),
     [positionedNodes]
   );
 
@@ -44,14 +42,14 @@ export function useGraphHover(
   const pathHighlight = useMemo(() => {
     if (!focusedPath) return null;
 
-    return traverseGraphPath({
+    return traverseHighlightedPath({
       startNodeId: focusedPath.nodeId,
       sourceIndex: focusedPath.sourceIndex,
-      playerKey: focusedPath.playerKey,
+      pathKey: focusedPath.pathKey,
       incomingEdgesByTarget,
-      playerNamesByNode,
+      pathKeysByNode,
     });
-  }, [focusedPath, incomingEdgesByTarget, playerNamesByNode]);
+  }, [focusedPath, incomingEdgesByTarget, pathKeysByNode]);
 
   const hoveredNodeStates = useMemo(() => {
     if (!hoverHighlight && !pathHighlight) return null;

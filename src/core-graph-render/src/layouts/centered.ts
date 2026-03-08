@@ -1,45 +1,45 @@
 import { NodeData, PositionedNode, Point } from '@graph-render/types';
-import { DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils/constants';
+import { DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
 
 /**
  * Calculate the center point of the container
  */
-function getContainerCenter(width: number, height: number): Point {
+const getContainerCenter = (width: number, height: number): Point => {
   return {
     x: width / 2,
     y: height / 2,
   };
-}
+};
 
 /**
  * Calculate the maximum node dimensions
  */
-function getMaxNodeDimensions(nodes: NodeData[]): { maxWidth: number; maxHeight: number } {
+const getMaxNodeDimensions = (nodes: NodeData[]): { maxWidth: number; maxHeight: number } => {
   const maxWidth = Math.max(...nodes.map((n) => n.size?.width ?? DEFAULT_NODE_SIZE.width));
   const maxHeight = Math.max(...nodes.map((n) => n.size?.height ?? DEFAULT_NODE_SIZE.height));
   return { maxWidth, maxHeight };
-}
+};
 
 /**
  * Calculate radius for circular layout
  */
-function calculateCircleRadius(
+const calculateCircleRadius = (
   width: number,
   height: number,
   padding: number,
   maxNodeWidth: number,
   maxNodeHeight: number
-): number {
+): number => {
   return Math.max(
     0,
     Math.min(width, height) / 2 - padding - Math.max(maxNodeWidth, maxNodeHeight) / 2
   );
-}
+};
 
 /**
  * Position a single node in the center
  */
-function positionSingleNode(node: NodeData, centerX: number, centerY: number): PositionedNode {
+const positionSingleNode = (node: NodeData, centerX: number, centerY: number): PositionedNode => {
   const nodeWidth = node.size?.width ?? DEFAULT_NODE_SIZE.width;
   const nodeHeight = node.size?.height ?? DEFAULT_NODE_SIZE.height;
   return {
@@ -49,12 +49,12 @@ function positionSingleNode(node: NodeData, centerX: number, centerY: number): P
       y: centerY - nodeHeight / 2,
     },
   } as PositionedNode;
-}
+};
 
 /**
  * Calculate position on a circle for a node at given index
  */
-function calculateCircularPosition(
+const calculateCircularPosition = (
   index: number,
   total: number,
   centerX: number,
@@ -62,23 +62,23 @@ function calculateCircularPosition(
   radius: number,
   nodeWidth: number,
   nodeHeight: number
-): Point {
+): Point => {
   const angle = (2 * Math.PI * index) / total - Math.PI / 2;
   return {
     x: centerX + radius * Math.cos(angle) - nodeWidth / 2,
     y: centerY + radius * Math.sin(angle) - nodeHeight / 2,
   };
-}
+};
 
 /**
  * Layout nodes in a circular pattern around the center
  */
-export function centeredLayout(
+export const centeredLayout = (
   nodes: NodeData[],
   pad: number = DEFAULT_PADDING,
   width: number = 960,
   height: number = 720
-): PositionedNode[] {
+): PositionedNode[] => {
   const count = nodes.length;
 
   if (count === 0) return [] as PositionedNode[];
@@ -109,4 +109,4 @@ export function centeredLayout(
 
     return { ...node, position } as PositionedNode;
   });
-}
+};
