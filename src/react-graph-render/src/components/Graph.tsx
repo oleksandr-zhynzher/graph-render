@@ -1,21 +1,99 @@
-import React, { useCallback, useId, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useId,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { layoutNodes, routeEdges, fromNxGraph, DEFAULT_THEME } from '@graph-render/core';
-import { GraphProps, PositionedNode, PositionedEdge, DragState } from '@graph-render/types';
+import {
+  DragState,
+  GraphHandle,
+  GraphProps,
+  GraphRenderContext,
+  GraphSelection,
+  GraphViewport,
+  PositionedEdge,
+  PositionedNode,
+} from '@graph-render/types';
 import { EdgePath } from './EdgePath';
 import { GraphLabels } from './GraphLabels';
 import { GraphNode } from './GraphNode';
 import { useGraphHover } from '../hooks/useGraphHover';
 import { DEFAULT_CONFIG } from '../constants/defaults';
+import { centerViewportOnNode, clampZoom, getFitViewport, getGraphBounds } from '../utils/viewport';
 
-export const Graph = React.memo<GraphProps>(function Graph({
-  graph,
-  vertexComponent: Vertex,
-  config,
-  onNodeClick,
-  onEdgeClick,
-}) {
+const DEFAULT_VIEWPORT: GraphViewport = { x: 0, y: 0, zoom: 1 };
+const DEFAULT_SELECTION: GraphSelection = { nodeIds: [], edgeIds: [] };
+const DEFAULT_MIN_ZOOM = 0.25;
+const DEFAULT_MAX_ZOOM = 2.5;
+const DEFAULT_ZOOM_STEP = 0.12;
+const DEFAULT_SELECTION_COLOR = '#f59e0b';
+
+const normalizeViewport = (
+  viewport: GraphViewport,
+  minZoom: number,
+  maxZoom: number
+): GraphViewport => ({
+  x: Number.isFinite(viewport.x) ? viewport.x : 0,
+  y: Number.isFinite(viewport.y) ? viewport.y : 0,
+  zoom: clampZoom(Number.isFinite(viewport.zoom) ? viewport.zoom : 1, minZoom, maxZoom),
+});
+
+const toggleId = (values: string[], id: string, selectionMode: 'single' | 'multiple'): string[] => {
+  if (selectionMode === 'single') {
+    return values.length === 1 && values[0] === id ? [] : [id];
+  }
+
+  return values.includes(id) ? values.filter((value) => value !== id) : [...values, id];
+};
+
+const GraphInner = (
+  {
+    graph,
+    vertexComponent: Vertex,
+    edgeComponent: EdgeComponent = EdgePath,
+    config,
+    viewport: controlledViewport,
+    defaultViewport,
+    onViewportChange,
+    fitViewOnMount = false,
+    fitViewPadding = 32,
+    minZoom = DEFAULT_MIN_ZOOM,
+    maxZoom = DEFAULT_MAX_ZOOM,
+    zoomStep = DEFAULT_ZOOM_STEP,
+    panEnabled = true,
+    zoomEnabled = true,
+    keyboardNavigation = true,
+    selectedNodeIds,
+    selectedEdgeIds,
+    defaultSelectedNodeIds,
+    defaultSelectedEdgeIds,
+    onSelectionChange,
+    selectionMode = 'single',
+    nodeSelectionEnabled = true,
+    edgeSelectionEnabled = true,
+    selectionColor = DEFAULT_SELECTION_COLOR,
+    edgeSelectionColor,
+    layoutNodesOverride,
+    routeEdgesOverride,
+    renderBackground,
+    renderOverlay,
+    onNodeClick,
+    onEdgeClick,
+  }: GraphProps,
+  ref: React.ForwardedRef<GraphHandle>
+) => {
   const markerPrefix = useId().replace(/:/g, '-');
-  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [internalViewport, setInternalViewport] = useState<GraphViewport>(() =>
+    normalizeViewport({ ...DEFAULT_VIEWPORT, ...(defaultViewport ?? {}) }, minZoom, maxZoom)
+  );
+  const [internalSelection, setInternalSelection] = useState<GraphSelection>({
+    nodeIds: defaultSelectedNodeIds ?? [],
+    edgeIds: defaultSelectedEdgeIds ?? [],
+  });
   const dragRef = useRef<DragState>({
     active: false,
     startX: 0,
@@ -23,6 +101,7 @@ export const Graph = React.memo<GraphProps>(function Graph({
     originX: 0,
     originY: 0,
   });
+  const svgRef = useRef<SVGSVGElement>(null);
 
   const mergedTheme = useMemo(
     () => ({ ...DEFAULT_THEME, ...(config?.theme ?? {}) }),
@@ -30,22 +109,76 @@ export const Graph = React.memo<GraphProps>(function Graph({
   );
 
   const cfg = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config]);
-
+  const selectionEdgeColor = edgeSelectionColor ?? selectionColor;
   const hoverNodeBorderColor = useMemo(
     () => cfg.hoverNodeBorderColor ?? cfg.hoverEdgeColor,
     [cfg.hoverNodeBorderColor, cfg.hoverEdgeColor]
   );
-
   const hoverNodeBothColor = useMemo(
     () => cfg.hoverNodeBothColor ?? cfg.hoverEdgeColor,
     [cfg.hoverNodeBothColor, cfg.hoverEdgeColor]
   );
-
   const nodeBorderColor = mergedTheme.nodeBorderColor;
   const nodeBorderWidth = mergedTheme.nodeBorderWidth ?? 0;
   const arrowMarkerId = `${markerPrefix}-arrow`;
   const hoverArrowMarkerId = `${markerPrefix}-arrow-hover`;
   const hoverIncomingArrowMarkerId = `${markerPrefix}-arrow-hover-in`;
+  const selectionArrowMarkerId = `${markerPrefix}-arrow-selected`;
+
+  const viewport = useMemo(
+    () => normalizeViewport(controlledViewport ?? internalViewport, minZoom, maxZoom),
+    [controlledViewport, internalViewport, minZoom, maxZoom]
+  );
+
+  const selection = useMemo<GraphSelection>(
+    () => ({
+      nodeIds: selectedNodeIds ?? internalSelection.nodeIds,
+      edgeIds: selectedEdgeIds ?? internalSelection.edgeIds,
+    }),
+    [selectedNodeIds, selectedEdgeIds, internalSelection]
+  );
+
+  const selectedNodeSet = useMemo(() => new Set(selection.nodeIds), [selection.nodeIds]);
+  const selectedEdgeSet = useMemo(() => new Set(selection.edgeIds), [selection.edgeIds]);
+
+  const updateViewport = useCallback(
+    (
+      next:
+        | Partial<GraphViewport>
+        | ((current: GraphViewport) => Partial<GraphViewport> | GraphViewport)
+    ) => {
+      const rawNext = typeof next === 'function' ? next(viewport) : next;
+      const normalized = normalizeViewport(
+        {
+          ...viewport,
+          ...rawNext,
+        },
+        minZoom,
+        maxZoom
+      );
+
+      if (!controlledViewport) {
+        setInternalViewport(normalized);
+      }
+      onViewportChange?.(normalized);
+      return normalized;
+    },
+    [viewport, minZoom, maxZoom, controlledViewport, onViewportChange]
+  );
+
+  const updateSelection = useCallback(
+    (next: GraphSelection | ((current: GraphSelection) => GraphSelection)) => {
+      const resolved = typeof next === 'function' ? next(selection) : next;
+      if (selectedNodeIds == null || selectedEdgeIds == null) {
+        setInternalSelection((current) => ({
+          nodeIds: selectedNodeIds == null ? resolved.nodeIds : current.nodeIds,
+          edgeIds: selectedEdgeIds == null ? resolved.edgeIds : current.edgeIds,
+        }));
+      }
+      onSelectionChange?.(resolved);
+    },
+    [selection, selectedNodeIds, selectedEdgeIds, onSelectionChange]
+  );
 
   const { nodes: sourceNodes, edges: sourceEdges } = useMemo(
     () => fromNxGraph(graph, cfg.defaultEdgeType),
@@ -61,18 +194,17 @@ export const Graph = React.memo<GraphProps>(function Graph({
     [sourceEdges, cfg.defaultEdgeType]
   );
 
-  const positionedNodes: PositionedNode[] = useMemo(
-    () =>
-      layoutNodes({
-        nodes: sourceNodes,
-        edges: normalizedEdges,
-        theme: mergedTheme,
-        padding: cfg.padding,
-        layout: cfg.layout,
-        width: cfg.width,
-        height: cfg.height,
-        layoutDirection: cfg.layoutDirection,
-      }),
+  const layoutOptions = useMemo(
+    () => ({
+      nodes: sourceNodes,
+      edges: normalizedEdges,
+      theme: mergedTheme,
+      padding: cfg.padding,
+      layout: cfg.layout,
+      width: cfg.width,
+      height: cfg.height,
+      layoutDirection: cfg.layoutDirection,
+    }),
     [
       sourceNodes,
       normalizedEdges,
@@ -85,23 +217,69 @@ export const Graph = React.memo<GraphProps>(function Graph({
     ]
   );
 
+  const positionedNodes: PositionedNode[] = useMemo(
+    () => (layoutNodesOverride ? layoutNodesOverride(layoutOptions) : layoutNodes(layoutOptions)),
+    [layoutNodesOverride, layoutOptions]
+  );
+
+  const edgeRoutingOptions = useMemo(
+    () => ({
+      arrowPadding: cfg.arrowPadding,
+      straight: !cfg.curveEdges,
+      layoutDirection: cfg.layoutDirection,
+      forceRightToLeft: cfg.forceRightToLeft,
+    }),
+    [cfg.arrowPadding, cfg.curveEdges, cfg.layoutDirection, cfg.forceRightToLeft]
+  );
+
   const positionedEdges: PositionedEdge[] = useMemo(
     () =>
-      routeEdges(positionedNodes, normalizedEdges, {
-        arrowPadding: cfg.arrowPadding,
-        straight: !cfg.curveEdges,
-        layoutDirection: cfg.layoutDirection,
-        forceRightToLeft: cfg.forceRightToLeft,
-      }),
-    [
-      positionedNodes,
-      normalizedEdges,
-      cfg.arrowPadding,
-      cfg.curveEdges,
-      cfg.layoutDirection,
-      cfg.forceRightToLeft,
-    ]
+      routeEdgesOverride
+        ? routeEdgesOverride(positionedNodes, normalizedEdges, edgeRoutingOptions)
+        : routeEdges(positionedNodes, normalizedEdges, edgeRoutingOptions),
+    [routeEdgesOverride, positionedNodes, normalizedEdges, edgeRoutingOptions]
   );
+
+  const graphBounds = useMemo(() => getGraphBounds(positionedNodes), [positionedNodes]);
+
+  const fitView = useCallback(
+    (padding: number = fitViewPadding) => {
+      updateViewport(getFitViewport(graphBounds, cfg.width, cfg.height, padding, minZoom, maxZoom));
+    },
+    [updateViewport, graphBounds, cfg.width, cfg.height, fitViewPadding, minZoom, maxZoom]
+  );
+
+  const centerOnNode = useCallback(
+    (nodeId: string) => {
+      const node = positionedNodes.find((item) => item.id === nodeId);
+      if (!node) {
+        return;
+      }
+      updateViewport(centerViewportOnNode(node, cfg.width, cfg.height, viewport.zoom));
+    },
+    [positionedNodes, cfg.width, cfg.height, updateViewport, viewport.zoom]
+  );
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      fitView,
+      centerOnNode,
+      zoomIn: () => updateViewport((current) => ({ zoom: current.zoom + zoomStep })),
+      zoomOut: () => updateViewport((current) => ({ zoom: current.zoom - zoomStep })),
+      resetViewport: () => updateViewport(DEFAULT_VIEWPORT),
+      getViewport: () => viewport,
+      setViewport: updateViewport,
+      clearSelection: () => updateSelection(DEFAULT_SELECTION),
+    }),
+    [fitView, centerOnNode, updateViewport, updateSelection, viewport, zoomStep]
+  );
+
+  useEffect(() => {
+    if (fitViewOnMount) {
+      fitView();
+    }
+  }, [fitViewOnMount, fitView, graphBounds]);
 
   const {
     hoveredEdgeId,
@@ -114,34 +292,139 @@ export const Graph = React.memo<GraphProps>(function Graph({
     edgesForRender,
   } = useGraphHover(positionedNodes, positionedEdges, cfg.hoverHighlight);
 
-  const handlePointerDown = useCallback(
-    (e: React.PointerEvent<SVGSVGElement>) => {
-      dragRef.current = {
-        active: true,
-        startX: e.clientX,
-        startY: e.clientY,
-        originX: pan.x,
-        originY: pan.y,
-      };
-      (e.target as Element).setPointerCapture?.(e.pointerId);
-    },
-    [pan.x, pan.y]
+  const renderContext = useMemo<GraphRenderContext>(
+    () => ({
+      graph,
+      nodes: positionedNodes,
+      edges: positionedEdges,
+      config: cfg,
+      viewport,
+      selection,
+    }),
+    [graph, positionedNodes, positionedEdges, cfg, viewport, selection]
   );
 
-  const handlePointerMove = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
-    if (!dragRef.current.active) return;
-    const dx = e.clientX - dragRef.current.startX;
-    const dy = e.clientY - dragRef.current.startY;
-    setPan({
-      x: dragRef.current.originX + dx,
-      y: dragRef.current.originY + dy,
-    });
+  const handlePointerDown = useCallback(
+    (event: React.PointerEvent<SVGSVGElement>) => {
+      if (!panEnabled || event.button !== 0) {
+        return;
+      }
+
+      const target = event.target as Element;
+      if (
+        target.closest('[data-graph-node-interactive="true"], [data-graph-edge-interactive="true"]')
+      ) {
+        return;
+      }
+
+      dragRef.current = {
+        active: true,
+        startX: event.clientX,
+        startY: event.clientY,
+        originX: viewport.x,
+        originY: viewport.y,
+      };
+      target.setPointerCapture?.(event.pointerId);
+    },
+    [panEnabled, viewport.x, viewport.y]
+  );
+
+  const handlePointerMove = useCallback(
+    (event: React.PointerEvent<SVGSVGElement>) => {
+      if (!panEnabled || !dragRef.current.active) {
+        return;
+      }
+
+      const dx = event.clientX - dragRef.current.startX;
+      const dy = event.clientY - dragRef.current.startY;
+      updateViewport({
+        x: dragRef.current.originX + dx,
+        y: dragRef.current.originY + dy,
+      });
+    },
+    [panEnabled, updateViewport]
+  );
+
+  const handlePointerUp = useCallback((event: React.PointerEvent<SVGSVGElement>) => {
+    dragRef.current.active = false;
+    (event.target as Element).releasePointerCapture?.(event.pointerId);
   }, []);
 
-  const handlePointerUp = useCallback((e: React.PointerEvent<SVGSVGElement>) => {
-    dragRef.current.active = false;
-    (e.target as Element).releasePointerCapture?.(e.pointerId);
-  }, []);
+  const handleWheel = useCallback(
+    (event: React.WheelEvent<SVGSVGElement>) => {
+      if (!zoomEnabled || !svgRef.current) {
+        return;
+      }
+
+      event.preventDefault();
+      const rect = svgRef.current.getBoundingClientRect();
+      const pointerX = event.clientX - rect.left;
+      const pointerY = event.clientY - rect.top;
+      const worldX = (pointerX - viewport.x) / viewport.zoom;
+      const worldY = (pointerY - viewport.y) / viewport.zoom;
+      const nextZoom = clampZoom(
+        viewport.zoom + (event.deltaY < 0 ? zoomStep : -zoomStep),
+        minZoom,
+        maxZoom
+      );
+
+      updateViewport({
+        zoom: nextZoom,
+        x: pointerX - worldX * nextZoom,
+        y: pointerY - worldY * nextZoom,
+      });
+    },
+    [zoomEnabled, viewport, zoomStep, minZoom, maxZoom, updateViewport]
+  );
+
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<SVGSVGElement>) => {
+      if (!keyboardNavigation) {
+        return;
+      }
+
+      switch (event.key) {
+        case '+':
+        case '=':
+          event.preventDefault();
+          updateViewport((current) => ({ zoom: current.zoom + zoomStep }));
+          break;
+        case '-':
+        case '_':
+          event.preventDefault();
+          updateViewport((current) => ({ zoom: current.zoom - zoomStep }));
+          break;
+        case '0':
+          event.preventDefault();
+          fitView();
+          break;
+        case 'ArrowLeft':
+          event.preventDefault();
+          updateViewport((current) => ({ x: current.x + 32 }));
+          break;
+        case 'ArrowRight':
+          event.preventDefault();
+          updateViewport((current) => ({ x: current.x - 32 }));
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          updateViewport((current) => ({ y: current.y + 32 }));
+          break;
+        case 'ArrowDown':
+          event.preventDefault();
+          updateViewport((current) => ({ y: current.y - 32 }));
+          break;
+        case 'Escape':
+          event.preventDefault();
+          setFocusedPath(null);
+          updateSelection(DEFAULT_SELECTION);
+          break;
+        default:
+          break;
+      }
+    },
+    [keyboardNavigation, updateViewport, zoomStep, fitView, setFocusedPath, updateSelection]
+  );
 
   const handleNodeMouseEnter = useCallback(
     (nodeId: string) => setHoveredNodeId(nodeId),
@@ -166,33 +449,83 @@ export const Graph = React.memo<GraphProps>(function Graph({
 
   const handleEdgeHoverChange = useCallback(
     (edgeId: string, isHovered: boolean) => {
-      if (!cfg.hoverHighlight) return;
+      if (!cfg.hoverHighlight) {
+        return;
+      }
       setHoveredEdgeId(isHovered ? edgeId : null);
-      if (isHovered) setHoveredNodeId(null);
+      if (isHovered) {
+        setHoveredNodeId(null);
+      }
     },
     [cfg.hoverHighlight, setHoveredEdgeId, setHoveredNodeId]
+  );
+
+  const handleNodeSelection = useCallback(
+    (node: PositionedNode) => {
+      if (!nodeSelectionEnabled) {
+        onNodeClick?.(node);
+        return;
+      }
+
+      updateSelection((current) => ({
+        nodeIds: toggleId(current.nodeIds, node.id, selectionMode),
+        edgeIds: selectionMode === 'single' ? [] : current.edgeIds,
+      }));
+      onNodeClick?.(node);
+    },
+    [nodeSelectionEnabled, onNodeClick, selectionMode, updateSelection]
+  );
+
+  const handleEdgeSelection = useCallback(
+    (edge: PositionedEdge) => {
+      if (!edgeSelectionEnabled) {
+        onEdgeClick?.(edge);
+        return;
+      }
+
+      updateSelection((current) => ({
+        nodeIds: selectionMode === 'single' ? [] : current.nodeIds,
+        edgeIds: toggleId(current.edgeIds, edge.id, selectionMode),
+      }));
+      onEdgeClick?.(edge);
+    },
+    [edgeSelectionEnabled, onEdgeClick, selectionMode, updateSelection]
   );
 
   const svgStyle = useMemo(
     () => ({
       background: mergedTheme.background,
       fontFamily: mergedTheme.fontFamily,
-      cursor: dragRef.current.active ? 'grabbing' : 'grab',
+      cursor: dragRef.current.active ? 'grabbing' : panEnabled ? 'grab' : 'default',
+      outline: 'none',
+      touchAction: panEnabled || zoomEnabled ? 'none' : 'auto',
+      overflow: 'hidden',
+      userSelect: 'none' as const,
     }),
-    [mergedTheme.background, mergedTheme.fontFamily]
+    [mergedTheme.background, mergedTheme.fontFamily, panEnabled, zoomEnabled]
   );
 
   return (
     <svg
+      ref={svgRef}
       width={cfg.width}
       height={cfg.height}
       role="figure"
       aria-label="Graph"
+      tabIndex={0}
       style={svgStyle}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          updateSelection(DEFAULT_SELECTION);
+          setFocusedPath(null);
+        }
+      }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerUp}
+      onWheel={handleWheel}
+      onKeyDown={handleKeyDown}
     >
       <defs>
         <marker
@@ -228,9 +561,22 @@ export const Graph = React.memo<GraphProps>(function Graph({
         >
           <path d="M 0 0 L 10 5 L 0 10 z" fill={cfg.hoverNodeOutColor} />
         </marker>
+        <marker
+          id={selectionArrowMarkerId}
+          viewBox="0 0 10 10"
+          refX="6"
+          refY="5"
+          markerWidth="6"
+          markerHeight="6"
+          orient="auto-start-reverse"
+        >
+          <path d="M 0 0 L 10 5 L 0 10 z" fill={selectionEdgeColor} />
+        </marker>
       </defs>
 
-      <g transform={`translate(${pan.x}, ${pan.y})`}>
+      <g transform={`translate(${viewport.x}, ${viewport.y}) scale(${viewport.zoom})`}>
+        {renderBackground?.(renderContext)}
+
         <GraphLabels
           positionedNodes={positionedNodes}
           layout={cfg.layout}
@@ -256,7 +602,7 @@ export const Graph = React.memo<GraphProps>(function Graph({
               edge.target === hoveredNodeId;
 
             return (
-              <EdgePath
+              <EdgeComponent
                 key={edge.id}
                 edge={edge}
                 color={mergedTheme.edgeColor}
@@ -265,7 +611,10 @@ export const Graph = React.memo<GraphProps>(function Graph({
                 curveStrength={cfg.curveStrength}
                 markerEnd={`url(#${arrowMarkerId})`}
                 isHovered={edgeHovered}
+                isSelected={selectedEdgeSet.has(edge.id)}
                 hoverColor={isIncomingToHovered ? cfg.hoverNodeOutColor : cfg.hoverEdgeColor}
+                selectionColor={selectionEdgeColor}
+                selectionMarker={`url(#${selectionArrowMarkerId})`}
                 hoverMarker={
                   isIncomingToHovered
                     ? `url(#${hoverIncomingArrowMarkerId})`
@@ -274,8 +623,9 @@ export const Graph = React.memo<GraphProps>(function Graph({
                 hoverEnabled={cfg.hoverHighlight}
                 hitStrokeWidth={mergedTheme.edgeWidth + 8}
                 hoverStrokeWidth={mergedTheme.edgeWidth + 1.5}
+                selectedStrokeWidth={mergedTheme.edgeWidth + 1.5}
                 onHoverChange={(value) => handleEdgeHoverChange(edge.id, value)}
-                onClick={() => onEdgeClick?.(edge)}
+                onClick={() => handleEdgeSelection(edge)}
               />
             );
           })}
@@ -287,6 +637,8 @@ export const Graph = React.memo<GraphProps>(function Graph({
               key={node.id}
               node={node}
               Vertex={Vertex}
+              isSelected={selectedNodeSet.has(node.id)}
+              selectionColor={selectionColor}
               nodeBorderColor={nodeBorderColor}
               nodeBorderWidth={nodeBorderWidth}
               hoverNodeBorderColor={hoverNodeBorderColor}
@@ -295,7 +647,7 @@ export const Graph = React.memo<GraphProps>(function Graph({
               hoverNodeOutColor={cfg.hoverNodeOutColor}
               hoverNodeHighlight={cfg.hoverNodeHighlight}
               hoveredNodeStates={hoveredNodeStates ?? undefined}
-              onNodeClick={onNodeClick}
+              onNodeClick={handleNodeSelection}
               onNodeMouseEnter={handleNodeMouseEnter}
               onNodeMouseLeave={handleNodeMouseLeave}
               onPathHover={handlePathHover}
@@ -303,10 +655,14 @@ export const Graph = React.memo<GraphProps>(function Graph({
             />
           ))}
         </g>
+
+        {renderOverlay?.(renderContext)}
       </g>
     </svg>
   );
-});
+};
+
+export const Graph = React.memo(React.forwardRef<GraphHandle, GraphProps>(GraphInner));
 
 Graph.displayName = 'Graph';
 

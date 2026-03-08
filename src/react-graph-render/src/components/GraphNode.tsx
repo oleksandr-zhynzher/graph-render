@@ -4,6 +4,8 @@ import { PositionedNode, VertexComponent } from '@graph-render/types';
 interface GraphNodeProps {
   node: PositionedNode;
   Vertex: VertexComponent;
+  isSelected: boolean;
+  selectionColor: string;
   nodeBorderColor?: string;
   nodeBorderWidth: number;
   hoverNodeBorderColor: string;
@@ -23,6 +25,8 @@ export const GraphNode = React.memo<GraphNodeProps>(
   ({
     node,
     Vertex,
+    isSelected,
+    selectionColor,
     nodeBorderColor,
     nodeBorderWidth,
     hoverNodeBorderColor,
@@ -45,30 +49,50 @@ export const GraphNode = React.memo<GraphNodeProps>(
     const isHoveredOut = hoverState?.out ?? false;
     const isHoveredBoth = isHoveredIn && isHoveredOut;
     const isHoveredNode = isHoveredIn || isHoveredOut;
-    const hasBorder = !!nodeBorderColor && nodeBorderWidth > 0;
+    const hasBorder = (!!nodeBorderColor && nodeBorderWidth > 0) || isSelected;
 
-    const borderStroke = !hasBorder
-      ? 'none'
-      : hoverNodeHighlight
-        ? isHoveredBoth
-          ? hoverNodeBothColor
-          : isHoveredOut
-            ? hoverNodeOutColor
-            : isHoveredIn
-              ? hoverNodeInColor
-              : isHoveredNode
-                ? hoverNodeBorderColor
-                : nodeBorderColor
-        : nodeBorderColor;
+    let borderStroke = nodeBorderColor;
+    if (isSelected) {
+      borderStroke = selectionColor;
+    } else if (!hasBorder) {
+      borderStroke = 'none';
+    } else if (hoverNodeHighlight) {
+      if (isHoveredBoth) {
+        borderStroke = hoverNodeBothColor;
+      } else if (isHoveredOut) {
+        borderStroke = hoverNodeOutColor;
+      } else if (isHoveredIn) {
+        borderStroke = hoverNodeInColor;
+      } else if (isHoveredNode) {
+        borderStroke = hoverNodeBorderColor;
+      }
+    }
 
-    const borderOpacity = hasBorder ? (hoverNodeHighlight && isHoveredNode ? 1 : 0.4) : 0;
+    let borderOpacity = 0;
+    if (isSelected) {
+      borderOpacity = 1;
+    } else if (hasBorder) {
+      borderOpacity = hoverNodeHighlight && isHoveredNode ? 1 : 0.4;
+    }
+
+    const borderWidth = isSelected ? Math.max(2, nodeBorderWidth) : hasBorder ? nodeBorderWidth : 0;
 
     return (
       <g
         transform={`translate(${node.position.x}, ${node.position.y})`}
+        data-graph-node-interactive="true"
+        role="button"
+        tabIndex={0}
+        aria-selected={isSelected}
         onClick={() => onNodeClick?.(node)}
         onMouseEnter={() => onNodeMouseEnter(node.id)}
         onMouseLeave={onNodeMouseLeave}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onNodeClick?.(node);
+          }
+        }}
       >
         <rect
           x={0}
@@ -80,11 +104,12 @@ export const GraphNode = React.memo<GraphNodeProps>(
           fill="none"
           stroke={borderStroke}
           strokeOpacity={borderOpacity}
-          strokeWidth={hasBorder ? nodeBorderWidth : 0}
+          strokeWidth={borderWidth}
           pointerEvents="none"
         />
         <Vertex
           node={node}
+          isSelected={isSelected}
           isHovered={isHoveredNode}
           isHoveredIn={isHoveredIn}
           isHoveredOut={isHoveredOut}

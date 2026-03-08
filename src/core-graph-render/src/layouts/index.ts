@@ -1,7 +1,7 @@
 import { PositionedNode, LayoutOptions, LayoutType, LayoutDirection } from '@graph-render/types';
 import { DEFAULT_NODE_GAP, DEFAULT_PADDING } from '../utils';
 import { gridLayout } from './grid';
-import { centeredLayout } from './centered';
+import { centeredLayout, radialLayout } from './centered';
 import { treeLayout } from './tree';
 
 export const layoutNodes = (options: LayoutOptions): PositionedNode[] => {
@@ -19,11 +19,11 @@ export const layoutNodes = (options: LayoutOptions): PositionedNode[] => {
     return treeLayout(nodes, edges, pad, gap, layoutDirection ?? LayoutDirection.LTR, height);
   }
 
-  if (layout === LayoutType.Centered) {
-    return centeredLayout(nodes, pad, width, height);
+  if (layout === LayoutType.Centered || layout === LayoutType.Radial) {
+    return radialLayout(nodes, pad, width, height);
   }
 
   return gridLayout(nodes, pad, gap);
 };
 
-export { gridLayout, centeredLayout, treeLayout };
+export { gridLayout, centeredLayout, radialLayout, treeLayout };

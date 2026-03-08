@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react';
 import { Graph } from '@graph-render/react';
-import type { GraphConfig } from '@graph-render/types';
+import type { GraphConfig, VertexComponentProps } from '@graph-render/types';
 import type { TournamentBracketProps } from '../types';
 import { DEFAULT_TOURNAMENT_CONFIG, DARK_TOURNAMENT_CONFIG } from '../constants';
 import { SquashNode } from './SquashNode';
@@ -11,7 +11,8 @@ import { roundLabelsForGraph } from '../utils/roundLabels';
 export const TournamentBracket = React.memo<TournamentBracketProps>(function TournamentBracket({
   graph,
   config,
-  vertexComponent = SquashNode,
+  vertexComponent,
+  nodeRenderMode = 'svg',
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -67,6 +68,13 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
     URL.revokeObjectURL(url);
   }, []);
 
+  const resolvedVertexComponent = useMemo(
+    () =>
+      vertexComponent ??
+      ((props: VertexComponentProps) => <SquashNode {...props} renderMode={nodeRenderMode} />),
+    [vertexComponent, nodeRenderMode]
+  );
+
   return (
     <BracketThemeProvider mode={isDarkMode ? 'dark' : 'light'}>
       <div
@@ -84,7 +92,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
           onExportSVG={handleExportSVG}
         />
         <div ref={wrapperRef}>
-          <Graph graph={graph} vertexComponent={vertexComponent} config={mergedConfig} />
+          <Graph graph={graph} vertexComponent={resolvedVertexComponent} config={mergedConfig} />
         </div>
       </div>
     </BracketThemeProvider>

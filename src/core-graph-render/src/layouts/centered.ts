@@ -110,3 +110,5 @@ export const centeredLayout = (
     return { ...node, position } as PositionedNode;
   });
 };
+
+export const radialLayout = centeredLayout;

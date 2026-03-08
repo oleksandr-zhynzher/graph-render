@@ -7,6 +7,7 @@ export enum LayoutType {
   Grid = 'grid',
   Tree = 'tree',
   Centered = 'centered',
+  Radial = 'radial',
 }
 
 export enum LayoutDirection {

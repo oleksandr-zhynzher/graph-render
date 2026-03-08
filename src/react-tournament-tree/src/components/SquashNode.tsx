@@ -1,8 +1,20 @@
 import React, { useEffect } from 'react';
 import type { VertexComponentProps } from '@graph-render/types';
-import type { SquashMatchMeta } from '../types';
+import type { SquashMatchMeta, SquashNodeRenderMode } from '../types';
 import { NODE_DIMENSIONS, DEFAULT_PLAYERS } from '../constants';
 import { useBracketTheme } from '../contexts/BracketThemeContext';
+
+interface SquashNodeProps extends VertexComponentProps {
+  renderMode?: SquashNodeRenderMode;
+}
+
+const truncateText = (value: string, maxLength: number): string => {
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, Math.max(0, maxLength - 1))}…`;
+};
 
 function ensureSquashNodeAnimations(): void {
   if (typeof document === 'undefined') {
@@ -28,15 +40,18 @@ function ensureSquashNodeAnimations(): void {
   document.head.appendChild(styleTag);
 }
 
-export const SquashNode = React.memo<VertexComponentProps>(function SquashNode({
+export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
   node,
   isHovered,
   onPathHover,
   onPathLeave,
+  renderMode = 'svg',
 }) {
   useEffect(() => {
-    ensureSquashNodeAnimations();
-  }, []);
+    if (renderMode === 'html') {
+      ensureSquashNodeAnimations();
+    }
+  }, [renderMode]);
 
   const { colors: THEME_COLORS } = useBracketTheme();
 
@@ -65,6 +80,142 @@ export const SquashNode = React.memo<VertexComponentProps>(function SquashNode({
     },
     { p1: 0, p2: 0 }
   );
+
+  if (renderMode === 'svg') {
+    const rowHeight = 30;
+    const rowYStart = 24;
+    const scoreStartX = 148;
+    const scoreCellWidth = 16;
+
+    return (
+      <g>
+        <rect
+          width={NODE_DIMENSIONS.WIDTH}
+          height={NODE_DIMENSIONS.HEIGHT}
+          rx={12}
+          ry={12}
+          fill={isHovered ? THEME_COLORS.HOVER_BG : THEME_COLORS.BASE_BG}
+        />
+
+        {status === 'live' && (
+          <g transform={`translate(${NODE_DIMENSIONS.WIDTH - 22}, 11)`}>
+            <circle r={4} fill={THEME_COLORS.LIVE_INDICATOR} />
+          </g>
+        )}
+
+        {[p1, p2].map((player, idx) => {
+          const rowY = rowYStart + idx * (rowHeight + 6);
+          const initials = player.name ? player.name.substring(0, 2).toUpperCase() : '??';
+          const perSet = [0, 0, 0].map((_, setIndex) => {
+            const value = sets[setIndex]?.[idx === 0 ? 0 : 1];
+            return Number.isFinite(value) ? value : '—';
+          });
+          const setCount = idx === 0 ? setWins.p1 : setWins.p2;
+          const playerOpacity = status === 'upcoming' ? 0.65 : 1;
+
+          return (
+            <g
+              key={`${node.id}-svg-p-${idx}`}
+              transform={`translate(8, ${rowY})`}
+              opacity={playerOpacity}
+              onMouseEnter={() => !isTBD && onPathHover?.(idx, { pathKey: player.name })}
+              onMouseLeave={() => !isTBD && onPathLeave?.()}
+            >
+              <rect
+                width={NODE_DIMENSIONS.WIDTH - 16}
+                height={rowHeight}
+                rx={10}
+                ry={10}
+                fill={THEME_COLORS.ROW_BG}
+              />
+              <rect x={4} y={2} width={26} height={26} rx={8} ry={8} fill={THEME_COLORS.CREST_BG} />
+              <text
+                x={17}
+                y={20}
+                textAnchor="middle"
+                fontSize={10}
+                fontWeight={800}
+                fill={THEME_COLORS.FOREGROUND}
+              >
+                {initials}
+              </text>
+              <text x={38} y={19} fontSize={13} fontWeight={700} fill={THEME_COLORS.FOREGROUND}>
+                {truncateText(player.name, 14)}
+              </text>
+
+              {perSet.map((value, setIndex) => {
+                const opponentValue = sets[setIndex]?.[idx === 0 ? 1 : 0];
+                const wonSet =
+                  typeof value === 'number' &&
+                  typeof opponentValue === 'number' &&
+                  value > opponentValue;
+                const isCurrentSet = status === 'live' && setIndex === currentSet;
+                const shouldHighlight = wonSet && !(status === 'live' && isCurrentSet);
+                const tiebreak = tiebreaks[setIndex];
+                const hasTiebreak = tiebreak && tiebreak.length === 2;
+                const scoreX = scoreStartX + setIndex * scoreCellWidth;
+
+                return (
+                  <g key={`${node.id}-svg-p-${idx}-set-${setIndex}`}>
+                    {setIndex > 0 && (
+                      <line
+                        x1={scoreX - 3}
+                        y1={6}
+                        x2={scoreX - 3}
+                        y2={24}
+                        stroke={THEME_COLORS.BORDER}
+                        strokeWidth={1}
+                      />
+                    )}
+                    <text
+                      x={scoreX}
+                      y={16}
+                      textAnchor="middle"
+                      fontSize={13}
+                      fontWeight={shouldHighlight ? 700 : 400}
+                      fill={shouldHighlight ? THEME_COLORS.WINNING_SCORE : THEME_COLORS.FOREGROUND}
+                    >
+                      {value}
+                    </text>
+                    {hasTiebreak && (
+                      <text
+                        x={scoreX}
+                        y={25}
+                        textAnchor="middle"
+                        fontSize={8}
+                        fill={THEME_COLORS.DARK_TEXT}
+                      >
+                        {tiebreak[idx]}
+                      </text>
+                    )}
+                  </g>
+                );
+              })}
+
+              <line
+                x1={scoreStartX + 3 * scoreCellWidth + 5}
+                y1={6}
+                x2={scoreStartX + 3 * scoreCellWidth + 5}
+                y2={24}
+                stroke={THEME_COLORS.DARK_BORDER}
+                strokeWidth={1}
+              />
+              <text
+                x={scoreStartX + 3 * scoreCellWidth + 16}
+                y={16}
+                textAnchor="middle"
+                fontSize={13}
+                fontWeight={status === 'completed' ? 900 : 400}
+                fill={THEME_COLORS.DARK_TEXT}
+              >
+                {setCount}
+              </text>
+            </g>
+          );
+        })}
+      </g>
+    );
+  }
 
   return (
     <foreignObject
