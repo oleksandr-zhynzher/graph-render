@@ -1,5 +1,5 @@
 import { ComponentType, ReactNode } from 'react';
-import { PositionedNode as CorePositionedNode } from './node';
+import { NodeData, PositionedNode as CorePositionedNode } from './node';
 import { EdgeData, PositionedEdge as CorePositionedEdge, PositionedEdge } from './edge';
 import { GraphConfig } from './config';
 import { NxGraphInput } from './graph';
@@ -76,6 +76,11 @@ export interface GraphHoverMeta {
   trigger: 'pointer' | 'path';
 }
 
+export interface GraphSearchResults {
+  nodeIds: string[];
+  edgeIds: string[];
+}
+
 export interface GraphHandle {
   fitView: (padding?: number) => void;
   centerOnNode: (nodeId: string) => void;
@@ -136,6 +141,20 @@ export interface GraphProps {
   hiddenNodeIds?: string[];
   onNodeExpand?: (nodeId: string) => void | Promise<void>;
   onNodeCollapse?: (nodeId: string) => void;
+  searchQuery?: string;
+  hideUnmatchedSearch?: boolean;
+  searchPredicate?: (node: NodeData, query: string) => boolean;
+  highlightedNodeIds?: string[];
+  highlightedEdgeIds?: string[];
+  highlightColor?: string;
+  highlightStrategy?: (context: {
+    nodes: NodeData[];
+    edges: EdgeData[];
+    query: string;
+    matchedNodeIds: string[];
+    matchedEdgeIds: string[];
+  }) => Partial<GraphSearchResults>;
+  onSearchResultsChange?: (results: GraphSearchResults) => void;
   selectedNodeIds?: string[];
   selectedEdgeIds?: string[];
   defaultSelectedNodeIds?: string[];

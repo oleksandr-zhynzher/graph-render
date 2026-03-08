@@ -217,6 +217,14 @@ const GraphInner = (
     hiddenNodeIds,
     onNodeExpand,
     onNodeCollapse,
+    searchQuery,
+    hideUnmatchedSearch = false,
+    searchPredicate,
+    highlightedNodeIds,
+    highlightedEdgeIds,
+    highlightColor = '#f59e0b',
+    highlightStrategy,
+    onSearchResultsChange,
     selectedNodeIds,
     selectedEdgeIds,
     defaultSelectedNodeIds,
@@ -386,7 +394,118 @@ const GraphInner = (
     [cfg.defaultEdgeType, sourceEdges]
   );
 
-  const hiddenNodeSet = useMemo(() => new Set(hiddenNodeIds ?? []), [hiddenNodeIds]);
+  const searchMatchedNodeIds = useMemo(() => {
+    const query = searchQuery?.trim().toLowerCase();
+    if (!query) {
+      return [];
+    }
+
+    return nodesWithMeasuredSize
+      .filter((node) => {
+        if (searchPredicate) {
+          return searchPredicate(node, query);
+        }
+
+        const label =
+          typeof node.label === 'string' || typeof node.label === 'number'
+            ? String(node.label)
+            : node.id;
+
+        return node.id.toLowerCase().includes(query) || label.toLowerCase().includes(query);
+      })
+      .map((node) => node.id);
+  }, [nodesWithMeasuredSize, searchPredicate, searchQuery]);
+
+  const searchMatchedNodeIdSet = useMemo(
+    () => new Set(searchMatchedNodeIds),
+    [searchMatchedNodeIds]
+  );
+
+  const searchMatchedEdgeIds = useMemo(() => {
+    const query = searchQuery?.trim().toLowerCase();
+    if (!query) {
+      return [];
+    }
+
+    return normalizedEdges
+      .filter((edge) => {
+        const label = edge.label != null ? String(edge.label).toLowerCase() : '';
+        return (
+          searchMatchedNodeIdSet.has(edge.source) ||
+          searchMatchedNodeIdSet.has(edge.target) ||
+          label.includes(query)
+        );
+      })
+      .map((edge) => edge.id);
+  }, [normalizedEdges, searchMatchedNodeIdSet, searchQuery]);
+
+  const derivedHighlightResults = useMemo(() => {
+    if (!searchQuery?.trim()) {
+      return { nodeIds: [], edgeIds: [] };
+    }
+
+    return (
+      highlightStrategy?.({
+        nodes: nodesWithMeasuredSize,
+        edges: normalizedEdges,
+        query: searchQuery,
+        matchedNodeIds: searchMatchedNodeIds,
+        matchedEdgeIds: searchMatchedEdgeIds,
+      }) ?? { nodeIds: [], edgeIds: [] }
+    );
+  }, [
+    highlightStrategy,
+    nodesWithMeasuredSize,
+    normalizedEdges,
+    searchMatchedEdgeIds,
+    searchMatchedNodeIds,
+    searchQuery,
+  ]);
+
+  const effectiveHighlightedNodeSet = useMemo(
+    () =>
+      new Set([
+        ...searchMatchedNodeIds,
+        ...(derivedHighlightResults.nodeIds ?? []),
+        ...(highlightedNodeIds ?? []),
+      ]),
+    [derivedHighlightResults.nodeIds, highlightedNodeIds, searchMatchedNodeIds]
+  );
+
+  const effectiveHighlightedEdgeSet = useMemo(
+    () =>
+      new Set([
+        ...searchMatchedEdgeIds,
+        ...(derivedHighlightResults.edgeIds ?? []),
+        ...(highlightedEdgeIds ?? []),
+      ]),
+    [derivedHighlightResults.edgeIds, highlightedEdgeIds, searchMatchedEdgeIds]
+  );
+
+  useEffect(() => {
+    onSearchResultsChange?.({
+      nodeIds: Array.from(effectiveHighlightedNodeSet),
+      edgeIds: Array.from(effectiveHighlightedEdgeSet),
+    });
+  }, [effectiveHighlightedEdgeSet, effectiveHighlightedNodeSet, onSearchResultsChange]);
+
+  const hiddenNodeSet = useMemo(() => {
+    const hidden = new Set(hiddenNodeIds ?? []);
+    if (hideUnmatchedSearch && searchQuery?.trim()) {
+      nodesWithMeasuredSize.forEach((node) => {
+        if (!effectiveHighlightedNodeSet.has(node.id)) {
+          hidden.add(node.id);
+        }
+      });
+    }
+    return hidden;
+  }, [
+    effectiveHighlightedNodeSet,
+    hiddenNodeIds,
+    hideUnmatchedSearch,
+    nodesWithMeasuredSize,
+    searchQuery,
+  ]);
   const collapsedNodeSet = useMemo(() => new Set(collapsedIds), [collapsedIds]);
 
   const descendantHiddenNodeSet = useMemo(() => {
@@ -1237,9 +1356,11 @@ const GraphInner = (
                 curveStrength={cfg.curveStrength}
                 markerEnd={`url(#${arrowMarkerId})`}
                 isHovered={edgeHovered}
-                isSelected={selectedEdgeSet.has(edge.id)}
+                isSelected={
+                  selectedEdgeSet.has(edge.id) || effectiveHighlightedEdgeSet.has(edge.id)
+                }
                 hoverColor={isIncomingToHovered ? cfg.hoverNodeOutColor : cfg.hoverEdgeColor}
-                selectionColor={selectionEdgeColor}
+                selectionColor={selectedEdgeSet.has(edge.id) ? selectionEdgeColor : highlightColor}
                 labelColor={cfg.edgeLabelColor}
                 selectionMarker={`url(#${selectionArrowMarkerId})`}
                 hoverMarker={
@@ -1266,6 +1387,8 @@ const GraphInner = (
               Vertex={Vertex}
               isSelected={selectedNodeSet.has(node.id)}
               isFocused={focusedNodeId === node.id}
+              isHighlighted={effectiveHighlightedNodeSet.has(node.id)}
+              highlightColor={highlightColor}
               selectionColor={selectionColor}
               nodeBorderColor={nodeBorderColor}
               nodeBorderWidth={nodeBorderWidth}

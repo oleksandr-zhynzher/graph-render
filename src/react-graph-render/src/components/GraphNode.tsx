@@ -6,6 +6,8 @@ interface GraphNodeProps {
   Vertex: VertexComponent;
   isSelected: boolean;
   isFocused: boolean;
+  isHighlighted: boolean;
+  highlightColor: string;
   selectionColor: string;
   nodeBorderColor?: string;
   nodeBorderWidth: number;
@@ -32,6 +34,8 @@ export const GraphNode = React.memo<GraphNodeProps>(
     isSelected,
     isFocused,
     selectionColor,
+    isHighlighted,
+    highlightColor,
     nodeBorderColor,
     nodeBorderWidth,
     hoverNodeBorderColor,
@@ -63,6 +67,8 @@ export const GraphNode = React.memo<GraphNodeProps>(
     let borderStroke = nodeBorderColor;
     if (isSelected) {
       borderStroke = selectionColor;
+    } else if (isHighlighted) {
+      borderStroke = highlightColor;
     } else if (!hasBorder) {
       borderStroke = 'none';
     } else if (hoverNodeHighlight) {
@@ -78,7 +84,7 @@ export const GraphNode = React.memo<GraphNodeProps>(
     }
 
     let borderOpacity = 0;
-    if (isSelected) {
+    if (isSelected || isHighlighted) {
       borderOpacity = 1;
     } else if (hasBorder) {
       borderOpacity = hoverNodeHighlight && isHoveredNode ? 1 : 0.4;
@@ -106,7 +112,7 @@ export const GraphNode = React.memo<GraphNodeProps>(
       return () => cancelAnimationFrame(frame);
     }, [node.id, node.label, node.meta, onNodeMeasure, width, height, isSelected, isHoveredNode]);
 
-    const borderWidth = isSelected ? Math.max(2, nodeBorderWidth) : hasBorder ? nodeBorderWidth : 0;
+    const borderWidth = isSelected || isHighlighted ? Math.max(2, nodeBorderWidth) : hasBorder ? nodeBorderWidth : 0;
     const focusStrokeWidth = isFocused ? Math.max(2, borderWidth || 2) : 0;
 
     return (
