@@ -111,4 +111,3 @@ export const centeredLayout = (
   });
 };
 
-export const radialLayout = centeredLayout;

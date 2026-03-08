@@ -10,6 +10,10 @@ export enum LayoutType {
   Tree = 'tree',
   Centered = 'centered',
   Radial = 'radial',
+  Dag = 'dag',
+  ForceDirected = 'force-directed',
+  CompactBracket = 'compact-bracket',
+  OrthogonalFlow = 'orthogonal-flow',
 }
 
 export enum LayoutDirection {
