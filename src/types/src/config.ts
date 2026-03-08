@@ -47,6 +47,10 @@ export interface GraphConfig {
   curveEdges?: boolean;
   curveStrength?: number;
   arrowPadding?: number;
+  routingStyle?: 'smart' | 'orthogonal' | 'bundled';
+  edgeSeparation?: number;
+  selfLoopRadius?: number;
+  edgeLabelColor?: string;
   layout?: LayoutType;
   layoutDirection?: LayoutDirection;
   hoverHighlight?: boolean;

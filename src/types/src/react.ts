@@ -36,6 +36,7 @@ export interface EdgePathProps {
   isSelected?: boolean;
   hoverColor: string;
   selectionColor?: string;
+  labelColor?: string;
   selectionMarker?: string;
   hoverMarker?: string;
   hoverEnabled: boolean;

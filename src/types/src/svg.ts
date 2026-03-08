@@ -47,6 +47,7 @@ export interface RenderConfig {
   layout: LayoutType;
   layoutDirection: LayoutDirection;
   markerId: string;
+  edgeLabelColor: string;
   mergedTheme: Required<
     Pick<GraphTheme, 'background' | 'edgeColor' | 'edgeWidth' | 'fontFamily'>
   > & { nodeGap: number };
@@ -59,5 +60,6 @@ export interface RenderConfig {
 export interface RenderTheme {
   edgeColor: string;
   edgeWidth: number;
+  edgeLabelColor: string;
   background: string;
 }

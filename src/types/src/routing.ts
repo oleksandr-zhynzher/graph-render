@@ -13,6 +13,9 @@ export interface RouteEdgesOptions {
   straight?: boolean;
   forceRightToLeft?: boolean;
   layoutDirection?: LayoutDirection;
+  routingStyle?: 'smart' | 'orthogonal' | 'bundled';
+  edgeSeparation?: number;
+  selfLoopRadius?: number;
 }
 
 export interface EdgeRoutingContext {
@@ -25,5 +28,8 @@ export interface EdgeRoutingContext {
   straight: boolean;
   forceRightToLeft: boolean;
   layoutDirection: LayoutDirection;
+  routingStyle: 'smart' | 'orthogonal' | 'bundled';
+  edgeSeparation: number;
+  selfLoopRadius: number;
   otherRects: Array<{ x: number; y: number; w: number; h: number }>;
 }

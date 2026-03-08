@@ -49,6 +49,7 @@ const extractRenderConfig = (options?: RenderGraphToSvgOptions): RenderConfig =>
     layout: cfg.layout ?? LayoutType.Centered,
     layoutDirection: cfg.layoutDirection ?? LayoutDirection.LTR,
     markerId: options?.markerId ?? 'arrow',
+    edgeLabelColor: cfg.edgeLabelColor ?? '#334155',
     mergedTheme,
     safeFontFamily,
   };
@@ -68,6 +69,7 @@ const extractRenderTheme = (config: RenderConfig): RenderTheme => {
   return {
     edgeColor: config.mergedTheme.edgeColor ?? DEFAULT_THEME.edgeColor,
     edgeWidth: config.mergedTheme.edgeWidth ?? DEFAULT_THEME.edgeWidth,
+    edgeLabelColor: config.edgeLabelColor,
     background: config.mergedTheme.background,
   };
 };
@@ -101,6 +103,7 @@ const renderEdgesToSvg = (
       return edgeRenderer(edge, pathD, {
         edgeColor: theme.edgeColor,
         edgeWidth: theme.edgeWidth,
+        edgeLabelColor: theme.edgeLabelColor,
         markerId,
       });
     })
@@ -188,9 +191,12 @@ export const renderGraphToSvg = (
 
   const positionedEdges = routeEdges(positionedNodes, normalizedEdges, {
     arrowPadding: config.arrowPadding,
-    straight: !config.curveEdges,
+    straight: !config.curveEdges || options?.config?.routingStyle === 'orthogonal',
     layoutDirection: config.layoutDirection,
     forceRightToLeft: options?.config?.forceRightToLeft ?? false,
+    routingStyle: options?.config?.routingStyle,
+    edgeSeparation: options?.config?.edgeSeparation,
+    selfLoopRadius: options?.config?.selfLoopRadius,
   });
 
   // Extract rendering components

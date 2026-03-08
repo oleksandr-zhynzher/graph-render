@@ -23,6 +23,152 @@ import {
   calculateStraightPoints,
 } from './pathCalculation';
 
+type ParallelEdgeMeta = {
+  index: number;
+  total: number;
+  centeredOffset: number;
+};
+
+const getParallelGroupKey = (edge: EdgeData): string => {
+  const pair = [edge.source, edge.target].sort().join('|');
+  return `${pair}|${edge.type ?? EdgeType.Directed}`;
+};
+
+const buildParallelEdgeIndex = (edges: EdgeData[]): Map<string, ParallelEdgeMeta> => {
+  const groups = new Map<string, EdgeData[]>();
+
+  edges.forEach((edge) => {
+    const key = getParallelGroupKey(edge);
+    groups.set(key, [...(groups.get(key) ?? []), edge]);
+  });
+
+  const meta = new Map<string, ParallelEdgeMeta>();
+  groups.forEach((group) => {
+    const total = group.length;
+    group.forEach((edge, index) => {
+      meta.set(edge.id, {
+        index,
+        total,
+        centeredOffset: index - (total - 1) / 2,
+      });
+    });
+  });
+
+  return meta;
+};
+
+const calculateLabelPosition = (points: Point[]): Point | undefined => {
+  if (points.length < 2) {
+    return undefined;
+  }
+
+  const segmentLengths = points.slice(1).map((point, index) => {
+    const previous = points[index];
+    return Math.hypot(point.x - previous.x, point.y - previous.y);
+  });
+  const totalLength = segmentLengths.reduce((sum, length) => sum + length, 0);
+  const halfway = totalLength / 2;
+  let traversed = 0;
+
+  for (let index = 0; index < segmentLengths.length; index += 1) {
+    const length = segmentLengths[index];
+    if (traversed + length >= halfway) {
+      const start = points[index];
+      const end = points[index + 1];
+      const ratio = length === 0 ? 0 : (halfway - traversed) / length;
+      return {
+        x: start.x + (end.x - start.x) * ratio,
+        y: start.y + (end.y - start.y) * ratio,
+      };
+    }
+    traversed += length;
+  }
+
+  return points[Math.floor(points.length / 2)];
+};
+
+const createSelfLoopPoints = (
+  node: PositionedNode,
+  size: Size,
+  loopRadius: number,
+  offset: number
+): Point[] => {
+  const right = node.position.x + size.width;
+  const top = node.position.y;
+  const anchorX = right - Math.min(size.width * 0.2, 16);
+  const anchorY = top + Math.min(size.height * 0.3, 20);
+  const loopX = right + loopRadius + offset;
+  const loopTop = top - loopRadius - Math.abs(offset) * 0.4;
+  const loopBottom = top + size.height * 0.75 + Math.abs(offset) * 0.3;
+
+  return [
+    { x: anchorX, y: anchorY },
+    { x: loopX * 0.92, y: loopTop },
+    { x: loopX, y: loopTop },
+    { x: loopX, y: loopBottom },
+    { x: anchorX, y: top + size.height * 0.82 },
+  ];
+};
+
+const applyParallelOffset = (
+  points: Point[],
+  sourceCenter: Point,
+  targetCenter: Point,
+  offset: number
+): Point[] => {
+  if (Math.abs(offset) < 0.01) {
+    return points;
+  }
+
+  const dx = targetCenter.x - sourceCenter.x;
+  const dy = targetCenter.y - sourceCenter.y;
+  const distance = Math.max(1, Math.hypot(dx, dy));
+  const normal = { x: -dy / distance, y: dx / distance };
+
+  return points.map((point) => ({
+    x: point.x + normal.x * offset,
+    y: point.y + normal.y * offset,
+  }));
+};
+
+const calculateOrthogonalPoints = (
+  startPoint: Point,
+  endPoint: Point,
+  sourceCenter: Point,
+  targetCenter: Point,
+  routingStyle: 'orthogonal' | 'bundled',
+  parallelOffset: number
+): Point[] => {
+  const dx = endPoint.x - startPoint.x;
+  const dy = endPoint.y - startPoint.y;
+
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    const midX =
+      routingStyle === 'bundled'
+        ? (sourceCenter.x + targetCenter.x) / 2 + parallelOffset * 0.5
+        : startPoint.x + dx / 2;
+
+    return [
+      startPoint,
+      { x: midX, y: startPoint.y },
+      { x: midX, y: endPoint.y },
+      endPoint,
+    ];
+  }
+
+  const midY =
+    routingStyle === 'bundled'
+      ? (sourceCenter.y + targetCenter.y) / 2 + parallelOffset * 0.5
+      : startPoint.y + dy / 2;
+
+  return [
+    startPoint,
+    { x: startPoint.x, y: midY },
+    { x: endPoint.x, y: midY },
+    endPoint,
+  ];
+};
+
 /**
  * Create routing context for an edge
  */
@@ -36,7 +182,10 @@ const createRoutingContext = (
   arrowPadding: number,
   straight: boolean,
   forceRightToLeft: boolean,
-  layoutDirection: LayoutDirection
+  layoutDirection: LayoutDirection,
+  routingStyle: 'smart' | 'orthogonal' | 'bundled',
+  edgeSeparation: number,
+  selfLoopRadius: number
 ): EdgeRoutingContext => {
   return {
     source,
@@ -48,6 +197,9 @@ const createRoutingContext = (
     straight,
     forceRightToLeft,
     layoutDirection,
+    routingStyle,
+    edgeSeparation,
+    selfLoopRadius,
     otherRects: nodes
       .filter((n) => n.id !== source.id && n.id !== target.id)
       .map((n) => ({
@@ -101,17 +253,32 @@ const calculateEdgePoints = (
   targetSide: NodeSide,
   isUndirected: boolean,
   arrowPadding: number,
-  straight: boolean
+  straight: boolean,
+  routingStyle: 'smart' | 'orthogonal' | 'bundled',
+  parallelOffset: number
 ): Point[] => {
   const targetInset = isUndirected ? 0 : arrowPadding;
   const startPoint = getAnchorPoint(source, sourceSize, sourceSide, 0, 0);
   const endPoint = getAnchorPoint(target, targetSize, targetSide, 0, targetInset);
+  const sourceCenter = getNodeCenter(source, sourceSize);
+  const targetCenter = getNodeCenter(target, targetSize);
+
+  if (routingStyle === 'orthogonal' || routingStyle === 'bundled') {
+    return calculateOrthogonalPoints(
+      startPoint,
+      endPoint,
+      sourceCenter,
+      targetCenter,
+      routingStyle,
+      parallelOffset
+    );
+  }
 
   const sourceNormal = getSideNormal(sourceSide);
   const targetNormal = getSideInwardNormal(targetSide);
   const leadOut = getLeadOutDistance(straight, isUndirected);
 
-  return straight
+  const points = straight
     ? calculateStraightPoints(
         startPoint,
         endPoint,
@@ -128,6 +295,8 @@ const calculateEdgePoints = (
         leadOut,
         isUndirected
       );
+
+  return applyParallelOffset(points, sourceCenter, targetCenter, parallelOffset);
 };
 
 /**
@@ -140,7 +309,11 @@ const routeSingleEdge = (
   arrowPadding: number,
   straight: boolean,
   forceRightToLeft: boolean,
-  layoutDirection: LayoutDirection
+  layoutDirection: LayoutDirection,
+  routingStyle: 'smart' | 'orthogonal' | 'bundled',
+  edgeSeparation: number,
+  selfLoopRadius: number,
+  parallelMeta: ParallelEdgeMeta
 ): PositionedEdge => {
   const source = nodeMap.get(edge.source);
   const target = nodeMap.get(edge.target);
@@ -153,6 +326,16 @@ const routeSingleEdge = (
   const isDirected = edge.type === EdgeType.Directed;
   const sourceSize = source.size ?? DEFAULT_NODE_SIZE;
   const targetSize = target.size ?? DEFAULT_NODE_SIZE;
+  const parallelOffset = parallelMeta.centeredOffset * edgeSeparation;
+
+  if (source.id === target.id) {
+    const points = createSelfLoopPoints(source, sourceSize, selfLoopRadius, parallelOffset);
+    return {
+      ...edge,
+      points: edge.points ?? points,
+      labelPosition: calculateLabelPosition(edge.points ?? points),
+    };
+  }
 
   const context = createRoutingContext(
     source,
@@ -164,7 +347,10 @@ const routeSingleEdge = (
     arrowPadding,
     straight,
     forceRightToLeft,
-    layoutDirection
+    layoutDirection,
+    routingStyle,
+    edgeSeparation,
+    selfLoopRadius
   );
 
   const { sourceSide, targetSide } = findConnectionSides(
@@ -185,12 +371,17 @@ const routeSingleEdge = (
     targetSide,
     isUndirected,
     arrowPadding,
-    straight
+    straight,
+    routingStyle,
+    parallelOffset
   );
+
+  const points = edge.points ?? defaultPoints;
 
   return {
     ...edge,
-    points: edge.points ?? defaultPoints,
+    points,
+    labelPosition: calculateLabelPosition(points),
   };
 };
 
@@ -207,8 +398,24 @@ export const routeEdges = (
   const straight = opts?.straight ?? false;
   const forceRightToLeft = opts?.forceRightToLeft ?? false;
   const layoutDirection = opts?.layoutDirection ?? LayoutDirection.LTR;
+  const routingStyle = opts?.routingStyle ?? 'smart';
+  const edgeSeparation = Math.max(6, opts?.edgeSeparation ?? 18);
+  const selfLoopRadius = Math.max(12, opts?.selfLoopRadius ?? 32);
+  const parallelIndex = buildParallelEdgeIndex(edges);
 
   return edges.map((edge) =>
-    routeSingleEdge(edge, nodeMap, nodes, arrowPadding, straight, forceRightToLeft, layoutDirection)
+    routeSingleEdge(
+      edge,
+      nodeMap,
+      nodes,
+      arrowPadding,
+      straight,
+      forceRightToLeft,
+      layoutDirection,
+      routingStyle,
+      edgeSeparation,
+      selfLoopRadius,
+      parallelIndex.get(edge.id) ?? { index: 0, total: 1, centeredOffset: 0 }
+    )
   );
 };

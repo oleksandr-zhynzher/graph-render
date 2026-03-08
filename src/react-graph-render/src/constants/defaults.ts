@@ -9,6 +9,9 @@ export const DEFAULT_CONFIG: Required<
     | 'curveEdges'
     | 'curveStrength'
     | 'arrowPadding'
+    | 'routingStyle'
+    | 'edgeSeparation'
+    | 'selfLoopRadius'
     | 'layout'
     | 'layoutDirection'
     | 'autoLabels'
@@ -23,6 +26,7 @@ export const DEFAULT_CONFIG: Required<
     | 'hoverNodeInColor'
     | 'hoverNodeOutColor'
     | 'hoverNodeHighlight'
+    | 'edgeLabelColor'
   >
 > &
   Pick<GraphConfig, 'hoverNodeBorderColor' | 'hoverNodeBothColor' | 'forceRightToLeft'> = {
@@ -32,6 +36,9 @@ export const DEFAULT_CONFIG: Required<
   curveEdges: true,
   curveStrength: 0.3,
   arrowPadding: 6,
+  routingStyle: 'smart',
+  edgeSeparation: 18,
+  selfLoopRadius: 32,
   layout: LayoutType.Centered,
   layoutDirection: LayoutDirection.LTR,
   autoLabels: false,
@@ -43,6 +50,7 @@ export const DEFAULT_CONFIG: Required<
   labelMeasurementLineHeight: 18,
   hoverHighlight: true,
   hoverEdgeColor: '#4da3ff',
+  edgeLabelColor: '#334155',
   hoverNodeInColor: '#2ecc71',
   hoverNodeOutColor: '#ff5b5b',
   hoverNodeHighlight: true,

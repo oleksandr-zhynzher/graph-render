@@ -12,6 +12,7 @@ export interface EdgePathProps {
   isSelected?: boolean;
   hoverColor: string;
   selectionColor?: string;
+  labelColor?: string;
   selectionMarker?: string;
   hoverMarker?: string;
   hoverEnabled: boolean;
@@ -33,6 +34,7 @@ export function EdgePath({
   isSelected,
   hoverColor,
   selectionColor,
+  labelColor,
   selectionMarker,
   hoverMarker,
   hoverEnabled,
@@ -56,6 +58,7 @@ export function EdgePath({
     : isSelected
       ? (selectionMarker ?? markerEnd)
       : markerEnd;
+  const label = edge.label != null && edge.labelPosition ? String(edge.label) : null;
 
   return (
     <>
@@ -78,6 +81,19 @@ export function EdgePath({
         markerEnd={edge.type === 'directed' ? resolvedMarker : undefined}
         pointerEvents="none"
       />
+      {label && edge.labelPosition ? (
+        <text
+          x={edge.labelPosition.x}
+          y={edge.labelPosition.y - 6}
+          textAnchor="middle"
+          fontSize={12}
+          fontWeight={600}
+          fill={labelColor ?? '#334155'}
+          pointerEvents="none"
+        >
+          {label}
+        </text>
+      ) : null}
     </>
   );
 }

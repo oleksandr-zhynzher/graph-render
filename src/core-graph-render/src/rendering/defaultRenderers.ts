@@ -77,5 +77,10 @@ const createMarkerAttribute = (markerId: string): string => {
  */
 export const defaultEdgeRenderer: EdgeRenderer = (edge, pathD, theme) => {
   const marker = shouldShowArrow(edge.type) ? createMarkerAttribute(theme.markerId) : '';
-  return `<path d="${pathD}" stroke="${theme.edgeColor}" stroke-width="${theme.edgeWidth}" fill="none"${marker}/>`;
+  const path = `<path d="${pathD}" stroke="${theme.edgeColor}" stroke-width="${theme.edgeWidth}" fill="none"${marker}/>`;
+  const label =
+    edge.label != null && edge.labelPosition
+      ? `<text x="${edge.labelPosition.x}" y="${edge.labelPosition.y - 6}" fill="${theme.edgeLabelColor}" font-size="12" font-weight="600" text-anchor="middle">${escapeXml(String(edge.label))}</text>`
+      : '';
+  return `${path}${label}`;
 };

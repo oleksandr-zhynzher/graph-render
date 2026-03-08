@@ -329,11 +329,22 @@ const GraphInner = (
   const edgeRoutingOptions = useMemo(
     () => ({
       arrowPadding: cfg.arrowPadding,
-      straight: !cfg.curveEdges,
+      straight: !cfg.curveEdges || cfg.routingStyle === 'orthogonal',
       layoutDirection: cfg.layoutDirection,
       forceRightToLeft: cfg.forceRightToLeft,
+      routingStyle: cfg.routingStyle,
+      edgeSeparation: cfg.edgeSeparation,
+      selfLoopRadius: cfg.selfLoopRadius,
     }),
-    [cfg.arrowPadding, cfg.curveEdges, cfg.layoutDirection, cfg.forceRightToLeft]
+    [
+      cfg.arrowPadding,
+      cfg.curveEdges,
+      cfg.layoutDirection,
+      cfg.forceRightToLeft,
+      cfg.routingStyle,
+      cfg.edgeSeparation,
+      cfg.selfLoopRadius,
+    ]
   );
 
   const positionedEdges: PositionedEdge[] = useMemo(
@@ -837,13 +848,14 @@ const GraphInner = (
                 edge={edge}
                 color={mergedTheme.edgeColor}
                 width={mergedTheme.edgeWidth}
-                curveEdges={cfg.curveEdges}
+                curveEdges={cfg.curveEdges && cfg.routingStyle !== 'orthogonal'}
                 curveStrength={cfg.curveStrength}
                 markerEnd={`url(#${arrowMarkerId})`}
                 isHovered={edgeHovered}
                 isSelected={selectedEdgeSet.has(edge.id)}
                 hoverColor={isIncomingToHovered ? cfg.hoverNodeOutColor : cfg.hoverEdgeColor}
                 selectionColor={selectionEdgeColor}
+                labelColor={cfg.edgeLabelColor}
                 selectionMarker={`url(#${selectionArrowMarkerId})`}
                 hoverMarker={
                   isIncomingToHovered

@@ -16,4 +16,5 @@ export interface EdgeData {
 
 export interface PositionedEdge extends EdgeData {
   points: Point[];
+  labelPosition?: Point;
 }
