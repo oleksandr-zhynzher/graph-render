@@ -18,6 +18,7 @@ interface GraphNodeProps {
   onNodeMeasure?: (nodeId: string, size: Size) => void;
   onNodeFocus?: (nodeId: string) => void;
   onNodeClick?: (node: PositionedNode) => void;
+  onNodeDoubleClick?: (node: PositionedNode) => void;
   onNodeMouseEnter: (nodeId: string) => void;
   onNodeMouseLeave: () => void;
   onPathHover: (nodeId: string, sourceIndex: number, playerKey?: string) => void;
@@ -42,6 +43,7 @@ export const GraphNode = React.memo<GraphNodeProps>(
     onNodeMeasure,
     onNodeFocus,
     onNodeClick,
+    onNodeDoubleClick,
     onNodeMouseEnter,
     onNodeMouseLeave,
     onPathHover,
@@ -117,6 +119,7 @@ export const GraphNode = React.memo<GraphNodeProps>(
         aria-selected={isSelected}
         onFocus={() => onNodeFocus?.(node.id)}
         onClick={() => onNodeClick?.(node)}
+        onDoubleClick={() => onNodeDoubleClick?.(node)}
         onMouseEnter={() => onNodeMouseEnter(node.id)}
         onMouseLeave={onNodeMouseLeave}
         onKeyDown={(event) => {

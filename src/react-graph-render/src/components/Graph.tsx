@@ -210,6 +210,13 @@ const GraphInner = (
     focusedNodeId: controlledFocusedNodeId,
     defaultFocusedNodeId = null,
     onFocusedNodeChange,
+    collapsedNodeIds,
+    defaultCollapsedNodeIds,
+    onCollapsedNodeIdsChange,
+    toggleCollapseOnNodeDoubleClick = true,
+    hiddenNodeIds,
+    onNodeExpand,
+    onNodeCollapse,
     selectedNodeIds,
     selectedEdgeIds,
     defaultSelectedNodeIds,
@@ -241,6 +248,9 @@ const GraphInner = (
   });
   const [internalFocusedNodeId, setInternalFocusedNodeId] = useState<string | null>(
     defaultFocusedNodeId
+  );
+  const [internalCollapsedNodeIds, setInternalCollapsedNodeIds] = useState<string[]>(
+    defaultCollapsedNodeIds ?? []
   );
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
   const [measuredNodeSizes, setMeasuredNodeSizes] = useState<
@@ -296,6 +306,7 @@ const GraphInner = (
     [selectedNodeIds, selectedEdgeIds, internalSelection]
   );
   const focusedNodeId = controlledFocusedNodeId ?? internalFocusedNodeId;
+  const collapsedIds = collapsedNodeIds ?? internalCollapsedNodeIds;
   const selectedNodeSet = useMemo(() => new Set(selection.nodeIds), [selection.nodeIds]);
   const selectedEdgeSet = useMemo(() => new Set(selection.edgeIds), [selection.edgeIds]);
 
@@ -341,6 +352,17 @@ const GraphInner = (
     [controlledFocusedNodeId, onFocusedNodeChange]
   );
 
+  const updateCollapsedNodeIds = useCallback(
+    (next: string[] | ((current: string[]) => string[])) => {
+      const resolved = typeof next === 'function' ? next(collapsedIds) : next;
+      if (collapsedNodeIds == null) {
+        setInternalCollapsedNodeIds(resolved);
+      }
+      onCollapsedNodeIdsChange?.(resolved);
+    },
+    [collapsedIds, collapsedNodeIds, onCollapsedNodeIdsChange]
+  );
+
   const { nodes: sourceNodes, edges: sourceEdges } = useMemo(
     () => fromNxGraph(graph, cfg.defaultEdgeType),
     [cfg.defaultEdgeType, graph]
@@ -364,10 +386,83 @@ const GraphInner = (
     [cfg.defaultEdgeType, sourceEdges]
   );
 
+  const hiddenNodeSet = useMemo(() => new Set(hiddenNodeIds ?? []), [hiddenNodeIds]);
+  const collapsedNodeSet = useMemo(() => new Set(collapsedIds), [collapsedIds]);
+
+  const descendantHiddenNodeSet = useMemo(() => {
+    const outgoing = new Map<string, string[]>();
+    normalizedEdges.forEach((edge) => {
+      outgoing.set(edge.source, [...(outgoing.get(edge.source) ?? []), edge.target]);
+    });
+
+    const hidden = new Set(hiddenNodeSet);
+    collapsedIds.forEach((nodeId) => {
+      const stack = [...(outgoing.get(nodeId) ?? [])];
+      while (stack.length) {
+        const current = stack.pop();
+        if (!current || hidden.has(current)) {
+          continue;
+        }
+        hidden.add(current);
+        stack.push(...(outgoing.get(current) ?? []));
+      }
+    });
+
+    return hidden;
+  }, [collapsedIds, hiddenNodeSet, normalizedEdges]);
+
+  const visibleNodesWithMeasuredSize = useMemo(
+    () => nodesWithMeasuredSize.filter((node) => !descendantHiddenNodeSet.has(node.id)),
+    [descendantHiddenNodeSet, nodesWithMeasuredSize]
+  );
+
+  const visibleEdges = useMemo(
+    () =>
+      normalizedEdges.filter(
+        (edge) =>
+          !descendantHiddenNodeSet.has(edge.source) && !descendantHiddenNodeSet.has(edge.target)
+      ),
+    [descendantHiddenNodeSet, normalizedEdges]
+  );
+
+  const childNodeIdsByParent = useMemo(() => {
+    const map = new Map<string, string[]>();
+    normalizedEdges.forEach((edge) => {
+      map.set(edge.source, [...(map.get(edge.source) ?? []), edge.target]);
+    });
+    return map;
+  }, [normalizedEdges]);
+
+  useEffect(() => {
+    const visibleNodeIds = new Set(visibleNodesWithMeasuredSize.map((node) => node.id));
+    const visibleEdgeIds = new Set(visibleEdges.map((edge) => edge.id));
+
+    if (
+      selection.nodeIds.some((nodeId) => !visibleNodeIds.has(nodeId)) ||
+      selection.edgeIds.some((edgeId) => !visibleEdgeIds.has(edgeId))
+    ) {
+      updateSelection({
+        nodeIds: selection.nodeIds.filter((nodeId) => visibleNodeIds.has(nodeId)),
+        edgeIds: selection.edgeIds.filter((edgeId) => visibleEdgeIds.has(edgeId)),
+      });
+    }
+
+    if (focusedNodeId && !visibleNodeIds.has(focusedNodeId)) {
+      updateFocusedNode(null);
+    }
+  }, [
+    focusedNodeId,
+    selection,
+    updateFocusedNode,
+    updateSelection,
+    visibleEdges,
+    visibleNodesWithMeasuredSize,
+  ]);
+
   const layoutOptions = useMemo(
     () => ({
-      nodes: nodesWithMeasuredSize,
-      edges: normalizedEdges,
+      nodes: visibleNodesWithMeasuredSize,
+      edges: visibleEdges,
       theme: mergedTheme,
       padding: cfg.padding,
       layout: cfg.layout,
@@ -394,8 +489,8 @@ const GraphInner = (
       cfg.padding,
       cfg.width,
       mergedTheme,
-      nodesWithMeasuredSize,
-      normalizedEdges,
+      visibleEdges,
+      visibleNodesWithMeasuredSize,
     ]
   );
 
@@ -449,9 +544,9 @@ const GraphInner = (
   const positionedEdges: PositionedEdge[] = useMemo(
     () =>
       routeEdgesOverride
-        ? routeEdgesOverride(positionedNodes, normalizedEdges, edgeRoutingOptions)
-        : routeEdges(positionedNodes, normalizedEdges, edgeRoutingOptions),
-    [edgeRoutingOptions, normalizedEdges, positionedNodes, routeEdgesOverride]
+        ? routeEdgesOverride(positionedNodes, visibleEdges, edgeRoutingOptions)
+        : routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions),
+    [edgeRoutingOptions, positionedNodes, routeEdgesOverride, visibleEdges]
   );
 
   const graphBounds = useMemo(() => getGraphBounds(positionedNodes), [positionedNodes]);
@@ -557,6 +652,35 @@ const GraphInner = (
       onNodeClick?.(node);
     },
     [nodeSelectionEnabled, onNodeClick, selectionMode, updateFocusedNode, updateSelection]
+  );
+
+  const handleNodeDoubleClick = useCallback(
+    (node: PositionedNode) => {
+      if (!toggleCollapseOnNodeDoubleClick) {
+        return;
+      }
+
+      const hasChildren = (childNodeIdsByParent.get(node.id) ?? []).length > 0;
+      if (!hasChildren) {
+        return;
+      }
+
+      if (collapsedNodeSet.has(node.id)) {
+        updateCollapsedNodeIds((current) => current.filter((id) => id !== node.id));
+        onNodeExpand?.(node.id);
+      } else {
+        updateCollapsedNodeIds((current) => [...current, node.id]);
+        onNodeCollapse?.(node.id);
+      }
+    },
+    [
+      childNodeIdsByParent,
+      collapsedNodeSet,
+      onNodeCollapse,
+      onNodeExpand,
+      toggleCollapseOnNodeDoubleClick,
+      updateCollapsedNodeIds,
+    ]
   );
 
   const handleEdgeSelection = useCallback(
@@ -1154,6 +1278,7 @@ const GraphInner = (
               onNodeMeasure={handleNodeMeasure}
               onNodeFocus={updateFocusedNode}
               onNodeClick={handleNodeSelection}
+              onNodeDoubleClick={handleNodeDoubleClick}
               onNodeMouseEnter={handleNodeMouseEnter}
               onNodeMouseLeave={handleNodeMouseLeave}
               onPathHover={handlePathHover}

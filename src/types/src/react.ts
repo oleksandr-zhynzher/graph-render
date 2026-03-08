@@ -129,6 +129,13 @@ export interface GraphProps {
   focusedNodeId?: string | null;
   defaultFocusedNodeId?: string | null;
   onFocusedNodeChange?: (nodeId: string | null) => void;
+  collapsedNodeIds?: string[];
+  defaultCollapsedNodeIds?: string[];
+  onCollapsedNodeIdsChange?: (nodeIds: string[]) => void;
+  toggleCollapseOnNodeDoubleClick?: boolean;
+  hiddenNodeIds?: string[];
+  onNodeExpand?: (nodeId: string) => void | Promise<void>;
+  onNodeCollapse?: (nodeId: string) => void;
   selectedNodeIds?: string[];
   selectedEdgeIds?: string[];
   defaultSelectedNodeIds?: string[];
