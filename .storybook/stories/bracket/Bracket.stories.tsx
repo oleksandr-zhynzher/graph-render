@@ -4,11 +4,11 @@ import { bracketGraphR16 } from './data/bracket_r8';
 import { bracketGraphQF } from './data/bracket_qf';
 import { bracketGraphR64 } from './data/bracket_r64';
 import { bracketGraphLive } from './data/bracket_live';
-import { TournamentBracket } from '@graph-render/tournament-tree';
+import { BracketPlayground } from './BracketPlayground';
 
-const meta: Meta<typeof TournamentBracket> = {
+const meta: Meta<typeof BracketPlayground> = {
   title: 'Bracket/Squash Tournament',
-  component: TournamentBracket,
+  component: BracketPlayground,
   tags: ['autodocs'],
   args: {
     graph: bracketGraphQF,
@@ -20,7 +20,7 @@ const meta: Meta<typeof TournamentBracket> = {
 
 export default meta;
 
-type Story = StoryObj<typeof TournamentBracket>;
+type Story = StoryObj<typeof BracketPlayground>;
 
 export const Quarterfinals: Story = {
   name: 'Quarterfinals (8 Players)',

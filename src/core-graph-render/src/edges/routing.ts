@@ -29,6 +29,8 @@ type ParallelEdgeMeta = {
   centeredOffset: number;
 };
 
+const ORTHOGONAL_TERMINAL_SEGMENT = 20;
+
 const getParallelGroupKey = (edge: EdgeData): string => {
   const pair = [edge.source, edge.target].sort().join('|');
   return `${pair}|${edge.type ?? EdgeType.Directed}`;
@@ -137,21 +139,35 @@ const calculateOrthogonalPoints = (
   sourceCenter: Point,
   targetCenter: Point,
   routingStyle: 'orthogonal' | 'bundled',
-  parallelOffset: number
+  parallelOffset: number,
+  sourceSide: NodeSide,
+  targetSide: NodeSide
 ): Point[] => {
-  const dx = endPoint.x - startPoint.x;
-  const dy = endPoint.y - startPoint.y;
+  const sourceNormal = getSideNormal(sourceSide);
+  const targetNormal = getSideNormal(targetSide);
+  const startLead = {
+    x: startPoint.x + sourceNormal.x * ORTHOGONAL_TERMINAL_SEGMENT,
+    y: startPoint.y + sourceNormal.y * ORTHOGONAL_TERMINAL_SEGMENT,
+  };
+  const endLead = {
+    x: endPoint.x + targetNormal.x * ORTHOGONAL_TERMINAL_SEGMENT,
+    y: endPoint.y + targetNormal.y * ORTHOGONAL_TERMINAL_SEGMENT,
+  };
+  const dx = endLead.x - startLead.x;
+  const dy = endLead.y - startLead.y;
 
   if (Math.abs(dx) >= Math.abs(dy)) {
     const midX =
       routingStyle === 'bundled'
         ? (sourceCenter.x + targetCenter.x) / 2 + parallelOffset * 0.5
-        : startPoint.x + dx / 2;
+        : startLead.x + dx / 2;
 
     return [
       startPoint,
-      { x: midX, y: startPoint.y },
-      { x: midX, y: endPoint.y },
+      startLead,
+      { x: midX, y: startLead.y },
+      { x: midX, y: endLead.y },
+      endLead,
       endPoint,
     ];
   }
@@ -159,12 +175,14 @@ const calculateOrthogonalPoints = (
   const midY =
     routingStyle === 'bundled'
       ? (sourceCenter.y + targetCenter.y) / 2 + parallelOffset * 0.5
-      : startPoint.y + dy / 2;
+      : startLead.y + dy / 2;
 
   return [
     startPoint,
-    { x: startPoint.x, y: midY },
-    { x: endPoint.x, y: midY },
+    startLead,
+    { x: startLead.x, y: midY },
+    { x: endLead.x, y: midY },
+    endLead,
     endPoint,
   ];
 };
@@ -270,7 +288,9 @@ const calculateEdgePoints = (
       sourceCenter,
       targetCenter,
       routingStyle,
-      parallelOffset
+      parallelOffset,
+      sourceSide,
+      targetSide
     );
   }
 

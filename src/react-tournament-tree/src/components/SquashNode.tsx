@@ -68,6 +68,8 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
   const tiebreaks = meta.tiebreaks ?? [];
   const status = meta.status ?? 'completed';
   const currentSet = meta.currentSet ?? 0;
+  const nodeWidth = node.size?.width ?? NODE_DIMENSIONS.WIDTH;
+  const nodeHeight = node.size?.height ?? NODE_DIMENSIONS.HEIGHT;
 
   // Check if match is TBD (both players or either player is TBD)
   const isTBD = p1.name === 'TBD' || p2.name === 'TBD';
@@ -86,29 +88,56 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
   );
 
   if (isSvgCompatibleRenderMode(renderMode)) {
-    const rowHeight = 30;
-    const rowYStart = 24;
-    const scoreStartX = 148;
-    const scoreCellWidth = 16;
+    const rowInsetX = 8;
+    const rowInsetY = rowInsetX;
+    const rowGap = 6;
+    const rowHeight = Math.max(30, (nodeHeight - rowInsetY * 2 - rowGap) / 2);
+    const rowYStart = rowInsetY;
+    const rowWidth = nodeWidth - rowInsetX * 2;
+    const crestSize = 26;
+    const crestX = 4;
+    const crestY = Math.max(2, (rowHeight - crestSize) / 2);
+    const crestCenterX = crestX + crestSize / 2;
+    const crestCenterY = crestY + crestSize / 2;
+    const playerTextY = Math.max(19, rowHeight / 2 + 5);
+    const scoreTextY = Math.max(16, rowHeight / 2 + 2);
+    const tiebreakTextY = rowHeight - 5;
+    const dividerTopY = 6;
+    const dividerBottomY = rowHeight - 6;
+    const scoreColumns = 3;
+    const scoreColumnGap = 22;
+    const setCountCenterX = rowWidth - 12;
+    const setCountDividerX = rowWidth - 26;
+    const lastScoreCenterX = setCountDividerX - 12;
+    const scoreStartX = lastScoreCenterX - scoreColumnGap * (scoreColumns - 1);
+    const scoreCenters = Array.from({ length: scoreColumns }, (_, index) => {
+      return scoreStartX + scoreColumnGap * index;
+    });
+    const scoreDividers = scoreCenters.slice(1).map((centerX, index) => {
+      return (scoreCenters[index] + centerX) / 2;
+    });
+    const playerNameX = 38;
+    const maxNameWidth = Math.max(48, scoreStartX - playerNameX - 16);
+    const maxNameLength = Math.max(8, Math.floor(maxNameWidth / 7));
 
     return (
       <g>
         <rect
-          width={NODE_DIMENSIONS.WIDTH}
-          height={NODE_DIMENSIONS.HEIGHT}
+          width={nodeWidth}
+          height={nodeHeight}
           rx={12}
           ry={12}
           fill={isHovered ? THEME_COLORS.HOVER_BG : THEME_COLORS.BASE_BG}
         />
 
         {status === 'live' && (
-          <g transform={`translate(${NODE_DIMENSIONS.WIDTH - 22}, 11)`}>
+          <g transform={`translate(${nodeWidth - 22}, 11)`}>
             <circle r={4} fill={THEME_COLORS.LIVE_INDICATOR} />
           </g>
         )}
 
         {[p1, p2].map((player, idx) => {
-          const rowY = rowYStart + idx * (rowHeight + 6);
+          const rowY = rowYStart + idx * (rowHeight + rowGap);
           const initials = player.name ? player.name.substring(0, 2).toUpperCase() : '??';
           const perSet = [0, 0, 0].map((_, setIndex) => {
             const value = sets[setIndex]?.[idx === 0 ? 0 : 1];
@@ -120,31 +149,46 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
           return (
             <g
               key={`${node.id}-svg-p-${idx}`}
-              transform={`translate(8, ${rowY})`}
+              transform={`translate(${rowInsetX}, ${rowY})`}
               opacity={playerOpacity}
               onMouseEnter={() => !isTBD && onPathHover?.(idx, { pathKey: player.name })}
               onMouseLeave={() => !isTBD && onPathLeave?.()}
             >
               <rect
-                width={NODE_DIMENSIONS.WIDTH - 16}
+                width={rowWidth}
                 height={rowHeight}
                 rx={10}
                 ry={10}
                 fill={THEME_COLORS.ROW_BG}
               />
-              <rect x={4} y={2} width={26} height={26} rx={8} ry={8} fill={THEME_COLORS.CREST_BG} />
+              <rect
+                x={crestX}
+                y={crestY}
+                width={crestSize}
+                height={crestSize}
+                rx={8}
+                ry={8}
+                fill={THEME_COLORS.CREST_BG}
+              />
               <text
-                x={17}
-                y={20}
+                x={crestCenterX}
+                y={crestCenterY}
                 textAnchor="middle"
+                dominantBaseline="middle"
                 fontSize={10}
                 fontWeight={800}
                 fill={THEME_COLORS.FOREGROUND}
               >
                 {initials}
               </text>
-              <text x={38} y={19} fontSize={13} fontWeight={700} fill={THEME_COLORS.FOREGROUND}>
-                {truncateText(player.name, 14)}
+              <text
+                x={playerNameX}
+                y={playerTextY}
+                fontSize={13}
+                fontWeight={700}
+                fill={THEME_COLORS.FOREGROUND}
+              >
+                {truncateText(player.name, maxNameLength)}
               </text>
 
               {perSet.map((value, setIndex) => {
@@ -157,23 +201,24 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
                 const shouldHighlight = wonSet && !(status === 'live' && isCurrentSet);
                 const tiebreak = tiebreaks[setIndex];
                 const hasTiebreak = tiebreak && tiebreak.length === 2;
-                const scoreX = scoreStartX + setIndex * scoreCellWidth;
+                const scoreX = scoreCenters[setIndex] ?? scoreStartX;
+                const dividerX = scoreDividers[setIndex - 1];
 
                 return (
                   <g key={`${node.id}-svg-p-${idx}-set-${setIndex}`}>
-                    {setIndex > 0 && (
+                    {setIndex > 0 && dividerX != null && (
                       <line
-                        x1={scoreX - 3}
-                        y1={6}
-                        x2={scoreX - 3}
-                        y2={24}
+                        x1={dividerX}
+                        y1={dividerTopY}
+                        x2={dividerX}
+                        y2={dividerBottomY}
                         stroke={THEME_COLORS.BORDER}
                         strokeWidth={1}
                       />
                     )}
                     <text
                       x={scoreX}
-                      y={16}
+                      y={scoreTextY}
                       textAnchor="middle"
                       fontSize={13}
                       fontWeight={shouldHighlight ? 700 : 400}
@@ -184,7 +229,7 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
                     {hasTiebreak && (
                       <text
                         x={scoreX}
-                        y={25}
+                        y={tiebreakTextY}
                         textAnchor="middle"
                         fontSize={8}
                         fill={THEME_COLORS.DARK_TEXT}
@@ -197,16 +242,16 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
               })}
 
               <line
-                x1={scoreStartX + 3 * scoreCellWidth + 5}
-                y1={6}
-                x2={scoreStartX + 3 * scoreCellWidth + 5}
-                y2={24}
+                x1={setCountDividerX}
+                y1={dividerTopY}
+                x2={setCountDividerX}
+                y2={dividerBottomY}
                 stroke={THEME_COLORS.DARK_BORDER}
                 strokeWidth={1}
               />
               <text
-                x={scoreStartX + 3 * scoreCellWidth + 16}
-                y={16}
+                x={setCountCenterX}
+                y={scoreTextY}
                 textAnchor="middle"
                 fontSize={13}
                 fontWeight={status === 'completed' ? 900 : 400}
@@ -223,8 +268,8 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
 
   return (
     <foreignObject
-      width={NODE_DIMENSIONS.WIDTH}
-      height={NODE_DIMENSIONS.HEIGHT}
+      width={nodeWidth}
+      height={nodeHeight}
       requiredExtensions="http://www.w3.org/1999/xhtml"
     >
       <div

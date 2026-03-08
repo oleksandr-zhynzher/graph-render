@@ -112,7 +112,8 @@ export const GraphNode = React.memo<GraphNodeProps>(
       return () => cancelAnimationFrame(frame);
     }, [node.id, node.label, node.meta, onNodeMeasure, width, height, isSelected, isHoveredNode]);
 
-    const borderWidth = isSelected || isHighlighted ? Math.max(2, nodeBorderWidth) : hasBorder ? nodeBorderWidth : 0;
+    const borderWidth =
+      isSelected || isHighlighted ? Math.max(2, nodeBorderWidth) : hasBorder ? nodeBorderWidth : 0;
     const focusStrokeWidth = isFocused ? Math.max(2, borderWidth || 2) : 0;
 
     return (
@@ -123,6 +124,9 @@ export const GraphNode = React.memo<GraphNodeProps>(
         role="button"
         tabIndex={0}
         aria-selected={isSelected}
+        onMouseDown={(event) => {
+          event.preventDefault();
+        }}
         onFocus={() => onNodeFocus?.(node.id)}
         onClick={() => onNodeClick?.(node)}
         onDoubleClick={() => onNodeDoubleClick?.(node)}

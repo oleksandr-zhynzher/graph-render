@@ -16,12 +16,20 @@ import {
   GraphRenderContext,
   GraphSelection,
   GraphViewport,
+  LayoutDirection,
+  LayoutType,
   PositionedEdge,
   PositionedNode,
 } from '@graph-render/types';
 import { DEFAULT_CONFIG } from '../constants/defaults';
 import { useGraphHover } from '../hooks/useGraphHover';
-import { centerViewportOnNode, clampZoom, getFitViewport, getGraphBounds } from '../utils/viewport';
+import {
+  GraphBounds,
+  centerViewportOnNode,
+  clampZoom,
+  getFitViewport,
+  getGraphBounds,
+} from '../utils/viewport';
 import { EdgePath } from './EdgePath';
 import { GraphLabels } from './GraphLabels';
 import { GraphNode } from './GraphNode';
@@ -35,6 +43,11 @@ const DEFAULT_SELECTION_COLOR = '#f59e0b';
 const DEFAULT_CONTROLS_POSITION: GraphControlsPosition = 'top-left';
 const CONTROL_BUTTON_SIZE = 26;
 const CONTROL_BUTTON_GAP = 8;
+const LABEL_PILL_WIDTH = 64;
+const LABEL_PILL_HEIGHT = 20;
+const EDGE_LABEL_WIDTH = 48;
+const EDGE_LABEL_HEIGHT = 20;
+const FIT_BOUNDS_MARGIN = 8;
 
 type PointerState = { x: number; y: number };
 type PinchState = {
@@ -115,6 +128,103 @@ const isPointInsideRect = (
   rect: { x: number; y: number; width: number; height: number }
 ): boolean => {
   return x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height;
+};
+
+const expandBounds = (bounds: GraphBounds, margin: number): GraphBounds => ({
+  minX: bounds.minX - margin,
+  minY: bounds.minY - margin,
+  maxX: bounds.maxX + margin,
+  maxY: bounds.maxY + margin,
+  width: bounds.width + margin * 2,
+  height: bounds.height + margin * 2,
+});
+
+const mergeBounds = (base: GraphBounds | null, next: GraphBounds | null): GraphBounds | null => {
+  if (!base) {
+    return next;
+  }
+
+  if (!next) {
+    return base;
+  }
+
+  const minX = Math.min(base.minX, next.minX);
+  const minY = Math.min(base.minY, next.minY);
+  const maxX = Math.max(base.maxX, next.maxX);
+  const maxY = Math.max(base.maxY, next.maxY);
+
+  return {
+    minX,
+    minY,
+    maxX,
+    maxY,
+    width: maxX - minX,
+    height: maxY - minY,
+  };
+};
+
+const getLabelBounds = (
+  nodes: PositionedNode[],
+  layout: LayoutType,
+  layoutDirection: LayoutDirection,
+  labels: string[] | undefined,
+  autoLabels: boolean,
+  labelOffset: number
+): GraphBounds | null => {
+  if (!nodes.length || (!autoLabels && !(labels && labels.length))) {
+    return null;
+  }
+
+  const columns = new Map<number, PositionedNode[]>();
+  nodes.forEach((node) => {
+    const column = columns.get(node.position.x) ?? [];
+    column.push(node);
+    columns.set(node.position.x, column);
+  });
+
+  const xs = Array.from(columns.keys()).sort((a, b) => a - b);
+  if (!xs.length) {
+    return null;
+  }
+
+  const orderedXs =
+    layout === LayoutType.Tree && layoutDirection === LayoutDirection.RTL ? [...xs].reverse() : xs;
+  const minY = Math.min(...nodes.map((node) => node.position.y));
+  const topY = minY - labelOffset - LABEL_PILL_HEIGHT + 6;
+
+  return orderedXs.reduce<GraphBounds | null>((bounds, x) => {
+    const nodeWidth = columns.get(x)?.[0]?.size?.width ?? 0;
+    const centerX = x + nodeWidth / 2;
+    const labelBounds: GraphBounds = {
+      minX: centerX - LABEL_PILL_WIDTH / 2,
+      minY: topY,
+      maxX: centerX + LABEL_PILL_WIDTH / 2,
+      maxY: topY + LABEL_PILL_HEIGHT,
+      width: LABEL_PILL_WIDTH,
+      height: LABEL_PILL_HEIGHT,
+    };
+
+    return mergeBounds(bounds, labelBounds);
+  }, null);
+};
+
+const getEdgeLabelBounds = (edges: PositionedEdge[]): GraphBounds | null => {
+  return edges.reduce<GraphBounds | null>((bounds, edge) => {
+    if (!edge.labelPosition) {
+      return bounds;
+    }
+
+    const labelBounds: GraphBounds = {
+      minX: edge.labelPosition.x - EDGE_LABEL_WIDTH / 2,
+      minY: edge.labelPosition.y - EDGE_LABEL_HEIGHT / 2,
+      maxX: edge.labelPosition.x + EDGE_LABEL_WIDTH / 2,
+      maxY: edge.labelPosition.y + EDGE_LABEL_HEIGHT / 2,
+      width: EDGE_LABEL_WIDTH,
+      height: EDGE_LABEL_HEIGHT,
+    };
+
+    return mergeBounds(bounds, labelBounds);
+  }, null);
 };
 
 const getRelativeSvgPoint = (
@@ -280,6 +390,8 @@ const GraphInner = (
     worldY: 0,
   });
   const svgRef = useRef<SVGSVGElement>(null);
+  const contentRef = useRef<SVGGElement>(null);
+  const hasAppliedInitialFitViewRef = useRef(false);
 
   const mergedTheme = useMemo(
     () => ({ ...DEFAULT_THEME, ...(config?.theme ?? {}) }),
@@ -313,7 +425,8 @@ const GraphInner = (
     }),
     [selectedNodeIds, selectedEdgeIds, internalSelection]
   );
-  const focusedNodeId = controlledFocusedNodeId ?? internalFocusedNodeId;
+  const focusedNodeId =
+    controlledFocusedNodeId !== undefined ? controlledFocusedNodeId : internalFocusedNodeId;
   const collapsedIds = collapsedNodeIds ?? internalCollapsedNodeIds;
   const selectedNodeSet = useMemo(() => new Set(selection.nodeIds), [selection.nodeIds]);
   const selectedEdgeSet = useMemo(() => new Set(selection.edgeIds), [selection.edgeIds]);
@@ -352,7 +465,7 @@ const GraphInner = (
 
   const updateFocusedNode = useCallback(
     (nodeId: string | null) => {
-      if (controlledFocusedNodeId == null) {
+      if (controlledFocusedNodeId === undefined) {
         setInternalFocusedNodeId(nodeId);
       }
       onFocusedNodeChange?.(nodeId);
@@ -669,12 +782,54 @@ const GraphInner = (
   );
 
   const graphBounds = useMemo(() => getGraphBounds(positionedNodes), [positionedNodes]);
+  const contentBounds = useMemo(() => {
+    const bounds = mergeBounds(
+      mergeBounds(
+        graphBounds,
+        getLabelBounds(
+          positionedNodes,
+          cfg.layout,
+          cfg.layoutDirection,
+          cfg.labels,
+          cfg.autoLabels,
+          cfg.labelOffset
+        )
+      ),
+      getEdgeLabelBounds(positionedEdges)
+    );
+
+    return bounds ? expandBounds(bounds, FIT_BOUNDS_MARGIN) : bounds;
+  }, [
+    cfg.autoLabels,
+    cfg.labelOffset,
+    cfg.labels,
+    cfg.layout,
+    cfg.layoutDirection,
+    graphBounds,
+    positionedEdges,
+    positionedNodes,
+  ]);
+
+  const getViewportDimensions = useCallback(() => {
+    const svgElement = svgRef.current;
+    if (!svgElement) {
+      return { width: cfg.width, height: cfg.height };
+    }
+
+    const containerRect = svgElement.parentElement?.getBoundingClientRect();
+    const rect = containerRect ?? svgElement.getBoundingClientRect();
+    return {
+      width: rect.width || cfg.width,
+      height: rect.height || cfg.height,
+    };
+  }, [cfg.height, cfg.width]);
 
   const fitView = useCallback(
     (padding: number = fitViewPadding) => {
-      updateViewport(getFitViewport(graphBounds, cfg.width, cfg.height, padding, minZoom, maxZoom));
+      const { width, height } = getViewportDimensions();
+      updateViewport(getFitViewport(contentBounds, width, height, padding, minZoom, maxZoom));
     },
-    [cfg.height, cfg.width, fitViewPadding, graphBounds, maxZoom, minZoom, updateViewport]
+    [contentBounds, fitViewPadding, getViewportDimensions, maxZoom, minZoom, updateViewport]
   );
 
   const centerOnNode = useCallback(
@@ -683,9 +838,11 @@ const GraphInner = (
       if (!node) {
         return;
       }
-      updateViewport(centerViewportOnNode(node, cfg.width, cfg.height, viewport.zoom));
+
+      const { width, height } = getViewportDimensions();
+      updateViewport(centerViewportOnNode(node, width, height, viewport.zoom));
     },
-    [cfg.height, cfg.width, positionedNodes, updateViewport, viewport.zoom]
+    [getViewportDimensions, positionedNodes, updateViewport, viewport.zoom]
   );
 
   useImperativeHandle(
@@ -705,10 +862,17 @@ const GraphInner = (
   );
 
   useEffect(() => {
-    if (fitViewOnMount) {
-      fitView();
+    hasAppliedInitialFitViewRef.current = false;
+  }, [graph]);
+
+  useEffect(() => {
+    if (!fitViewOnMount || hasAppliedInitialFitViewRef.current || positionedNodes.length === 0) {
+      return;
     }
-  }, [fitView, fitViewOnMount, graphBounds]);
+
+    hasAppliedInitialFitViewRef.current = true;
+    fitView();
+  }, [fitView, fitViewOnMount, positionedNodes.length]);
 
   const {
     hoveredEdgeId,
@@ -1320,97 +1484,101 @@ const GraphInner = (
       </defs>
 
       <g transform={`translate(${viewport.x}, ${viewport.y}) scale(${viewport.zoom})`}>
-        {renderBackground?.(renderContext)}
+        <g ref={contentRef}>
+          {renderBackground?.(renderContext)}
 
-        <GraphLabels
-          positionedNodes={positionedNodes}
-          layout={cfg.layout}
-          layoutDirection={cfg.layoutDirection}
-          labels={cfg.labels}
-          autoLabels={cfg.autoLabels}
-          labelOffset={cfg.labelOffset}
-        />
+          <GraphLabels
+            positionedNodes={positionedNodes}
+            layout={cfg.layout}
+            layoutDirection={cfg.layoutDirection}
+            labels={cfg.labels}
+            autoLabels={cfg.autoLabels}
+            labelOffset={cfg.labelOffset}
+          />
 
-        <g aria-label="edges">
-          {edgesForRender.map((edge) => {
-            const edgeHovered =
-              (cfg.hoverHighlight &&
-                (hoveredEdgeId === edge.id ||
-                  (hoveredNodeId &&
-                    (edge.source === hoveredNodeId || edge.target === hoveredNodeId)))) ||
-              pathHighlight?.edges.has(edge.id);
+          <g aria-label="edges">
+            {edgesForRender.map((edge) => {
+              const edgeHovered =
+                (cfg.hoverHighlight &&
+                  (hoveredEdgeId === edge.id ||
+                    (hoveredNodeId &&
+                      (edge.source === hoveredNodeId || edge.target === hoveredNodeId)))) ||
+                pathHighlight?.edges.has(edge.id);
 
-            const isIncomingToHovered =
-              hoveredNodeId &&
-              !hoveredEdgeId &&
-              edge.type !== 'undirected' &&
-              edge.target === hoveredNodeId;
+              const isIncomingToHovered =
+                hoveredNodeId &&
+                !hoveredEdgeId &&
+                edge.type !== 'undirected' &&
+                edge.target === hoveredNodeId;
 
-            return (
-              <EdgeComponent
-                key={edge.id}
-                edge={edge}
-                color={mergedTheme.edgeColor}
-                width={mergedTheme.edgeWidth}
-                curveEdges={cfg.curveEdges && cfg.routingStyle !== 'orthogonal'}
-                curveStrength={cfg.curveStrength}
-                markerEnd={`url(#${arrowMarkerId})`}
-                isHovered={edgeHovered}
-                isSelected={
-                  selectedEdgeSet.has(edge.id) || effectiveHighlightedEdgeSet.has(edge.id)
-                }
-                hoverColor={isIncomingToHovered ? cfg.hoverNodeOutColor : cfg.hoverEdgeColor}
-                selectionColor={selectedEdgeSet.has(edge.id) ? selectionEdgeColor : highlightColor}
-                labelColor={cfg.edgeLabelColor}
-                selectionMarker={`url(#${selectionArrowMarkerId})`}
-                hoverMarker={
-                  isIncomingToHovered
-                    ? `url(#${hoverIncomingArrowMarkerId})`
-                    : `url(#${hoverArrowMarkerId})`
-                }
-                hoverEnabled={cfg.hoverHighlight}
-                hitStrokeWidth={mergedTheme.edgeWidth + 8}
-                hoverStrokeWidth={mergedTheme.edgeWidth + 1.5}
-                selectedStrokeWidth={mergedTheme.edgeWidth + 1.5}
-                onHoverChange={(value) => handleEdgeHoverChange(edge.id, value)}
-                onClick={() => handleEdgeSelection(edge)}
+              return (
+                <EdgeComponent
+                  key={edge.id}
+                  edge={edge}
+                  color={mergedTheme.edgeColor}
+                  width={mergedTheme.edgeWidth}
+                  curveEdges={cfg.curveEdges && cfg.routingStyle !== 'orthogonal'}
+                  curveStrength={cfg.curveStrength}
+                  markerEnd={`url(#${arrowMarkerId})`}
+                  isHovered={edgeHovered}
+                  isSelected={
+                    selectedEdgeSet.has(edge.id) || effectiveHighlightedEdgeSet.has(edge.id)
+                  }
+                  hoverColor={isIncomingToHovered ? cfg.hoverNodeOutColor : cfg.hoverEdgeColor}
+                  selectionColor={
+                    selectedEdgeSet.has(edge.id) ? selectionEdgeColor : highlightColor
+                  }
+                  labelColor={cfg.edgeLabelColor}
+                  selectionMarker={`url(#${selectionArrowMarkerId})`}
+                  hoverMarker={
+                    isIncomingToHovered
+                      ? `url(#${hoverIncomingArrowMarkerId})`
+                      : `url(#${hoverArrowMarkerId})`
+                  }
+                  hoverEnabled={cfg.hoverHighlight}
+                  hitStrokeWidth={mergedTheme.edgeWidth + 8}
+                  hoverStrokeWidth={mergedTheme.edgeWidth + 1.5}
+                  selectedStrokeWidth={mergedTheme.edgeWidth + 1.5}
+                  onHoverChange={(value) => handleEdgeHoverChange(edge.id, value)}
+                  onClick={() => handleEdgeSelection(edge)}
+                />
+              );
+            })}
+          </g>
+
+          <g aria-label="nodes">
+            {positionedNodes.map((node) => (
+              <GraphNode
+                key={node.id}
+                node={node}
+                Vertex={Vertex}
+                isSelected={selectedNodeSet.has(node.id)}
+                isFocused={focusedNodeId === node.id}
+                isHighlighted={effectiveHighlightedNodeSet.has(node.id)}
+                highlightColor={highlightColor}
+                selectionColor={selectionColor}
+                nodeBorderColor={nodeBorderColor}
+                nodeBorderWidth={nodeBorderWidth}
+                hoverNodeBorderColor={hoverNodeBorderColor}
+                hoverNodeBothColor={hoverNodeBothColor}
+                hoverNodeInColor={cfg.hoverNodeInColor}
+                hoverNodeOutColor={cfg.hoverNodeOutColor}
+                hoverNodeHighlight={cfg.hoverNodeHighlight}
+                hoveredNodeStates={hoveredNodeStates ?? undefined}
+                onNodeMeasure={handleNodeMeasure}
+                onNodeFocus={updateFocusedNode}
+                onNodeClick={handleNodeSelection}
+                onNodeDoubleClick={handleNodeDoubleClick}
+                onNodeMouseEnter={handleNodeMouseEnter}
+                onNodeMouseLeave={handleNodeMouseLeave}
+                onPathHover={handlePathHover}
+                onPathLeave={handlePathLeave}
               />
-            );
-          })}
-        </g>
+            ))}
+          </g>
 
-        <g aria-label="nodes">
-          {positionedNodes.map((node) => (
-            <GraphNode
-              key={node.id}
-              node={node}
-              Vertex={Vertex}
-              isSelected={selectedNodeSet.has(node.id)}
-              isFocused={focusedNodeId === node.id}
-              isHighlighted={effectiveHighlightedNodeSet.has(node.id)}
-              highlightColor={highlightColor}
-              selectionColor={selectionColor}
-              nodeBorderColor={nodeBorderColor}
-              nodeBorderWidth={nodeBorderWidth}
-              hoverNodeBorderColor={hoverNodeBorderColor}
-              hoverNodeBothColor={hoverNodeBothColor}
-              hoverNodeInColor={cfg.hoverNodeInColor}
-              hoverNodeOutColor={cfg.hoverNodeOutColor}
-              hoverNodeHighlight={cfg.hoverNodeHighlight}
-              hoveredNodeStates={hoveredNodeStates ?? undefined}
-              onNodeMeasure={handleNodeMeasure}
-              onNodeFocus={updateFocusedNode}
-              onNodeClick={handleNodeSelection}
-              onNodeDoubleClick={handleNodeDoubleClick}
-              onNodeMouseEnter={handleNodeMouseEnter}
-              onNodeMouseLeave={handleNodeMouseLeave}
-              onPathHover={handlePathHover}
-              onPathLeave={handlePathLeave}
-            />
-          ))}
+          {renderOverlay?.(renderContext)}
         </g>
-
-        {renderOverlay?.(renderContext)}
       </g>
 
       {selectionRect ? (

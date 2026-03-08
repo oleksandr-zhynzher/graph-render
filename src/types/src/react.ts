@@ -105,11 +105,7 @@ export type DragState = {
   originY: number;
 };
 
-export type GraphControlsPosition =
-  | 'top-left'
-  | 'top-right'
-  | 'bottom-left'
-  | 'bottom-right';
+export type GraphControlsPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
 export interface GraphProps {
   graph: NxGraphInput;
@@ -173,16 +169,8 @@ export interface GraphProps {
   ) => CorePositionedEdge[];
   renderBackground?: (context: GraphRenderContext) => ReactNode;
   renderOverlay?: (context: GraphRenderContext) => ReactNode;
-  onNodeHoverChange?: (
-    node: CorePositionedNode,
-    hovered: boolean,
-    meta: GraphHoverMeta
-  ) => void;
-  onEdgeHoverChange?: (
-    edge: CorePositionedEdge,
-    hovered: boolean,
-    meta: GraphHoverMeta
-  ) => void;
+  onNodeHoverChange?: (node: CorePositionedNode, hovered: boolean, meta: GraphHoverMeta) => void;
+  onEdgeHoverChange?: (edge: CorePositionedEdge, hovered: boolean, meta: GraphHoverMeta) => void;
   onNodeClick?: (node: CorePositionedNode) => void;
   onEdgeClick?: (edge: CorePositionedEdge) => void;
 }

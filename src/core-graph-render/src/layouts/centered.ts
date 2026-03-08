@@ -1,4 +1,4 @@
-import { NodeData, PositionedNode, Point } from '@graph-render/types';
+import { NodeData, Point, PositionedNode } from '@graph-render/types';
 import { DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
 
 /**
@@ -15,8 +15,9 @@ const getContainerCenter = (width: number, height: number): Point => {
  * Calculate the maximum node dimensions
  */
 const getMaxNodeDimensions = (nodes: NodeData[]): { maxWidth: number; maxHeight: number } => {
-  const maxWidth = Math.max(...nodes.map((n) => n.size?.width ?? DEFAULT_NODE_SIZE.width));
-  const maxHeight = Math.max(...nodes.map((n) => n.size?.height ?? DEFAULT_NODE_SIZE.height));
+  const maxWidth = Math.max(...nodes.map((node) => node.size?.width ?? DEFAULT_NODE_SIZE.width));
+  const maxHeight = Math.max(...nodes.map((node) => node.size?.height ?? DEFAULT_NODE_SIZE.height));
+
   return { maxWidth, maxHeight };
 };
 
@@ -42,6 +43,7 @@ const calculateCircleRadius = (
 const positionSingleNode = (node: NodeData, centerX: number, centerY: number): PositionedNode => {
   const nodeWidth = node.size?.width ?? DEFAULT_NODE_SIZE.width;
   const nodeHeight = node.size?.height ?? DEFAULT_NODE_SIZE.height;
+
   return {
     ...node,
     position: {
@@ -64,6 +66,7 @@ const calculateCircularPosition = (
   nodeHeight: number
 ): Point => {
   const angle = (2 * Math.PI * index) / total - Math.PI / 2;
+
   return {
     x: centerX + radius * Math.cos(angle) - nodeWidth / 2,
     y: centerY + radius * Math.sin(angle) - nodeHeight / 2,
@@ -81,7 +84,9 @@ export const centeredLayout = (
 ): PositionedNode[] => {
   const count = nodes.length;
 
-  if (count === 0) return [] as PositionedNode[];
+  if (count === 0) {
+    return [] as PositionedNode[];
+  }
 
   const { x: centerX, y: centerY } = getContainerCenter(width, height);
 
@@ -92,13 +97,15 @@ export const centeredLayout = (
   const { maxWidth, maxHeight } = getMaxNodeDimensions(nodes);
   const radius = calculateCircleRadius(width, height, pad, maxWidth, maxHeight);
 
-  return nodes.map((node, idx) => {
-    if (node.position) return node as PositionedNode;
+  return nodes.map((node, index) => {
+    if (node.position) {
+      return node as PositionedNode;
+    }
 
     const nodeWidth = node.size?.width ?? DEFAULT_NODE_SIZE.width;
     const nodeHeight = node.size?.height ?? DEFAULT_NODE_SIZE.height;
     const position = calculateCircularPosition(
-      idx,
+      index,
       count,
       centerX,
       centerY,
@@ -110,4 +117,3 @@ export const centeredLayout = (
     return { ...node, position } as PositionedNode;
   });
 };
-

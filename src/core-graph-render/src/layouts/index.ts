@@ -34,7 +34,15 @@ export const layoutNodes = (options: LayoutOptions): PositionedNode[] => {
   }
 
   if (layout === LayoutType.Dag) {
-    return dagLayout(sizedNodes, edges, pad, gap, layoutDirection ?? LayoutDirection.LTR, width, height);
+    return dagLayout(
+      sizedNodes,
+      edges,
+      pad,
+      gap,
+      layoutDirection ?? LayoutDirection.LTR,
+      width,
+      height
+    );
   }
 
   if (layout === LayoutType.ForceDirected) {
