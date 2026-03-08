@@ -12,7 +12,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   graph,
   config,
   vertexComponent,
-  nodeRenderMode = 'svg',
+  nodeRenderMode = 'export',
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);

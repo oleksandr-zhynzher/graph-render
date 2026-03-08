@@ -8,6 +8,10 @@ interface SquashNodeProps extends VertexComponentProps {
   renderMode?: SquashNodeRenderMode;
 }
 
+const isSvgCompatibleRenderMode = (renderMode: SquashNodeRenderMode): boolean => {
+  return renderMode === 'svg' || renderMode === 'export' || renderMode === 'server';
+};
+
 const truncateText = (value: string, maxLength: number): string => {
   if (value.length <= maxLength) {
     return value;
@@ -45,7 +49,7 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
   isHovered,
   onPathHover,
   onPathLeave,
-  renderMode = 'svg',
+  renderMode = 'export',
 }) {
   useEffect(() => {
     if (renderMode === 'html') {
@@ -81,7 +85,7 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
     { p1: 0, p2: 0 }
   );
 
-  if (renderMode === 'svg') {
+  if (isSvgCompatibleRenderMode(renderMode)) {
     const rowHeight = 30;
     const rowYStart = 24;
     const scoreStartX = 148;

@@ -1,6 +1,6 @@
 import type { GraphConfig, VertexComponent, NxGraphInput } from '@graph-render/types';
 
-export type SquashNodeRenderMode = 'svg' | 'html';
+export type SquashNodeRenderMode = 'svg' | 'html' | 'export' | 'server';
 
 export interface TournamentBracketProps {
   graph: NxGraphInput;
