@@ -10,7 +10,7 @@ export interface SquashMatchMeta {
   stage?: string;
   players?: SquashPlayer[];
   sets?: number[][];
-  tiebreaks?: (number[] | null)[];  // Tiebreak scores for each set, null if no tiebreak
+  tiebreaks?: (number[] | null)[]; // Tiebreak scores for each set, null if no tiebreak
   status?: MatchStatus;
   currentSet?: number; // For live matches, which set is being played
 }
