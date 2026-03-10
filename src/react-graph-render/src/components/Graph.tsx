@@ -293,21 +293,27 @@ const getNearestNodeInDirection = (
     return null;
   }
 
-  return (
-    candidates
-      .map((node) => {
-        const center = {
-          x: node.position.x + (node.size?.width ?? 0) / 2,
-          y: node.position.y + (node.size?.height ?? 0) / 2,
-        };
-
-        return {
-          node,
-          distance: Math.hypot(center.x - currentCenter.x, center.y - currentCenter.y),
-        };
-      })
-      .sort((a, b) => a.distance - b.distance)[0]?.node ?? null
+  // Linear scan (O(n)) to find the closest candidate.
+  // Sorting the full array is O(n log n) and wasteful since we only need the minimum.
+  let nearest = candidates[0];
+  let nearestDistance = Math.hypot(
+    nearest.position.x + (nearest.size?.width ?? 0) / 2 - currentCenter.x,
+    nearest.position.y + (nearest.size?.height ?? 0) / 2 - currentCenter.y
   );
+
+  for (let i = 1; i < candidates.length; i++) {
+    const node = candidates[i];
+    const d = Math.hypot(
+      node.position.x + (node.size?.width ?? 0) / 2 - currentCenter.x,
+      node.position.y + (node.size?.height ?? 0) / 2 - currentCenter.y
+    );
+    if (d < nearestDistance) {
+      nearest = node;
+      nearestDistance = d;
+    }
+  }
+
+  return nearest;
 };
 
 const GraphInner = (
