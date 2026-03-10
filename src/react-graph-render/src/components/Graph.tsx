@@ -26,6 +26,7 @@ import {
 } from '@graph-render/types';
 import { useGraphHover } from '../hooks/useGraphHover';
 import { useGraphModel } from '../hooks/useGraphModel';
+import { useStableConfig } from '../hooks/useStableConfig';
 import {
   GraphBounds,
   centerViewportOnNode,
@@ -374,6 +375,9 @@ const GraphInner = (
   const zoomRange = useMemo(() => normalizeZoomRange(minZoom, maxZoom), [minZoom, maxZoom]);
   const safeMinZoom = zoomRange.minZoom;
   const safeMaxZoom = zoomRange.maxZoom;
+  // Stabilize the config reference so that inline object literals passed by
+  // consumers do not cascade a full model recompute on every parent render.
+  const stableConfig = useStableConfig(config);
   const markerPrefix = useId().replace(/:/g, '-');
   const [internalViewport, setInternalViewport] = useState<GraphViewport>(() =>
     normalizeViewport({ ...DEFAULT_VIEWPORT, ...(defaultViewport ?? {}) }, safeMinZoom, safeMaxZoom)
@@ -409,7 +413,7 @@ const GraphInner = (
   const contentRef = useRef<SVGGElement>(null);
   const hasAppliedInitialFitViewRef = useRef(false);
 
-  const cfg = useMemo(() => normalizeGraphConfig(config), [config]);
+  const cfg = useMemo(() => normalizeGraphConfig(stableConfig), [stableConfig]);
   const mergedTheme = cfg.theme;
   const edgeColor = mergedTheme.edgeColor ?? DEFAULT_THEME.edgeColor;
   const edgeWidth = mergedTheme.edgeWidth ?? DEFAULT_THEME.edgeWidth;
