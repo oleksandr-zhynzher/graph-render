@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { EdgeData, GraphSearchResults, NodeData } from '@graph-render/types';
 
 interface UseGraphSearchStateOptions<
@@ -40,6 +40,12 @@ export const useGraphSearchState = <
   highlightStrategy,
   onSearchResultsChange,
 }: UseGraphSearchStateOptions<TNode, TEdge>) => {
+  // Store the callback in a ref so that inline closures (whose reference
+  // changes on every parent render) do not destabilise the effect below and
+  // create an infinite render → effect → setState → render loop.
+  const onSearchResultsChangeRef = useRef(onSearchResultsChange);
+  onSearchResultsChangeRef.current = onSearchResultsChange;
+
   const searchMatchedNodeIds = useMemo(() => {
     const query = searchQuery?.trim().toLowerCase();
     if (!query) {
@@ -122,11 +128,14 @@ export const useGraphSearchState = <
   );
 
   useEffect(() => {
-    onSearchResultsChange?.({
+    onSearchResultsChangeRef.current?.({
       nodeIds: Array.from(effectiveHighlightedNodeSet),
       edgeIds: Array.from(effectiveHighlightedEdgeSet),
     });
-  }, [effectiveHighlightedEdgeSet, effectiveHighlightedNodeSet, onSearchResultsChange]);
+    // onSearchResultsChange is intentionally read via ref — omitting it from
+    // the dep array prevents inline callbacks from creating an infinite loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveHighlightedEdgeSet, effectiveHighlightedNodeSet]);
 
   const hiddenNodeSet = useMemo(() => {
     const hidden = new Set(hiddenNodeIds ?? []);
