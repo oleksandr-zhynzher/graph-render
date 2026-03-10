@@ -389,6 +389,7 @@ const GraphInner = (
     defaultCollapsedNodeIds ?? []
   );
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<DragState>({
     active: false,
     startX: 0,
@@ -818,6 +819,7 @@ const GraphInner = (
         originX: viewport.x,
         originY: viewport.y,
       };
+      setIsDragging(true);
       target.setPointerCapture?.(event.pointerId);
     },
     [marqueeSelectionEnabled, panEnabled, pinchZoomEnabled, selectionMode, viewport, zoomEnabled]
@@ -920,6 +922,7 @@ const GraphInner = (
       }
 
       dragRef.current.active = false;
+      setIsDragging(false);
       (event.target as Element).releasePointerCapture?.(event.pointerId);
     },
     [positionedEdges, positionedNodes, selectionBox, updateSelection, viewport]
@@ -1105,13 +1108,13 @@ const GraphInner = (
     () => ({
       background: mergedTheme.background,
       fontFamily: mergedTheme.fontFamily,
-      cursor: dragRef.current.active ? 'grabbing' : panEnabled ? 'grab' : 'default',
+      cursor: isDragging ? 'grabbing' : panEnabled ? 'grab' : 'default',
       outline: 'none',
       touchAction: panEnabled || zoomEnabled ? 'none' : 'auto',
       overflow: 'hidden',
       userSelect: 'none' as const,
     }),
-    [mergedTheme.background, mergedTheme.fontFamily, panEnabled, zoomEnabled]
+    [isDragging, mergedTheme.background, mergedTheme.fontFamily, panEnabled, zoomEnabled]
   );
 
   const controlsOrigin = useMemo(
