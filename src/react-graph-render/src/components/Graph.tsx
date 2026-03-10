@@ -46,6 +46,8 @@ const DEFAULT_ZOOM_STEP = 0.12;
 const DEFAULT_SELECTION_COLOR = '#f59e0b';
 const DEFAULT_CONTROLS_POSITION: GraphControlsPosition = 'top-left';
 const CONTROL_BUTTON_SIZE = 26;
+// Width used for the two wider label buttons ('Fit', '1:1').
+const CONTROL_LABEL_BUTTON_WIDTH = 34;
 const CONTROL_BUTTON_GAP = 8;
 const EDGE_LABEL_WIDTH = 48;
 const EDGE_LABEL_HEIGHT = 20;
@@ -101,7 +103,11 @@ const getControlPosition = (
   height: number,
   position: GraphControlsPosition
 ): { x: number; y: number } => {
-  const controlsWidth = 120 + CONTROL_BUTTON_GAP * 3;
+  // Total width of the 4 control buttons (2 × icon buttons + 2 × label buttons)
+  // plus the 3 gaps between them. Keep in sync with the button widths in
+  // viewportControls; if a button is added/removed this must be updated too.
+  const controlsWidth =
+    2 * CONTROL_BUTTON_SIZE + 2 * CONTROL_LABEL_BUTTON_WIDTH + CONTROL_BUTTON_GAP * 3;
   const inset = 12;
 
   switch (position) {
@@ -1147,73 +1153,77 @@ const GraphInner = (
       aria-label="viewport-controls"
       transform={`translate(${controlsOrigin.x}, ${controlsOrigin.y})`}
     >
-      {[
-        {
-          key: 'zoom-in',
-          label: '+',
-          width: CONTROL_BUTTON_SIZE,
-          onClick: () => updateViewport((current) => ({ zoom: current.zoom + zoomStep })),
-        },
-        {
-          key: 'zoom-out',
-          label: '−',
-          width: CONTROL_BUTTON_SIZE,
-          onClick: () => updateViewport((current) => ({ zoom: current.zoom - zoomStep })),
-        },
-        {
-          key: 'fit-view',
-          label: 'Fit',
-          width: 34,
-          onClick: () => fitView(),
-        },
-        {
-          key: 'reset-view',
-          label: '1:1',
-          width: 34,
-          onClick: () => updateViewport(DEFAULT_VIEWPORT),
-        },
-      ].map((control, index) => {
-        const x = [0, 34, 68, 110][index] ?? index * (CONTROL_BUTTON_SIZE + CONTROL_BUTTON_GAP);
-
-        return (
-          <g
-            key={control.key}
-            transform={`translate(${x}, 0)`}
-            role="button"
-            tabIndex={0}
-            onClick={(event) => {
+      {(
+        [
+          {
+            key: 'zoom-in',
+            label: '+',
+            width: CONTROL_BUTTON_SIZE,
+            onClick: () => updateViewport((current) => ({ zoom: current.zoom + zoomStep })),
+          },
+          {
+            key: 'zoom-out',
+            label: '−',
+            width: CONTROL_BUTTON_SIZE,
+            onClick: () => updateViewport((current) => ({ zoom: current.zoom - zoomStep })),
+          },
+          {
+            key: 'fit-view',
+            label: 'Fit',
+            width: CONTROL_LABEL_BUTTON_WIDTH,
+            onClick: () => fitView(),
+          },
+          {
+            key: 'reset-view',
+            label: '1:1',
+            width: CONTROL_LABEL_BUTTON_WIDTH,
+            onClick: () => updateViewport(DEFAULT_VIEWPORT),
+          },
+        ] as const
+      ).reduce<{ x: number; controls: Array<{ key: string; label: string; width: number; x: number; onClick: () => void }> }>(
+        (acc, control) => ({
+          x: acc.x + control.width + CONTROL_BUTTON_GAP,
+          controls: [...acc.controls, { ...control, x: acc.x }],
+        }),
+        { x: 0, controls: [] }
+      ).controls.map((control) => (
+        <g
+          key={control.key}
+          transform={`translate(${control.x}, 0)`}
+          role="button"
+          tabIndex={0}
+          onClick={(event) => {
+            event.stopPropagation();
+            control.onClick();
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
               event.stopPropagation();
               control.onClick();
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                event.stopPropagation();
-                control.onClick();
-              }
-            }}
+            }
+          }}
+        >
+          <rect
+            width={control.width}
+            height={CONTROL_BUTTON_SIZE}
+            rx={7}
+            ry={7}
+            fill="rgba(255,255,255,0.92)"
+            stroke="rgba(15,23,42,0.18)"
+          />
+          <text
+            x={control.width / 2}
+            y={CONTROL_BUTTON_SIZE / 2 + 4}
+            textAnchor="middle"
+            fontSize={control.label.length > 1 ? 10 : 16}
+            fontWeight={700}
+            fill="#0f172a"
           >
-            <rect
-              width={control.width}
-              height={CONTROL_BUTTON_SIZE}
-              rx={7}
-              ry={7}
-              fill="rgba(255,255,255,0.92)"
-              stroke="rgba(15,23,42,0.18)"
-            />
-            <text
-              x={control.width / 2}
-              y={CONTROL_BUTTON_SIZE / 2 + 4}
-              textAnchor="middle"
-              fontSize={control.label.length > 1 ? 10 : 16}
-              fontWeight={700}
-              fill="#0f172a"
-            >
-              {control.label}
-            </text>
-          </g>
-        );
-      })}
+            {control.label}
+          </text>
+        </g>
+      ))}
     </g>
   ) : null;
 
