@@ -39,11 +39,15 @@ export function GraphLabels({
   pillBorderColor = '#d7dbe3',
   pillTextColor = '#3f434b',
 }: GraphLabelsProps) {
+  // Use Math.round() as the Map key to guard against floating-point layout
+  // artifacts. Positions like 100.00000001 and 100 represent the same column
+  // but would produce separate entries as raw floats.
   const columns = new Map<number, PositionedNode[]>();
   positionedNodes.forEach((node) => {
-    const column = columns.get(node.position.x) ?? [];
+    const colKey = Math.round(node.position.x);
+    const column = columns.get(colKey) ?? [];
     column.push(node);
-    columns.set(node.position.x, column);
+    columns.set(colKey, column);
   });
 
   const xs = Array.from(columns.keys()).sort((a, b) => a - b);
