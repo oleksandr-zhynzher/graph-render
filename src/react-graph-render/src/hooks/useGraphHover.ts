@@ -82,8 +82,9 @@ export function useGraphHover(
               add(match.target, 'in');
               add(match.target, 'out');
             } else {
+              // For a directed edge A→B the source is the origin (out only)
+              // and the target is the destination (in only).
               add(match.source, 'out');
-              add(match.source, 'in');
               add(match.target, 'in');
             }
           }
