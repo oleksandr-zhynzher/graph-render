@@ -23,6 +23,7 @@ import {
 } from '@graph-render/types';
 import { DEFAULT_CONFIG } from '../constants/defaults';
 import { useGraphHover } from '../hooks/useGraphHover';
+import { useGraphSearchState } from '../hooks/useGraphSearchState';
 import {
   GraphBounds,
   centerViewportOnNode,
@@ -520,164 +521,26 @@ const GraphInner = (
       })),
     [cfg.defaultEdgeType, sourceEdges]
   );
-
-  const searchMatchedNodeIds = useMemo(() => {
-    const query = searchQuery?.trim().toLowerCase();
-    if (!query) {
-      return [];
-    }
-
-    return nodesWithMeasuredSize
-      .filter((node) => {
-        if (searchPredicate) {
-          return searchPredicate(node, query);
-        }
-
-        const label =
-          typeof node.label === 'string' || typeof node.label === 'number'
-            ? String(node.label)
-            : node.id;
-
-        return node.id.toLowerCase().includes(query) || label.toLowerCase().includes(query);
-      })
-      .map((node) => node.id);
-  }, [nodesWithMeasuredSize, searchPredicate, searchQuery]);
-
-  const searchMatchedNodeIdSet = useMemo(
-    () => new Set(searchMatchedNodeIds),
-    [searchMatchedNodeIds]
-  );
-
-  const searchMatchedEdgeIds = useMemo(() => {
-    const query = searchQuery?.trim().toLowerCase();
-    if (!query) {
-      return [];
-    }
-
-    return normalizedEdges
-      .filter((edge) => {
-        const label = edge.label != null ? String(edge.label).toLowerCase() : '';
-        return (
-          searchMatchedNodeIdSet.has(edge.source) ||
-          searchMatchedNodeIdSet.has(edge.target) ||
-          label.includes(query)
-        );
-      })
-      .map((edge) => edge.id);
-  }, [normalizedEdges, searchMatchedNodeIdSet, searchQuery]);
-
-  const derivedHighlightResults = useMemo(() => {
-    if (!searchQuery?.trim()) {
-      return { nodeIds: [], edgeIds: [] };
-    }
-
-    return (
-      highlightStrategy?.({
-        nodes: nodesWithMeasuredSize,
-        edges: normalizedEdges,
-        query: searchQuery,
-        matchedNodeIds: searchMatchedNodeIds,
-        matchedEdgeIds: searchMatchedEdgeIds,
-      }) ?? { nodeIds: [], edgeIds: [] }
-    );
-  }, [
-    highlightStrategy,
-    nodesWithMeasuredSize,
-    normalizedEdges,
-    searchMatchedEdgeIds,
-    searchMatchedNodeIds,
-    searchQuery,
-  ]);
-
-  const effectiveHighlightedNodeSet = useMemo(
-    () =>
-      new Set([
-        ...searchMatchedNodeIds,
-        ...(derivedHighlightResults.nodeIds ?? []),
-        ...(highlightedNodeIds ?? []),
-      ]),
-    [derivedHighlightResults.nodeIds, highlightedNodeIds, searchMatchedNodeIds]
-  );
-
-  const effectiveHighlightedEdgeSet = useMemo(
-    () =>
-      new Set([
-        ...searchMatchedEdgeIds,
-        ...(derivedHighlightResults.edgeIds ?? []),
-        ...(highlightedEdgeIds ?? []),
-      ]),
-    [derivedHighlightResults.edgeIds, highlightedEdgeIds, searchMatchedEdgeIds]
-  );
-
-  useEffect(() => {
-    onSearchResultsChange?.({
-      nodeIds: Array.from(effectiveHighlightedNodeSet),
-      edgeIds: Array.from(effectiveHighlightedEdgeSet),
-    });
-  }, [effectiveHighlightedEdgeSet, effectiveHighlightedNodeSet, onSearchResultsChange]);
-
-  const hiddenNodeSet = useMemo(() => {
-    const hidden = new Set(hiddenNodeIds ?? []);
-    if (hideUnmatchedSearch && searchQuery?.trim()) {
-      nodesWithMeasuredSize.forEach((node) => {
-        if (!effectiveHighlightedNodeSet.has(node.id)) {
-          hidden.add(node.id);
-        }
-      });
-    }
-    return hidden;
-  }, [
-    effectiveHighlightedNodeSet,
-    hiddenNodeIds,
-    hideUnmatchedSearch,
-    nodesWithMeasuredSize,
-    searchQuery,
-  ]);
   const collapsedNodeSet = useMemo(() => new Set(collapsedIds), [collapsedIds]);
-
-  const descendantHiddenNodeSet = useMemo(() => {
-    const outgoing = new Map<string, string[]>();
-    normalizedEdges.forEach((edge) => {
-      outgoing.set(edge.source, [...(outgoing.get(edge.source) ?? []), edge.target]);
-    });
-
-    const hidden = new Set(hiddenNodeSet);
-    collapsedIds.forEach((nodeId) => {
-      const stack = [...(outgoing.get(nodeId) ?? [])];
-      while (stack.length) {
-        const current = stack.pop();
-        if (!current || hidden.has(current)) {
-          continue;
-        }
-        hidden.add(current);
-        stack.push(...(outgoing.get(current) ?? []));
-      }
-    });
-
-    return hidden;
-  }, [collapsedIds, hiddenNodeSet, normalizedEdges]);
-
-  const visibleNodesWithMeasuredSize = useMemo(
-    () => nodesWithMeasuredSize.filter((node) => !descendantHiddenNodeSet.has(node.id)),
-    [descendantHiddenNodeSet, nodesWithMeasuredSize]
-  );
-
-  const visibleEdges = useMemo(
-    () =>
-      normalizedEdges.filter(
-        (edge) =>
-          !descendantHiddenNodeSet.has(edge.source) && !descendantHiddenNodeSet.has(edge.target)
-      ),
-    [descendantHiddenNodeSet, normalizedEdges]
-  );
-
-  const childNodeIdsByParent = useMemo(() => {
-    const map = new Map<string, string[]>();
-    normalizedEdges.forEach((edge) => {
-      map.set(edge.source, [...(map.get(edge.source) ?? []), edge.target]);
-    });
-    return map;
-  }, [normalizedEdges]);
+  const {
+    effectiveHighlightedNodeSet,
+    effectiveHighlightedEdgeSet,
+    visibleNodes: visibleNodesWithMeasuredSize,
+    visibleEdges,
+    childNodeIdsByParent,
+  } = useGraphSearchState({
+    nodes: nodesWithMeasuredSize,
+    edges: normalizedEdges,
+    collapsedIds,
+    hiddenNodeIds,
+    searchQuery,
+    hideUnmatchedSearch,
+    searchPredicate,
+    highlightedNodeIds,
+    highlightedEdgeIds,
+    highlightStrategy,
+    onSearchResultsChange,
+  });
 
   useEffect(() => {
     const visibleNodeIds = new Set(visibleNodesWithMeasuredSize.map((node) => node.id));
