@@ -422,14 +422,12 @@ const GraphInner = (
   const edgeColor = mergedTheme.edgeColor ?? DEFAULT_THEME.edgeColor;
   const edgeWidth = mergedTheme.edgeWidth ?? DEFAULT_THEME.edgeWidth;
   const selectionEdgeColor = edgeSelectionColor ?? selectionColor;
-  const hoverNodeBorderColor = useMemo(
-    () => cfg.hoverNodeBorderColor ?? cfg.hoverEdgeColor,
-    [cfg.hoverNodeBorderColor, cfg.hoverEdgeColor]
-  );
-  const hoverNodeBothColor = useMemo(
-    () => cfg.hoverNodeBothColor ?? cfg.hoverEdgeColor,
-    [cfg.hoverNodeBothColor, cfg.hoverEdgeColor]
-  );
+  // These are simple nullish-coalescing expressions on string primitives.
+  // Wrapping them in useMemo adds hook overhead that costs more than the
+  // expression itself, and the parent cfg is already memoized so updates
+  // are gated there.
+  const hoverNodeBorderColor = cfg.hoverNodeBorderColor ?? cfg.hoverEdgeColor;
+  const hoverNodeBothColor = cfg.hoverNodeBothColor ?? cfg.hoverEdgeColor;
   const nodeBorderColor = mergedTheme.nodeBorderColor;
   const nodeBorderWidth = mergedTheme.nodeBorderWidth ?? 0;
   const showArrows = cfg.showArrows;
