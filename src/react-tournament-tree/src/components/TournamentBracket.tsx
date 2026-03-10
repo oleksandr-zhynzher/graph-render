@@ -1,4 +1,6 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react';
+import { flushSync } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { Graph } from '@graph-render/react';
 import type { GraphConfig, VertexComponentProps } from '@graph-render/types';
 import type { TournamentBracketProps } from '../types';
@@ -15,7 +17,6 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   nodeRenderMode = 'export',
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const exportWrapperRef = useRef<HTMLDivElement>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const labels = useMemo(
@@ -40,50 +41,78 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
     setIsDarkMode((prev) => !prev);
   }, []);
 
+  const exportVertexComponent = useMemo(
+    () =>
+      vertexComponent ??
+      ((props: VertexComponentProps) => <SquashNode {...props} renderMode="export" />),
+    [vertexComponent]
+  );
+
   const handleExportSVG = useCallback(() => {
-    const exportRoot =
-      nodeRenderMode === 'html' && !vertexComponent ? exportWrapperRef.current : wrapperRef.current;
+    const renderExportFromElement = (rootElement: Element | null) => {
+      const svgElement = rootElement?.querySelector('svg');
+      if (!svgElement) {
+        return;
+      }
 
-    if (!exportRoot) return;
+      const clonedSvg = svgElement.cloneNode(true) as SVGElement;
+      clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clonedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
 
-    const svgElement = exportRoot.querySelector('svg');
-    if (!svgElement) return;
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(clonedSvg);
+      const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `tournament-bracket-${Date.now()}.svg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    };
 
-    // Clone the SVG to avoid modifying the original
-    const clonedSvg = svgElement.cloneNode(true) as SVGElement;
+    if (nodeRenderMode !== 'html' || vertexComponent) {
+      renderExportFromElement(wrapperRef.current);
+      return;
+    }
 
-    // Add XML namespace if not present
-    clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    clonedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+    const host = document.createElement('div');
+    host.style.position = 'absolute';
+    host.style.width = '0';
+    host.style.height = '0';
+    host.style.overflow = 'hidden';
+    host.style.opacity = '0';
+    host.style.pointerEvents = 'none';
+    document.body.appendChild(host);
 
-    // Serialize the SVG
-    const serializer = new XMLSerializer();
-    const svgString = serializer.serializeToString(clonedSvg);
+    const exportRoot = createRoot(host);
 
-    // Create a blob and download
-    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `tournament-bracket-${Date.now()}.svg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }, [nodeRenderMode, vertexComponent]);
+    try {
+      flushSync(() => {
+        exportRoot.render(
+          <BracketThemeProvider mode={isDarkMode ? 'dark' : 'light'}>
+            <Graph
+              graph={graph}
+              vertexComponent={exportVertexComponent}
+              config={mergedConfig}
+            />
+          </BracketThemeProvider>
+        );
+      });
+
+      renderExportFromElement(host);
+    } finally {
+      exportRoot.unmount();
+      document.body.removeChild(host);
+    }
+  }, [exportVertexComponent, graph, isDarkMode, mergedConfig, nodeRenderMode, vertexComponent]);
 
   const resolvedVertexComponent = useMemo(
     () =>
       vertexComponent ??
       ((props: VertexComponentProps) => <SquashNode {...props} renderMode={nodeRenderMode} />),
     [vertexComponent, nodeRenderMode]
-  );
-
-  const exportVertexComponent = useMemo(
-    () =>
-      vertexComponent ??
-      ((props: VertexComponentProps) => <SquashNode {...props} renderMode="export" />),
-    [vertexComponent]
   );
 
   return (
@@ -105,22 +134,6 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
         <div ref={wrapperRef}>
           <Graph graph={graph} vertexComponent={resolvedVertexComponent} config={mergedConfig} />
         </div>
-        {nodeRenderMode === 'html' && !vertexComponent ? (
-          <div
-            ref={exportWrapperRef}
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              width: 0,
-              height: 0,
-              overflow: 'hidden',
-              opacity: 0,
-              pointerEvents: 'none',
-            }}
-          >
-            <Graph graph={graph} vertexComponent={exportVertexComponent} config={mergedConfig} />
-          </div>
-        ) : null}
       </div>
     </BracketThemeProvider>
   );
