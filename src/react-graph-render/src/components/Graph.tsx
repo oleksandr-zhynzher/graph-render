@@ -433,6 +433,12 @@ const GraphInner = (
     () => normalizeViewport(controlledViewport ?? internalViewport, safeMinZoom, safeMaxZoom),
     [controlledViewport, internalViewport, safeMaxZoom, safeMinZoom]
   );
+  // Always keep a ref in sync so gesture handlers can read the latest value
+  // without closing over the rendered snapshot (avoids dropped events on rapid input).
+  const viewportRef = useRef(viewport);
+  viewportRef.current = viewport;
+  const onViewportChangeRef = useRef(onViewportChange);
+  onViewportChangeRef.current = onViewportChange;
   const selection = useMemo<GraphSelection>(
     () => ({
       nodeIds: selectedNodeIds ?? internalSelection.nodeIds,
@@ -452,16 +458,23 @@ const GraphInner = (
         | Partial<GraphViewport>
         | ((current: GraphViewport) => Partial<GraphViewport> | GraphViewport)
     ) => {
-      const resolved = typeof next === 'function' ? next(viewport) : next;
-      const normalized = normalizeViewport({ ...viewport, ...resolved }, safeMinZoom, safeMaxZoom);
+      // Read the latest viewport from the ref so that rapid-fire events
+      // (wheel, pinch) always compute their delta from the current state
+      // rather than a stale closure snapshot.
+      const current = viewportRef.current;
+      const resolved = typeof next === 'function' ? next(current) : next;
+      const normalized = normalizeViewport({ ...current, ...resolved }, safeMinZoom, safeMaxZoom);
 
       if (!controlledViewport) {
         setInternalViewport(normalized);
       }
-      onViewportChange?.(normalized);
+      onViewportChangeRef.current?.(normalized);
       return normalized;
     },
-    [controlledViewport, onViewportChange, safeMaxZoom, safeMinZoom, viewport]
+    // viewport and onViewportChange are intentionally excluded: both are read
+    // via refs so the callback stays stable across renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [controlledViewport, safeMaxZoom, safeMinZoom]
   );
 
   const updateSelection = useCallback(
