@@ -15,6 +15,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   nodeRenderMode = 'export',
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const exportWrapperRef = useRef<HTMLDivElement>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const labels = useMemo(
@@ -40,9 +41,12 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   }, []);
 
   const handleExportSVG = useCallback(() => {
-    if (!wrapperRef.current) return;
+    const exportRoot =
+      nodeRenderMode === 'html' && !vertexComponent ? exportWrapperRef.current : wrapperRef.current;
 
-    const svgElement = wrapperRef.current.querySelector('svg');
+    if (!exportRoot) return;
+
+    const svgElement = exportRoot.querySelector('svg');
     if (!svgElement) return;
 
     // Clone the SVG to avoid modifying the original
@@ -66,13 +70,20 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-  }, []);
+  }, [nodeRenderMode, vertexComponent]);
 
   const resolvedVertexComponent = useMemo(
     () =>
       vertexComponent ??
       ((props: VertexComponentProps) => <SquashNode {...props} renderMode={nodeRenderMode} />),
     [vertexComponent, nodeRenderMode]
+  );
+
+  const exportVertexComponent = useMemo(
+    () =>
+      vertexComponent ??
+      ((props: VertexComponentProps) => <SquashNode {...props} renderMode="export" />),
+    [vertexComponent]
   );
 
   return (
@@ -94,6 +105,22 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
         <div ref={wrapperRef}>
           <Graph graph={graph} vertexComponent={resolvedVertexComponent} config={mergedConfig} />
         </div>
+        {nodeRenderMode === 'html' && !vertexComponent ? (
+          <div
+            ref={exportWrapperRef}
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              width: 0,
+              height: 0,
+              overflow: 'hidden',
+              opacity: 0,
+              pointerEvents: 'none',
+            }}
+          >
+            <Graph graph={graph} vertexComponent={exportVertexComponent} config={mergedConfig} />
+          </div>
+        ) : null}
       </div>
     </BracketThemeProvider>
   );

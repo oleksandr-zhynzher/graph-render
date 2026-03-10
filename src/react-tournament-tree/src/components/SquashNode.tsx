@@ -5,12 +5,11 @@ import type {
   SquashMatchMeta,
   SquashNodeRenderMode,
   SquashPlayer,
-  SquashPositionedNode,
 } from '../types';
 import { NODE_DIMENSIONS, DEFAULT_PLAYERS } from '../constants';
 import { useBracketTheme } from '../contexts/BracketThemeContext';
 
-interface SquashNodeProps extends VertexComponentProps<SquashPositionedNode> {
+interface SquashNodeProps extends VertexComponentProps {
   renderMode?: SquashNodeRenderMode;
 }
 
@@ -80,23 +79,25 @@ const normalizeTiebreaks = (value: unknown): (number[] | null)[] => {
   });
 };
 
-const normalizeMatchMeta = (meta: SquashMatchMeta | undefined): Required<SquashMatchMeta> => {
-  const players = Array.isArray(meta?.players) ? meta.players : [];
+const normalizeMatchMeta = (meta: unknown): Required<SquashMatchMeta> => {
+  const rawMeta = meta && typeof meta === 'object' ? (meta as Partial<SquashMatchMeta>) : undefined;
+  const players = Array.isArray(rawMeta?.players) ? rawMeta.players : [];
   const normalizedPlayers = [
     normalizePlayer(players[0], DEFAULT_PLAYERS[0]),
     normalizePlayer(players[1], DEFAULT_PLAYERS[1]),
   ];
-  const sets = normalizeSets(meta?.sets);
+  const sets = normalizeSets(rawMeta?.sets);
 
   return {
-    stage: typeof meta?.stage === 'string' && meta.stage.trim() ? meta.stage.trim() : 'Stage',
+    stage:
+      typeof rawMeta?.stage === 'string' && rawMeta.stage.trim() ? rawMeta.stage.trim() : 'Stage',
     players: normalizedPlayers,
     sets,
-    tiebreaks: normalizeTiebreaks(meta?.tiebreaks),
-    status: isMatchStatus(meta?.status) ? meta.status : 'completed',
+    tiebreaks: normalizeTiebreaks(rawMeta?.tiebreaks),
+    status: isMatchStatus(rawMeta?.status) ? rawMeta.status : 'completed',
     currentSet:
-      typeof meta?.currentSet === 'number' && Number.isFinite(meta.currentSet)
-        ? Math.max(0, Math.min(Math.floor(meta.currentSet), Math.max(sets.length - 1, 0)))
+      typeof rawMeta?.currentSet === 'number' && Number.isFinite(rawMeta.currentSet)
+        ? Math.max(0, Math.min(Math.floor(rawMeta.currentSet), Math.max(sets.length - 1, 0)))
         : 0,
   };
 };
