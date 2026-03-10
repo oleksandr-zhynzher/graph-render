@@ -14,7 +14,7 @@ import type {
   RenderConfig,
   RenderTheme,
 } from '@graph-render/types';
-import { DEFAULT_THEME, fromNxGraph } from '../utils';
+import { DEFAULT_THEME, fromNxGraph, normalizeGraphConfig } from '../utils';
 import { layoutNodes } from '../layouts';
 import { routeEdges, buildEdgePath } from '../edges';
 import { defaultNodeRenderer, defaultEdgeRenderer } from './defaultRenderers';
@@ -24,35 +24,35 @@ import { escapeXml, sanitizeCssColor, sanitizeFontFamily, sanitizeSvgId } from '
  * Extract and normalize configuration from options
  */
 const extractRenderConfig = (options?: RenderGraphToSvgOptions): RenderConfig => {
-  const cfg = options?.config ?? {};
+  const cfg = normalizeGraphConfig(options?.config);
   const mergedTheme = { ...DEFAULT_THEME, ...(cfg.theme ?? {}) };
   const safeFontFamily = escapeXml(
     sanitizeFontFamily(mergedTheme.fontFamily, DEFAULT_THEME.fontFamily)
   );
-  const width = Number.isFinite(cfg.width) && (cfg.width ?? 0) > 0 ? cfg.width! : 960;
-  const height = Number.isFinite(cfg.height) && (cfg.height ?? 0) > 0 ? cfg.height! : 720;
-  const padding =
-    Number.isFinite(cfg.padding) && (cfg.padding ?? -1) >= 0 ? cfg.padding : undefined;
-  const curveStrength =
-    Number.isFinite(cfg.curveStrength) && cfg.curveStrength != null
-      ? Math.min(Math.max(cfg.curveStrength, 0), 1)
-      : 0.3;
-  const arrowPadding =
-    Number.isFinite(cfg.arrowPadding) && (cfg.arrowPadding ?? -1) >= 0 ? cfg.arrowPadding! : 6;
 
   return {
-    width,
-    height,
-    padding,
-    defaultEdgeType: cfg.defaultEdgeType ?? EdgeType.Directed,
-    curveEdges: cfg.curveEdges ?? true,
-    curveStrength,
-    arrowPadding,
-    showArrows: cfg.showArrows ?? true,
-    layout: cfg.layout ?? LayoutType.Centered,
-    layoutDirection: cfg.layoutDirection ?? LayoutDirection.LTR,
+    width: cfg.width,
+    height: cfg.height,
+    padding: cfg.padding,
+    defaultEdgeType: cfg.defaultEdgeType,
+    curveEdges: cfg.curveEdges,
+    curveStrength: cfg.curveStrength,
+    arrowPadding: cfg.arrowPadding,
+    showArrows: cfg.showArrows,
+    nodeSizing: cfg.nodeSizing,
+    fixedNodeSize: cfg.fixedNodeSize,
+    labelMeasurementPaddingX: cfg.labelMeasurementPaddingX,
+    labelMeasurementPaddingY: cfg.labelMeasurementPaddingY,
+    labelMeasurementCharWidth: cfg.labelMeasurementCharWidth,
+    labelMeasurementLineHeight: cfg.labelMeasurementLineHeight,
+    routingStyle: cfg.routingStyle,
+    edgeSeparation: cfg.edgeSeparation,
+    selfLoopRadius: cfg.selfLoopRadius,
+    layout: cfg.layout,
+    layoutDirection: cfg.layoutDirection,
+    forceRightToLeft: cfg.forceRightToLeft,
     markerId: sanitizeSvgId(options?.markerId ?? 'arrow', 'arrow'),
-    edgeLabelColor: cfg.edgeLabelColor ?? '#334155',
+    edgeLabelColor: cfg.edgeLabelColor,
     mergedTheme,
     safeFontFamily,
   };
@@ -184,22 +184,22 @@ export const renderGraphToSvg = (
     width: config.width,
     height: config.height,
     layoutDirection: config.layoutDirection,
-    nodeSizing: options?.config?.nodeSizing,
-    fixedNodeSize: options?.config?.fixedNodeSize,
-    labelMeasurementPaddingX: options?.config?.labelMeasurementPaddingX,
-    labelMeasurementPaddingY: options?.config?.labelMeasurementPaddingY,
-    labelMeasurementCharWidth: options?.config?.labelMeasurementCharWidth,
-    labelMeasurementLineHeight: options?.config?.labelMeasurementLineHeight,
+    nodeSizing: config.nodeSizing,
+    fixedNodeSize: config.fixedNodeSize,
+    labelMeasurementPaddingX: config.labelMeasurementPaddingX,
+    labelMeasurementPaddingY: config.labelMeasurementPaddingY,
+    labelMeasurementCharWidth: config.labelMeasurementCharWidth,
+    labelMeasurementLineHeight: config.labelMeasurementLineHeight,
   });
 
   const positionedEdges = routeEdges(positionedNodes, normalizedEdges, {
     arrowPadding: config.arrowPadding,
-    straight: !config.curveEdges || options?.config?.routingStyle === 'orthogonal',
+    straight: !config.curveEdges || config.routingStyle === 'orthogonal',
     layoutDirection: config.layoutDirection,
-    forceRightToLeft: options?.config?.forceRightToLeft ?? false,
-    routingStyle: options?.config?.routingStyle,
-    edgeSeparation: options?.config?.edgeSeparation,
-    selfLoopRadius: options?.config?.selfLoopRadius,
+    forceRightToLeft: config.forceRightToLeft ?? false,
+    routingStyle: config.routingStyle,
+    edgeSeparation: config.edgeSeparation,
+    selfLoopRadius: config.selfLoopRadius,
   });
 
   // Extract rendering components

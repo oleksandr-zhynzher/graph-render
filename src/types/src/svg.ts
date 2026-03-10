@@ -4,6 +4,8 @@ import type {
   LayoutType,
   LayoutDirection,
   GraphTheme,
+  NodeSizingMode,
+  Size,
   NodeRenderer,
   EdgeRenderer,
   PositionedNode,
@@ -48,8 +50,18 @@ export interface RenderConfig {
   curveStrength: number;
   arrowPadding: number;
   showArrows: boolean;
+  nodeSizing: NodeSizingMode;
+  fixedNodeSize: Size;
+  labelMeasurementPaddingX: number;
+  labelMeasurementPaddingY: number;
+  labelMeasurementCharWidth: number;
+  labelMeasurementLineHeight: number;
+  routingStyle: NonNullable<GraphConfig['routingStyle']>;
+  edgeSeparation: number;
+  selfLoopRadius: number;
   layout: LayoutType;
   layoutDirection: LayoutDirection;
+  forceRightToLeft?: boolean;
   markerId: string;
   edgeLabelColor: string;
   mergedTheme: Required<

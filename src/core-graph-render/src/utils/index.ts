@@ -1,4 +1,4 @@
-export { fromNxGraph } from './graphParser';
+export { fromNxGraph, fromTypedNxGraph } from './graphParser';
 export {
   DEFAULT_THEME,
   DEFAULT_NODE_SIZE,
@@ -14,3 +14,5 @@ export {
 } from './constants';
 export { groupEdgesByTarget, sortEdgesBySourcePosition } from './graphTraversal';
 export { applyNodeSizing } from './nodeSizing';
+export { normalizeGraphConfig } from './config';
+export type { NormalizedGraphConfig } from './config';

@@ -1,5 +1,16 @@
 import { NxGraphInput, NodeData, EdgeData, NxEdgeAttrs, EdgeType } from '@graph-render/types';
 
+type GraphNodeTuple<
+  TNodeData,
+  TNodeMeta extends Record<string, unknown>,
+  TNodeLabel,
+> = NodeData<TNodeData, TNodeMeta, TNodeLabel>;
+
+type GraphEdgeTuple<TEdgeMeta extends Record<string, unknown>, TEdgeLabel> = EdgeData<
+  TEdgeMeta,
+  TEdgeLabel
+>;
+
 const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 };
@@ -34,17 +45,28 @@ const sanitizeSize = (value: unknown): { width: number; height: number } | undef
     : undefined;
 };
 
-const sanitizeRecord = <T extends object>(value: unknown): T | undefined => {
+const sanitizeRecord = <T extends Record<string, unknown>>(value: unknown): T | undefined => {
   return isPlainObject(value) ? (value as T) : undefined;
 };
 
-const sanitizeNodeData = (id: string, attrs: Record<string, unknown>): NodeData => {
+const sanitizeMeasurementHints = (
+  value: unknown
+): NodeData['measurementHints'] | undefined => {
+  return isPlainObject(value) ? (value as NodeData['measurementHints']) : undefined;
+};
+
+const sanitizeNodeData = <
+  TNodeData,
+  TNodeMeta extends Record<string, unknown>,
+  TNodeLabel,
+>(
+  id: string,
+  attrs: Record<string, unknown>
+): GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel> => {
   const position = sanitizePoint(attrs.position);
   const size = sanitizeSize(attrs.size);
   const measuredSize = sanitizeSize(attrs.measuredSize);
-  const measurementHints = sanitizeRecord<NonNullable<NodeData['measurementHints']>>(
-    attrs.measurementHints
-  );
+  const measurementHints = sanitizeMeasurementHints(attrs.measurementHints);
 
   return {
     id,
@@ -58,8 +80,8 @@ const sanitizeNodeData = (id: string, attrs: Record<string, unknown>): NodeData 
         : undefined,
     measurementHints,
     data: attrs.data,
-    meta: sanitizeRecord<NonNullable<NodeData['meta']>>(attrs.meta),
-  };
+    meta: sanitizeRecord<TNodeMeta>(attrs.meta),
+  } as GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel>;
 };
 
 const sanitizeEdgePoints = (value: unknown): EdgeData['points'] | undefined => {
@@ -130,8 +152,16 @@ const assertValidGraphInput = (graph: NxGraphInput): void => {
 /**
  * Build node map from graph node definitions
  */
-const buildNodeMap = (graph: NxGraphInput): Map<string, NodeData> => {
-  const nodeMap = new Map<NodeData['id'], NodeData>();
+const buildNodeMap = <
+  TNodeData,
+  TNodeMeta extends Record<string, unknown>,
+  TNodeLabel,
+  TEdgeMeta extends Record<string, unknown>,
+  TEdgeLabel,
+>(
+  graph: NxGraphInput<TNodeData, TNodeMeta, TNodeLabel, TEdgeMeta, TEdgeLabel>
+): Map<string, GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel>> => {
+  const nodeMap = new Map<string, GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel>>();
 
   if (graph.nodes) {
     for (const [id, attrs] of Object.entries(graph.nodes)) {
@@ -140,7 +170,7 @@ const buildNodeMap = (graph: NxGraphInput): Map<string, NodeData> => {
       }
 
       const sanitizedId = sanitizeNodeId(id, 'node');
-      nodeMap.set(sanitizedId, sanitizeNodeData(sanitizedId, attrs ?? {}));
+      nodeMap.set(sanitizedId, sanitizeNodeData<TNodeData, TNodeMeta, TNodeLabel>(sanitizedId, attrs ?? {}));
     }
   }
 
@@ -150,17 +180,29 @@ const buildNodeMap = (graph: NxGraphInput): Map<string, NodeData> => {
 /**
  * Ensure a node exists in the map, creating it if necessary
  */
-const ensureNodeExists = (nodeMap: Map<string, NodeData>, nodeId: string): void => {
+const ensureNodeExists = <
+  TNodeData,
+  TNodeMeta extends Record<string, unknown>,
+  TNodeLabel,
+>(
+  nodeMap: Map<string, NodeData<TNodeData, TNodeMeta, TNodeLabel>>,
+  nodeId: string
+): void => {
   const sanitizedNodeId = sanitizeNodeId(nodeId, 'edge-endpoint');
   if (!nodeMap.has(sanitizedNodeId)) {
-    nodeMap.set(sanitizedNodeId, { id: sanitizedNodeId });
+    nodeMap.set(
+      sanitizedNodeId,
+      { id: sanitizedNodeId } as NodeData<TNodeData, TNodeMeta, TNodeLabel>
+    );
   }
 };
 
 /**
  * Normalize edge attributes to array format
  */
-const normalizeEdgeAttributes = (rawAttrs: NxEdgeAttrs | NxEdgeAttrs[]): NxEdgeAttrs[] => {
+const normalizeEdgeAttributes = <TEdgeMeta extends Record<string, unknown>, TEdgeLabel>(
+  rawAttrs: NxEdgeAttrs<TEdgeMeta, TEdgeLabel> | NxEdgeAttrs<TEdgeMeta, TEdgeLabel>[]
+): NxEdgeAttrs<TEdgeMeta, TEdgeLabel>[] => {
   return Array.isArray(rawAttrs) ? rawAttrs : [rawAttrs];
 };
 
@@ -226,6 +268,26 @@ const createEdgeData = (
   };
 };
 
+const createTypedEdgeData = <TEdgeMeta extends Record<string, unknown>, TEdgeLabel>(
+  source: string,
+  target: string,
+  index: number,
+  attrs: NxEdgeAttrs<TEdgeMeta, TEdgeLabel> | undefined,
+  defaultEdgeType: EdgeType,
+  usedEdgeIds: Set<string>
+): GraphEdgeTuple<TEdgeMeta, TEdgeLabel> => {
+  const edgeData = createEdgeData(
+    source,
+    target,
+    index,
+    attrs as NxEdgeAttrs | undefined,
+    defaultEdgeType,
+    usedEdgeIds
+  );
+
+  return edgeData as GraphEdgeTuple<TEdgeMeta, TEdgeLabel>;
+};
+
 /**
  * Process edges from adjacency list for a source node
  */
@@ -247,6 +309,48 @@ const processNodeEdges = (
 
     attrsList.forEach((attrs, idx) => {
       const edgeData = createEdgeData(
+        source,
+        sanitizedTarget,
+        idx,
+        attrs,
+        defaultEdgeType as EdgeType,
+        usedEdgeIds
+      );
+
+      // Skip if undirected edge already seen from other direction
+      if (!isUndirectedEdgeSeen(edgeData.type!, source, sanitizedTarget, idx, undirectedSeen)) {
+        edges.push(edgeData);
+      }
+    });
+  }
+
+  return edges;
+};
+
+const processTypedNodeEdges = <
+  TNodeData,
+  TNodeMeta extends Record<string, unknown>,
+  TNodeLabel,
+  TEdgeMeta extends Record<string, unknown>,
+  TEdgeLabel,
+>(
+  source: string,
+  neighbors: Record<string, NxEdgeAttrs<TEdgeMeta, TEdgeLabel> | NxEdgeAttrs<TEdgeMeta, TEdgeLabel>[]>,
+  defaultEdgeType: 'directed' | 'undirected',
+  nodeMap: Map<string, GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel>>,
+  undirectedSeen: Set<string>,
+  usedEdgeIds: Set<string>
+): GraphEdgeTuple<TEdgeMeta, TEdgeLabel>[] => {
+  const edges: GraphEdgeTuple<TEdgeMeta, TEdgeLabel>[] = [];
+
+  for (const [target, rawAttrs] of Object.entries(neighbors)) {
+    const sanitizedTarget = sanitizeNodeId(target, 'edge-endpoint');
+    ensureNodeExists(nodeMap, sanitizedTarget);
+
+    const attrsList = normalizeEdgeAttributes<TEdgeMeta, TEdgeLabel>(rawAttrs);
+
+    attrsList.forEach((attrs, idx) => {
+      const edgeData = createTypedEdgeData<TEdgeMeta, TEdgeLabel>(
         source,
         sanitizedTarget,
         idx,
@@ -291,6 +395,47 @@ export const fromNxGraph = (
       undirectedSeen,
       usedEdgeIds
     );
+
+    edges.push(...nodeEdges);
+  }
+
+  return {
+    nodes: Array.from(nodeMap.values()),
+    edges,
+  };
+};
+
+export const fromTypedNxGraph = <
+  TNodeData = unknown,
+  TNodeMeta extends Record<string, unknown> = Record<string, unknown>,
+  TNodeLabel = unknown,
+  TEdgeMeta extends Record<string, unknown> = Record<string, unknown>,
+  TEdgeLabel = unknown,
+>(
+  graph: NxGraphInput<TNodeData, TNodeMeta, TNodeLabel, TEdgeMeta, TEdgeLabel>,
+  defaultEdgeType: EdgeType = EdgeType.Undirected
+): {
+  nodes: GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel>[];
+  edges: GraphEdgeTuple<TEdgeMeta, TEdgeLabel>[];
+} => {
+  assertValidGraphInput(graph as NxGraphInput);
+
+  const nodeMap = buildNodeMap<TNodeData, TNodeMeta, TNodeLabel, TEdgeMeta, TEdgeLabel>(graph);
+  const undirectedSeen = new Set<string>();
+  const usedEdgeIds = new Set<string>();
+  const edges: GraphEdgeTuple<TEdgeMeta, TEdgeLabel>[] = [];
+
+  for (const [source, neighbors] of Object.entries(graph.adj)) {
+    const sanitizedSource = sanitizeNodeId(source, 'edge-endpoint');
+    ensureNodeExists(nodeMap, sanitizedSource);
+
+    const nodeEdges = processTypedNodeEdges<
+      TNodeData,
+      TNodeMeta,
+      TNodeLabel,
+      TEdgeMeta,
+      TEdgeLabel
+    >(sanitizedSource, neighbors, defaultEdgeType, nodeMap, undirectedSeen, usedEdgeIds);
 
     edges.push(...nodeEdges);
   }

@@ -7,9 +7,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { DEFAULT_THEME, fromNxGraph, layoutNodes, routeEdges } from '@graph-render/core';
+import { DEFAULT_THEME, normalizeGraphConfig } from '@graph-render/core';
 import {
   DragState,
+  EdgeData,
   GraphControlsPosition,
   GraphHandle,
   GraphProps,
@@ -18,12 +19,13 @@ import {
   GraphViewport,
   LayoutDirection,
   LayoutType,
+  NodeData,
+  NxGraphInput,
   PositionedEdge,
   PositionedNode,
 } from '@graph-render/types';
-import { DEFAULT_CONFIG } from '../constants/defaults';
 import { useGraphHover } from '../hooks/useGraphHover';
-import { useGraphSearchState } from '../hooks/useGraphSearchState';
+import { useGraphModel } from '../hooks/useGraphModel';
 import {
   GraphBounds,
   centerViewportOnNode,
@@ -74,6 +76,18 @@ const normalizeViewport = (
   y: Number.isFinite(viewport.y) ? viewport.y : 0,
   zoom: clampZoom(Number.isFinite(viewport.zoom) ? viewport.zoom : 1, minZoom, maxZoom),
 });
+
+const normalizeZoomRange = (
+  minZoom: number,
+  maxZoom: number
+): { minZoom: number; maxZoom: number } => {
+  const safeMinZoom = Number.isFinite(minZoom) && minZoom > 0 ? minZoom : DEFAULT_MIN_ZOOM;
+  const safeMaxZoom = Number.isFinite(maxZoom) && maxZoom > 0 ? maxZoom : DEFAULT_MAX_ZOOM;
+
+  return safeMinZoom <= safeMaxZoom
+    ? { minZoom: safeMinZoom, maxZoom: safeMaxZoom }
+    : { minZoom: safeMaxZoom, maxZoom: safeMinZoom };
+};
 
 const toggleId = (values: string[], id: string, selectionMode: 'single' | 'multiple'): string[] => {
   if (selectionMode === 'single') {
@@ -354,12 +368,15 @@ const GraphInner = (
     onEdgeHoverChange,
     onNodeClick,
     onEdgeClick,
-  }: GraphProps,
+  }: GraphProps<any, any, any, any, any>,
   ref: React.ForwardedRef<GraphHandle>
 ) => {
+  const zoomRange = useMemo(() => normalizeZoomRange(minZoom, maxZoom), [minZoom, maxZoom]);
+  const safeMinZoom = zoomRange.minZoom;
+  const safeMaxZoom = zoomRange.maxZoom;
   const markerPrefix = useId().replace(/:/g, '-');
   const [internalViewport, setInternalViewport] = useState<GraphViewport>(() =>
-    normalizeViewport({ ...DEFAULT_VIEWPORT, ...(defaultViewport ?? {}) }, minZoom, maxZoom)
+    normalizeViewport({ ...DEFAULT_VIEWPORT, ...(defaultViewport ?? {}) }, safeMinZoom, safeMaxZoom)
   );
   const [internalSelection, setInternalSelection] = useState<GraphSelection>({
     nodeIds: defaultSelectedNodeIds ?? [],
@@ -372,9 +389,6 @@ const GraphInner = (
     defaultCollapsedNodeIds ?? []
   );
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
-  const [measuredNodeSizes, setMeasuredNodeSizes] = useState<
-    Record<string, { width: number; height: number }>
-  >({});
   const dragRef = useRef<DragState>({
     active: false,
     startX: 0,
@@ -394,11 +408,10 @@ const GraphInner = (
   const contentRef = useRef<SVGGElement>(null);
   const hasAppliedInitialFitViewRef = useRef(false);
 
-  const mergedTheme = useMemo(
-    () => ({ ...DEFAULT_THEME, ...(config?.theme ?? {}) }),
-    [config?.theme]
-  );
-  const cfg = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config]);
+  const cfg = useMemo(() => normalizeGraphConfig(config), [config]);
+  const mergedTheme = cfg.theme;
+  const edgeColor = mergedTheme.edgeColor ?? DEFAULT_THEME.edgeColor;
+  const edgeWidth = mergedTheme.edgeWidth ?? DEFAULT_THEME.edgeWidth;
   const selectionEdgeColor = edgeSelectionColor ?? selectionColor;
   const hoverNodeBorderColor = useMemo(
     () => cfg.hoverNodeBorderColor ?? cfg.hoverEdgeColor,
@@ -410,15 +423,15 @@ const GraphInner = (
   );
   const nodeBorderColor = mergedTheme.nodeBorderColor;
   const nodeBorderWidth = mergedTheme.nodeBorderWidth ?? 0;
-  const showArrows = config?.showArrows ?? true;
+  const showArrows = cfg.showArrows;
   const arrowMarkerId = `${markerPrefix}-arrow`;
   const hoverArrowMarkerId = `${markerPrefix}-arrow-hover`;
   const hoverIncomingArrowMarkerId = `${markerPrefix}-arrow-hover-in`;
   const selectionArrowMarkerId = `${markerPrefix}-arrow-selected`;
 
   const viewport = useMemo(
-    () => normalizeViewport(controlledViewport ?? internalViewport, minZoom, maxZoom),
-    [controlledViewport, internalViewport, minZoom, maxZoom]
+    () => normalizeViewport(controlledViewport ?? internalViewport, safeMinZoom, safeMaxZoom),
+    [controlledViewport, internalViewport, safeMaxZoom, safeMinZoom]
   );
   const selection = useMemo<GraphSelection>(
     () => ({
@@ -440,7 +453,7 @@ const GraphInner = (
         | ((current: GraphViewport) => Partial<GraphViewport> | GraphViewport)
     ) => {
       const resolved = typeof next === 'function' ? next(viewport) : next;
-      const normalized = normalizeViewport({ ...viewport, ...resolved }, minZoom, maxZoom);
+      const normalized = normalizeViewport({ ...viewport, ...resolved }, safeMinZoom, safeMaxZoom);
 
       if (!controlledViewport) {
         setInternalViewport(normalized);
@@ -448,7 +461,7 @@ const GraphInner = (
       onViewportChange?.(normalized);
       return normalized;
     },
-    [controlledViewport, maxZoom, minZoom, onViewportChange, viewport]
+    [controlledViewport, onViewportChange, safeMaxZoom, safeMinZoom, viewport]
   );
 
   const updateSelection = useCallback(
@@ -485,52 +498,20 @@ const GraphInner = (
     },
     [collapsedIds, collapsedNodeIds, onCollapsedNodeIdsChange]
   );
-
-  const { nodes: sourceNodes, edges: sourceEdges } = useMemo(
-    () => fromNxGraph(graph, cfg.defaultEdgeType),
-    [cfg.defaultEdgeType, graph]
-  );
-
-  const nodesWithMeasuredSize = useMemo(
-    () =>
-      sourceNodes.map((node) => ({
-        ...node,
-        measuredSize: measuredNodeSizes[node.id] ?? node.measuredSize,
-      })),
-    [measuredNodeSizes, sourceNodes]
-  );
-
-  useEffect(() => {
-    const validNodeIds = new Set(sourceNodes.map((node) => node.id));
-
-    setMeasuredNodeSizes((current) => {
-      const nextEntries = Object.entries(current).filter(([nodeId]) => validNodeIds.has(nodeId));
-      if (nextEntries.length === Object.keys(current).length) {
-        return current;
-      }
-
-      return Object.fromEntries(nextEntries);
-    });
-  }, [sourceNodes]);
-
-  const normalizedEdges = useMemo(
-    () =>
-      sourceEdges.map((edge) => ({
-        ...edge,
-        type: edge.type ?? cfg.defaultEdgeType,
-      })),
-    [cfg.defaultEdgeType, sourceEdges]
-  );
   const collapsedNodeSet = useMemo(() => new Set(collapsedIds), [collapsedIds]);
   const {
-    effectiveHighlightedNodeSet,
-    effectiveHighlightedEdgeSet,
-    visibleNodes: visibleNodesWithMeasuredSize,
-    visibleEdges,
     childNodeIdsByParent,
-  } = useGraphSearchState({
-    nodes: nodesWithMeasuredSize,
-    edges: normalizedEdges,
+    effectiveHighlightedEdgeSet,
+    effectiveHighlightedNodeSet,
+    handleNodeMeasure,
+    positionedEdges,
+    positionedNodes,
+    visibleEdges,
+    visibleNodesWithMeasuredSize,
+  } = useGraphModel({
+    graph,
+    config: cfg,
+    mergedTheme,
     collapsedIds,
     hiddenNodeIds,
     searchQuery,
@@ -540,6 +521,8 @@ const GraphInner = (
     highlightedEdgeIds,
     highlightStrategy,
     onSearchResultsChange,
+    layoutNodesOverride,
+    routeEdgesOverride,
   });
 
   useEffect(() => {
@@ -567,96 +550,6 @@ const GraphInner = (
     visibleEdges,
     visibleNodesWithMeasuredSize,
   ]);
-
-  const layoutOptions = useMemo(
-    () => ({
-      nodes: visibleNodesWithMeasuredSize,
-      edges: visibleEdges,
-      theme: mergedTheme,
-      padding: cfg.padding,
-      layout: cfg.layout,
-      width: cfg.width,
-      height: cfg.height,
-      layoutDirection: cfg.layoutDirection,
-      nodeSizing: cfg.nodeSizing,
-      fixedNodeSize: cfg.fixedNodeSize,
-      labelMeasurementPaddingX: cfg.labelMeasurementPaddingX,
-      labelMeasurementPaddingY: cfg.labelMeasurementPaddingY,
-      labelMeasurementCharWidth: cfg.labelMeasurementCharWidth,
-      labelMeasurementLineHeight: cfg.labelMeasurementLineHeight,
-    }),
-    [
-      cfg.fixedNodeSize,
-      cfg.height,
-      cfg.labelMeasurementCharWidth,
-      cfg.labelMeasurementLineHeight,
-      cfg.labelMeasurementPaddingX,
-      cfg.labelMeasurementPaddingY,
-      cfg.layout,
-      cfg.layoutDirection,
-      cfg.nodeSizing,
-      cfg.padding,
-      cfg.width,
-      mergedTheme,
-      visibleEdges,
-      visibleNodesWithMeasuredSize,
-    ]
-  );
-
-  const handleNodeMeasure = useCallback(
-    (nodeId: string, size: { width: number; height: number }) => {
-      if (cfg.nodeSizing !== 'measured') {
-        return;
-      }
-
-      setMeasuredNodeSizes((current) => {
-        const previous = current[nodeId];
-        if (previous && previous.width === size.width && previous.height === size.height) {
-          return current;
-        }
-
-        return {
-          ...current,
-          [nodeId]: size,
-        };
-      });
-    },
-    [cfg.nodeSizing]
-  );
-
-  const positionedNodes: PositionedNode[] = useMemo(
-    () => (layoutNodesOverride ? layoutNodesOverride(layoutOptions) : layoutNodes(layoutOptions)),
-    [layoutNodesOverride, layoutOptions]
-  );
-
-  const edgeRoutingOptions = useMemo(
-    () => ({
-      arrowPadding: cfg.arrowPadding,
-      straight: !cfg.curveEdges || cfg.routingStyle === 'orthogonal',
-      layoutDirection: cfg.layoutDirection,
-      forceRightToLeft: cfg.forceRightToLeft,
-      routingStyle: cfg.routingStyle,
-      edgeSeparation: cfg.edgeSeparation,
-      selfLoopRadius: cfg.selfLoopRadius,
-    }),
-    [
-      cfg.arrowPadding,
-      cfg.curveEdges,
-      cfg.edgeSeparation,
-      cfg.forceRightToLeft,
-      cfg.layoutDirection,
-      cfg.routingStyle,
-      cfg.selfLoopRadius,
-    ]
-  );
-
-  const positionedEdges: PositionedEdge[] = useMemo(
-    () =>
-      routeEdgesOverride
-        ? routeEdgesOverride(positionedNodes, visibleEdges, edgeRoutingOptions)
-        : routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions),
-    [edgeRoutingOptions, positionedNodes, routeEdgesOverride, visibleEdges]
-  );
 
   const graphBounds = useMemo(() => getGraphBounds(positionedNodes), [positionedNodes]);
   const contentBounds = useMemo(() => {
@@ -704,9 +597,9 @@ const GraphInner = (
   const fitView = useCallback(
     (padding: number = fitViewPadding) => {
       const { width, height } = getViewportDimensions();
-      updateViewport(getFitViewport(contentBounds, width, height, padding, minZoom, maxZoom));
+      updateViewport(getFitViewport(contentBounds, width, height, padding, safeMinZoom, safeMaxZoom));
     },
-    [contentBounds, fitViewPadding, getViewportDimensions, maxZoom, minZoom, updateViewport]
+    [contentBounds, fitViewPadding, getViewportDimensions, safeMaxZoom, safeMinZoom, updateViewport]
   );
 
   const centerOnNode = useCallback(
@@ -930,8 +823,8 @@ const GraphInner = (
           const distance = getPointerDistance(first, second);
           const nextZoom = clampZoom(
             pinchRef.current.startZoom * (distance / Math.max(1, pinchRef.current.startDistance)),
-            minZoom,
-            maxZoom
+            safeMinZoom,
+            safeMaxZoom
           );
 
           updateViewport({
@@ -965,7 +858,7 @@ const GraphInner = (
         y: dragRef.current.originY + (relativePoint.y - dragRef.current.startY),
       });
     },
-    [maxZoom, minZoom, panEnabled, selectionBox, updateViewport]
+    [panEnabled, safeMaxZoom, safeMinZoom, selectionBox, updateViewport]
   );
 
   const handlePointerUp = useCallback(
@@ -1031,8 +924,8 @@ const GraphInner = (
       const worldY = (pointer.y - viewport.y) / viewport.zoom;
       const nextZoom = clampZoom(
         viewport.zoom + (event.deltaY < 0 ? zoomStep : -zoomStep),
-        minZoom,
-        maxZoom
+        safeMinZoom,
+        safeMaxZoom
       );
 
       updateViewport({
@@ -1041,7 +934,7 @@ const GraphInner = (
         y: pointer.y - worldY * nextZoom,
       });
     },
-    [maxZoom, minZoom, updateViewport, viewport, zoomEnabled, zoomStep]
+    [safeMaxZoom, safeMinZoom, updateViewport, viewport, zoomEnabled, zoomStep]
   );
 
   const handleKeyDown = useCallback(
@@ -1324,7 +1217,7 @@ const GraphInner = (
             markerHeight="6"
             orient="auto-start-reverse"
           >
-            <path d="M 0 0 L 10 5 L 0 10 z" fill={mergedTheme.edgeColor} />
+            <path d="M 0 0 L 10 5 L 0 10 z" fill={edgeColor} />
           </marker>
           <marker
             id={hoverArrowMarkerId}
@@ -1394,8 +1287,8 @@ const GraphInner = (
                 <EdgeComponent
                   key={edge.id}
                   edge={edge}
-                  color={mergedTheme.edgeColor}
-                  width={mergedTheme.edgeWidth}
+                  color={edgeColor}
+                  width={edgeWidth}
                   curveEdges={cfg.curveEdges && cfg.routingStyle !== 'orthogonal'}
                   curveStrength={cfg.curveStrength}
                   markerEnd={showArrows ? `url(#${arrowMarkerId})` : undefined}
@@ -1417,9 +1310,9 @@ const GraphInner = (
                       : undefined
                   }
                   hoverEnabled={cfg.hoverHighlight}
-                  hitStrokeWidth={mergedTheme.edgeWidth + 8}
-                  hoverStrokeWidth={mergedTheme.edgeWidth + 1.5}
-                  selectedStrokeWidth={mergedTheme.edgeWidth + 1.5}
+                  hitStrokeWidth={edgeWidth + 8}
+                  hoverStrokeWidth={edgeWidth + 1.5}
+                  selectedStrokeWidth={edgeWidth + 1.5}
                   onHoverChange={(value) => handleEdgeHoverChange(edge.id, value)}
                   onClick={() => handleEdgeSelection(edge)}
                 />
@@ -1480,8 +1373,23 @@ const GraphInner = (
   );
 };
 
-export const Graph = React.memo(React.forwardRef<GraphHandle, GraphProps>(GraphInner));
+type GraphComponent = <
+  TGraph extends NxGraphInput = NxGraphInput,
+  TNode extends PositionedNode<any, any, any> = PositionedNode,
+  TEdge extends PositionedEdge<any, any> = PositionedEdge,
+  TNodeRecord extends NodeData<any, any, any> = NodeData,
+  TEdgeRecord extends EdgeData<any, any> = EdgeData,
+>(
+  props: GraphProps<TGraph, TNode, TEdge, TNodeRecord, TEdgeRecord> &
+    React.RefAttributes<GraphHandle>
+) => React.ReactElement | null;
 
-Graph.displayName = 'Graph';
+const GraphBase = React.memo(
+  React.forwardRef<GraphHandle, GraphProps<any, any, any, any, any>>(GraphInner)
+);
+
+GraphBase.displayName = 'Graph';
+
+export const Graph = GraphBase as GraphComponent;
 
 export default Graph;

@@ -1,19 +1,22 @@
 import { useEffect, useMemo } from 'react';
 import { EdgeData, GraphSearchResults, NodeData } from '@graph-render/types';
 
-interface UseGraphSearchStateOptions {
-  nodes: NodeData[];
-  edges: EdgeData[];
+interface UseGraphSearchStateOptions<
+  TNode extends NodeData<any, any, any> = NodeData,
+  TEdge extends EdgeData<any, any> = EdgeData,
+> {
+  nodes: TNode[];
+  edges: TEdge[];
   collapsedIds: string[];
   hiddenNodeIds?: string[];
   searchQuery?: string;
   hideUnmatchedSearch?: boolean;
-  searchPredicate?: (node: NodeData, query: string) => boolean;
+  searchPredicate?: (node: TNode, query: string) => boolean;
   highlightedNodeIds?: string[];
   highlightedEdgeIds?: string[];
   highlightStrategy?: (context: {
-    nodes: NodeData[];
-    edges: EdgeData[];
+    nodes: TNode[];
+    edges: TEdge[];
     query: string;
     matchedNodeIds: string[];
     matchedEdgeIds: string[];
@@ -21,7 +24,10 @@ interface UseGraphSearchStateOptions {
   onSearchResultsChange?: (results: GraphSearchResults) => void;
 }
 
-export const useGraphSearchState = ({
+export const useGraphSearchState = <
+  TNode extends NodeData<any, any, any> = NodeData,
+  TEdge extends EdgeData<any, any> = EdgeData,
+>({
   nodes,
   edges,
   collapsedIds,
@@ -33,7 +39,7 @@ export const useGraphSearchState = ({
   highlightedEdgeIds,
   highlightStrategy,
   onSearchResultsChange,
-}: UseGraphSearchStateOptions) => {
+}: UseGraphSearchStateOptions<TNode, TEdge>) => {
   const searchMatchedNodeIds = useMemo(() => {
     const query = searchQuery?.trim().toLowerCase();
     if (!query) {
