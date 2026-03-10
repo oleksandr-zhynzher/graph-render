@@ -73,16 +73,42 @@ export function traverseHighlightedPath(options: {
   pathKey?: string;
   incomingEdgesByTarget: Map<string, PositionedEdge[]>;
   pathKeysByNode?: Map<string, string[]>;
+  /**
+   * Hard upper bound on the number of nodes visited. Prevents the traversal
+   * from freezing the UI on dense graphs when neither a pathKey nor a valid
+   * sourceIndex is supplied and the algorithm falls back to following all
+   * incoming edges.
+   *
+   * Defaults to 500.
+   */
+  maxNodes?: number;
 }): PathTraversalResult {
-  const { startNodeId, sourceIndex, pathKey, incomingEdgesByTarget, pathKeysByNode } = options;
+  const {
+    startNodeId,
+    sourceIndex,
+    pathKey,
+    incomingEdgesByTarget,
+    pathKeysByNode,
+    maxNodes = 500,
+  } = options;
 
   const nodes = new Set<string>([startNodeId]);
   const edges = new Set<EdgeId>();
+  // Track which (nodeId, sourceIndex, pathKey) combinations have been pushed
+  // onto the stack so that a node reached via multiple paths is not processed
+  // more than once — preventing exponential fan-out on dense DAGs.
+  const visitedKeys = new Set<string>([`${startNodeId}|${sourceIndex ?? ''}|${pathKey ?? ''}`]);
   const stack: Array<{ nodeId: string; sourceIndex: number | null; pathKey?: string }> = [
     { nodeId: startNodeId, sourceIndex: sourceIndex ?? null, pathKey },
   ];
 
   while (stack.length) {
+    // Hard cap to prevent blocking the main thread on dense graphs where the
+    // fallback "follow all incoming edges" path would visit the entire graph.
+    if (nodes.size >= maxNodes) {
+      break;
+    }
+
     const current = stack.pop();
     if (!current) {
       continue;
@@ -124,11 +150,15 @@ export function traverseHighlightedPath(options: {
           ? nextSourceIndex
           : current.sourceIndex;
 
-      stack.push({
-        nodeId: edge.source,
-        sourceIndex: resolvedSourceIndex,
-        pathKey: current.pathKey,
-      });
+      const visitKey = `${edge.source}|${resolvedSourceIndex ?? ''}|${current.pathKey ?? ''}`;
+      if (!visitedKeys.has(visitKey)) {
+        visitedKeys.add(visitKey);
+        stack.push({
+          nodeId: edge.source,
+          sourceIndex: resolvedSourceIndex,
+          pathKey: current.pathKey,
+        });
+      }
     });
   }
 
