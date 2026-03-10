@@ -13,10 +13,13 @@ import type {
 /**
  * Options for rendering a graph to SVG
  */
-export interface RenderGraphToSvgOptions {
+export interface RenderGraphToSvgOptions<
+  TNode extends PositionedNode = PositionedNode,
+  TEdge extends PositionedEdge = PositionedEdge,
+> {
   config?: GraphConfig;
-  vertexRenderer?: NodeRenderer;
-  edgeRenderer?: EdgeRenderer;
+  vertexRenderer?: NodeRenderer<TNode>;
+  edgeRenderer?: EdgeRenderer<TEdge>;
   markerId?: string;
   title?: string;
   desc?: string;

@@ -20,18 +20,26 @@ export interface NodeMeasurementHints {
   lineHeight?: number;
 }
 
-export interface NodeData {
+export interface NodeData<
+  TData = unknown,
+  TMeta extends object = Record<string, unknown>,
+  TLabel = unknown,
+> {
   id: NodeId;
-  label?: unknown;
+  label?: TLabel;
   position?: Point;
   size?: Size;
   measuredSize?: Size;
   sizeMode?: NodeSizingMode;
   measurementHints?: NodeMeasurementHints;
-  data?: unknown;
-  meta?: Record<string, unknown>;
+  data?: TData;
+  meta?: TMeta;
 }
 
-export interface PositionedNode extends NodeData {
+export interface PositionedNode<
+  TData = unknown,
+  TMeta extends object = Record<string, unknown>,
+  TLabel = unknown,
+> extends NodeData<TData, TMeta, TLabel> {
   position: Point;
 }

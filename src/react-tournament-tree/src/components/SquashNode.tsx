@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import type { VertexComponentProps } from '@graph-render/types';
-import type { SquashMatchMeta, SquashNodeRenderMode } from '../types';
+import type { SquashMatchMeta, SquashNodeRenderMode, SquashPositionedNode } from '../types';
 import { NODE_DIMENSIONS, DEFAULT_PLAYERS } from '../constants';
 import { useBracketTheme } from '../contexts/BracketThemeContext';
 
-interface SquashNodeProps extends VertexComponentProps {
+interface SquashNodeProps extends VertexComponentProps<SquashPositionedNode> {
   renderMode?: SquashNodeRenderMode;
 }
 
@@ -59,7 +59,7 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
 
   const { colors: THEME_COLORS } = useBracketTheme();
 
-  const meta = (node.meta as SquashMatchMeta | undefined) ?? {
+  const meta: SquashMatchMeta = node.meta ?? {
     stage: 'Stage',
     players: DEFAULT_PLAYERS,
   };

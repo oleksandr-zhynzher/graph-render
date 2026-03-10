@@ -11,8 +11,10 @@ export interface PathHoverOptions {
   playerKey?: string;
 }
 
-export interface VertexComponentProps {
-  node: CorePositionedNode;
+export interface VertexComponentProps<
+  TNode extends CorePositionedNode<any, any, any> = CorePositionedNode,
+> {
+  node: TNode;
   isSelected?: boolean;
   isHovered?: boolean;
   isHoveredIn?: boolean;
@@ -25,8 +27,8 @@ export interface VertexComponentProps {
   onPathLeave?: () => void;
 }
 
-export interface EdgePathProps {
-  edge: PositionedEdge;
+export interface EdgePathProps<TEdge extends PositionedEdge<any, any> = PositionedEdge> {
+  edge: TEdge;
   color: string;
   width: number;
   curveEdges: boolean;
@@ -47,8 +49,12 @@ export interface EdgePathProps {
   onClick?: () => void;
 }
 
-export type VertexComponent = ComponentType<VertexComponentProps>;
-export type EdgeComponent = ComponentType<EdgePathProps>;
+export type VertexComponent<
+  TNode extends CorePositionedNode<any, any, any> = CorePositionedNode,
+> = ComponentType<VertexComponentProps<TNode>>;
+export type EdgeComponent<TEdge extends PositionedEdge<any, any> = PositionedEdge> = ComponentType<
+  EdgePathProps<TEdge>
+>;
 
 export interface GraphViewport {
   x: number;
@@ -61,10 +67,14 @@ export interface GraphSelection {
   edgeIds: string[];
 }
 
-export interface GraphRenderContext {
-  graph: NxGraphInput;
-  nodes: CorePositionedNode[];
-  edges: CorePositionedEdge[];
+export interface GraphRenderContext<
+  TGraph extends NxGraphInput = NxGraphInput,
+  TNode extends CorePositionedNode<any, any, any> = CorePositionedNode,
+  TEdge extends CorePositionedEdge<any, any> = CorePositionedEdge,
+> {
+  graph: TGraph;
+  nodes: TNode[];
+  edges: TEdge[];
   config?: GraphConfig;
   viewport: GraphViewport;
   selection: GraphSelection;
@@ -107,10 +117,16 @@ export type DragState = {
 
 export type GraphControlsPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
-export interface GraphProps {
-  graph: NxGraphInput;
-  vertexComponent: VertexComponent;
-  edgeComponent?: EdgeComponent;
+export interface GraphProps<
+  TGraph extends NxGraphInput = NxGraphInput,
+  TNode extends CorePositionedNode<any, any, any> = CorePositionedNode,
+  TEdge extends CorePositionedEdge<any, any> = CorePositionedEdge,
+  TNodeRecord extends NodeData<any, any, any> = NodeData,
+  TEdgeRecord extends EdgeData<any, any> = EdgeData,
+> {
+  graph: TGraph;
+  vertexComponent: VertexComponent<TNode>;
+  edgeComponent?: EdgeComponent<TEdge>;
   config?: GraphConfig;
   viewport?: GraphViewport;
   defaultViewport?: Partial<GraphViewport>;
@@ -139,13 +155,13 @@ export interface GraphProps {
   onNodeCollapse?: (nodeId: string) => void;
   searchQuery?: string;
   hideUnmatchedSearch?: boolean;
-  searchPredicate?: (node: NodeData, query: string) => boolean;
+  searchPredicate?: (node: TNodeRecord, query: string) => boolean;
   highlightedNodeIds?: string[];
   highlightedEdgeIds?: string[];
   highlightColor?: string;
   highlightStrategy?: (context: {
-    nodes: NodeData[];
-    edges: EdgeData[];
+    nodes: TNodeRecord[];
+    edges: TEdgeRecord[];
     query: string;
     matchedNodeIds: string[];
     matchedEdgeIds: string[];
@@ -161,16 +177,16 @@ export interface GraphProps {
   edgeSelectionEnabled?: boolean;
   selectionColor?: string;
   edgeSelectionColor?: string;
-  layoutNodesOverride?: (options: LayoutOptions) => CorePositionedNode[];
+  layoutNodesOverride?: (options: LayoutOptions) => TNode[];
   routeEdgesOverride?: (
-    nodes: CorePositionedNode[],
-    edges: EdgeData[],
+    nodes: TNode[],
+    edges: TEdgeRecord[],
     options?: RouteEdgesOptions
-  ) => CorePositionedEdge[];
-  renderBackground?: (context: GraphRenderContext) => ReactNode;
-  renderOverlay?: (context: GraphRenderContext) => ReactNode;
-  onNodeHoverChange?: (node: CorePositionedNode, hovered: boolean, meta: GraphHoverMeta) => void;
-  onEdgeHoverChange?: (edge: CorePositionedEdge, hovered: boolean, meta: GraphHoverMeta) => void;
-  onNodeClick?: (node: CorePositionedNode) => void;
-  onEdgeClick?: (edge: CorePositionedEdge) => void;
+  ) => TEdge[];
+  renderBackground?: (context: GraphRenderContext<TGraph, TNode, TEdge>) => ReactNode;
+  renderOverlay?: (context: GraphRenderContext<TGraph, TNode, TEdge>) => ReactNode;
+  onNodeHoverChange?: (node: TNode, hovered: boolean, meta: GraphHoverMeta) => void;
+  onEdgeHoverChange?: (edge: TEdge, hovered: boolean, meta: GraphHoverMeta) => void;
+  onNodeClick?: (node: TNode) => void;
+  onEdgeClick?: (edge: TEdge) => void;
 }

@@ -1,3 +1,5 @@
+import type { NodeData, PositionedNode } from '@graph-render/types';
+
 export interface SquashPlayer {
   name: string;
   seed?: number;
@@ -14,3 +16,6 @@ export interface SquashMatchMeta {
   status?: MatchStatus;
   currentSet?: number; // For live matches, which set is being played
 }
+
+export type SquashNodeData = NodeData<unknown, SquashMatchMeta, string>;
+export type SquashPositionedNode = PositionedNode<unknown, SquashMatchMeta, string>;
