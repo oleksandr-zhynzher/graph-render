@@ -499,6 +499,19 @@ const GraphInner = (
     [measuredNodeSizes, sourceNodes]
   );
 
+  useEffect(() => {
+    const validNodeIds = new Set(sourceNodes.map((node) => node.id));
+
+    setMeasuredNodeSizes((current) => {
+      const nextEntries = Object.entries(current).filter(([nodeId]) => validNodeIds.has(nodeId));
+      if (nextEntries.length === Object.keys(current).length) {
+        return current;
+      }
+
+      return Object.fromEntries(nextEntries);
+    });
+  }, [sourceNodes]);
+
   const normalizedEdges = useMemo(
     () =>
       sourceEdges.map((edge) => ({

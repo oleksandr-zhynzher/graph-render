@@ -110,7 +110,7 @@ export const GraphNode = React.memo<GraphNodeProps>(
       });
 
       return () => cancelAnimationFrame(frame);
-    }, [node.id, node.label, node.meta, onNodeMeasure, width, height, isSelected, isHoveredNode]);
+    }, [node.id, node.label, node.meta, onNodeMeasure, width, height]);
 
     const borderWidth =
       isSelected || isHighlighted ? Math.max(2, nodeBorderWidth) : hasBorder ? nodeBorderWidth : 0;
