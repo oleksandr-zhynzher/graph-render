@@ -1007,6 +1007,9 @@ const GraphInner = (
               const nextNode = getNearestNodeInDirection(currentNode, positionedNodes, direction);
               if (nextNode) {
                 updateFocusedNode(nextNode.id);
+                // Pan the viewport so the newly focused node is visible.
+                // Without this the user can arrow-navigate off-screen.
+                centerOnNode(nextNode.id);
               }
               break;
             }
@@ -1049,6 +1052,7 @@ const GraphInner = (
       }
     },
     [
+      centerOnNode,
       fitView,
       focusedNodeId,
       handleNodeSelection,
