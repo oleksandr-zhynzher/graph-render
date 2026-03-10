@@ -1,6 +1,12 @@
 import React, { useEffect } from 'react';
 import type { VertexComponentProps } from '@graph-render/types';
-import type { SquashMatchMeta, SquashNodeRenderMode, SquashPositionedNode } from '../types';
+import type {
+  MatchStatus,
+  SquashMatchMeta,
+  SquashNodeRenderMode,
+  SquashPlayer,
+  SquashPositionedNode,
+} from '../types';
 import { NODE_DIMENSIONS, DEFAULT_PLAYERS } from '../constants';
 import { useBracketTheme } from '../contexts/BracketThemeContext';
 
@@ -18,6 +24,81 @@ const truncateText = (value: string, maxLength: number): string => {
   }
 
   return `${value.slice(0, Math.max(0, maxLength - 1))}…`;
+};
+
+const isMatchStatus = (value: unknown): value is MatchStatus => {
+  return value === 'completed' || value === 'live' || value === 'upcoming';
+};
+
+const normalizePlayer = (value: unknown, fallback: SquashPlayer): SquashPlayer => {
+  if (!value || typeof value !== 'object') {
+    return fallback;
+  }
+
+  const player = value as Partial<SquashPlayer>;
+  return {
+    name: typeof player.name === 'string' && player.name.trim() ? player.name.trim() : fallback.name,
+    seed: typeof player.seed === 'number' && Number.isFinite(player.seed) ? player.seed : undefined,
+    country: typeof player.country === 'string' && player.country.trim() ? player.country.trim() : undefined,
+  };
+};
+
+const normalizeSets = (value: unknown): number[][] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .slice(0, 3)
+    .map((entry) => {
+      if (!Array.isArray(entry)) {
+        return [];
+      }
+
+      return entry
+        .slice(0, 2)
+        .map((score) => (typeof score === 'number' && Number.isFinite(score) ? score : 0));
+    })
+    .filter((entry) => entry.length === 2);
+};
+
+const normalizeTiebreaks = (value: unknown): (number[] | null)[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.slice(0, 3).map((entry) => {
+    if (!Array.isArray(entry)) {
+      return null;
+    }
+
+    const scores = entry
+      .slice(0, 2)
+      .map((score) => (typeof score === 'number' && Number.isFinite(score) ? score : 0));
+
+    return scores.length === 2 ? scores : null;
+  });
+};
+
+const normalizeMatchMeta = (meta: SquashMatchMeta | undefined): Required<SquashMatchMeta> => {
+  const players = Array.isArray(meta?.players) ? meta.players : [];
+  const normalizedPlayers = [
+    normalizePlayer(players[0], DEFAULT_PLAYERS[0]),
+    normalizePlayer(players[1], DEFAULT_PLAYERS[1]),
+  ];
+  const sets = normalizeSets(meta?.sets);
+
+  return {
+    stage: typeof meta?.stage === 'string' && meta.stage.trim() ? meta.stage.trim() : 'Stage',
+    players: normalizedPlayers,
+    sets,
+    tiebreaks: normalizeTiebreaks(meta?.tiebreaks),
+    status: isMatchStatus(meta?.status) ? meta.status : 'completed',
+    currentSet:
+      typeof meta?.currentSet === 'number' && Number.isFinite(meta.currentSet)
+        ? Math.max(0, Math.min(Math.floor(meta.currentSet), Math.max(sets.length - 1, 0)))
+        : 0,
+  };
 };
 
 function ensureSquashNodeAnimations(): void {
@@ -59,10 +140,7 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
 
   const { colors: THEME_COLORS } = useBracketTheme();
 
-  const meta: SquashMatchMeta = node.meta ?? {
-    stage: 'Stage',
-    players: DEFAULT_PLAYERS,
-  };
+  const meta = normalizeMatchMeta(node.meta);
   const [p1, p2] = meta.players ?? DEFAULT_PLAYERS;
   const sets = meta.sets ?? [];
   const tiebreaks = meta.tiebreaks ?? [];
