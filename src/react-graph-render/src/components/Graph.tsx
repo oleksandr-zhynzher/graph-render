@@ -913,10 +913,18 @@ const GraphInner = (
 
         const edgeIds = positionedEdges
           .filter((edge) => {
-            if (edge.labelPosition) {
-              return isPointInsideRect(edge.labelPosition.x, edge.labelPosition.y, worldRect);
-            }
-            return edge.points.some((point) => isPointInsideRect(point.x, point.y, worldRect));
+            // An edge is inside the marquee if ANY of its path points OR its
+            // label centre falls within the world rect.  The previous code
+            // tested only the label when labelPosition was present, which
+            // meant dragging across an edge path would miss it if the label
+            // happened to be outside the selection box.
+            const inPoints = edge.points.some((point) =>
+              isPointInsideRect(point.x, point.y, worldRect)
+            );
+            const inLabel =
+              !!edge.labelPosition &&
+              isPointInsideRect(edge.labelPosition.x, edge.labelPosition.y, worldRect);
+            return inPoints || inLabel;
           })
           .map((edge) => edge.id);
 
