@@ -4,6 +4,92 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 };
 
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value);
+
+const sanitizeNodeId = (value: string, kind: 'node' | 'edge-endpoint'): string => {
+  const normalized = value.trim();
+  if (!normalized) {
+    throw new TypeError(`Graph ${kind} identifiers must be non-empty strings.`);
+  }
+
+  return normalized;
+};
+
+const sanitizePoint = (value: unknown): { x: number; y: number } | undefined => {
+  if (!isPlainObject(value) || !isFiniteNumber(value.x) || !isFiniteNumber(value.y)) {
+    return undefined;
+  }
+
+  return { x: value.x, y: value.y };
+};
+
+const sanitizeSize = (value: unknown): { width: number; height: number } | undefined => {
+  if (!isPlainObject(value) || !isFiniteNumber(value.width) || !isFiniteNumber(value.height)) {
+    return undefined;
+  }
+
+  return value.width > 0 && value.height > 0
+    ? { width: value.width, height: value.height }
+    : undefined;
+};
+
+const sanitizeRecord = <T extends object>(value: unknown): T | undefined => {
+  return isPlainObject(value) ? (value as T) : undefined;
+};
+
+const sanitizeNodeData = (id: string, attrs: Record<string, unknown>): NodeData => {
+  const position = sanitizePoint(attrs.position);
+  const size = sanitizeSize(attrs.size);
+  const measuredSize = sanitizeSize(attrs.measuredSize);
+  const measurementHints = sanitizeRecord<NonNullable<NodeData['measurementHints']>>(
+    attrs.measurementHints
+  );
+
+  return {
+    id,
+    label: attrs.label,
+    position,
+    size,
+    measuredSize,
+    sizeMode:
+      attrs.sizeMode === 'fixed' || attrs.sizeMode === 'label' || attrs.sizeMode === 'measured'
+        ? attrs.sizeMode
+        : undefined,
+    measurementHints,
+    data: attrs.data,
+    meta: sanitizeRecord<NonNullable<NodeData['meta']>>(attrs.meta),
+  };
+};
+
+const sanitizeEdgePoints = (value: unknown): EdgeData['points'] | undefined => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const points = value
+    .map((point) => sanitizePoint(point))
+    .filter((point): point is NonNullable<EdgeData['points']>[number] => point !== undefined);
+  return points.length >= 2 ? points : undefined;
+};
+
+const ensureUniqueEdgeId = (candidate: string, usedEdgeIds: Set<string>): string => {
+  if (!usedEdgeIds.has(candidate)) {
+    usedEdgeIds.add(candidate);
+    return candidate;
+  }
+
+  let attempt = 2;
+  let nextId = `${candidate}-${attempt}`;
+  while (usedEdgeIds.has(nextId)) {
+    attempt += 1;
+    nextId = `${candidate}-${attempt}`;
+  }
+
+  usedEdgeIds.add(nextId);
+  return nextId;
+};
+
 const assertValidGraphInput = (graph: NxGraphInput): void => {
   if (!isPlainObject(graph)) {
     throw new TypeError('Graph input must be a plain object.');
@@ -49,7 +135,12 @@ const buildNodeMap = (graph: NxGraphInput): Map<string, NodeData> => {
 
   if (graph.nodes) {
     for (const [id, attrs] of Object.entries(graph.nodes)) {
-      nodeMap.set(id, { id, ...attrs });
+      if (attrs != null && !isPlainObject(attrs)) {
+        throw new TypeError(`Node attributes for "${id}" must be an object when provided.`);
+      }
+
+      const sanitizedId = sanitizeNodeId(id, 'node');
+      nodeMap.set(sanitizedId, sanitizeNodeData(sanitizedId, attrs ?? {}));
     }
   }
 
@@ -60,8 +151,9 @@ const buildNodeMap = (graph: NxGraphInput): Map<string, NodeData> => {
  * Ensure a node exists in the map, creating it if necessary
  */
 const ensureNodeExists = (nodeMap: Map<string, NodeData>, nodeId: string): void => {
-  if (!nodeMap.has(nodeId)) {
-    nodeMap.set(nodeId, { id: nodeId });
+  const sanitizedNodeId = sanitizeNodeId(nodeId, 'edge-endpoint');
+  if (!nodeMap.has(sanitizedNodeId)) {
+    nodeMap.set(sanitizedNodeId, { id: sanitizedNodeId });
   }
 };
 
@@ -113,16 +205,23 @@ const createEdgeData = (
   target: string,
   index: number,
   attrs: NxEdgeAttrs | undefined,
-  defaultEdgeType: EdgeType
+  defaultEdgeType: EdgeType,
+  usedEdgeIds: Set<string>
 ): EdgeData => {
-  const { id, type, ...rest } = attrs ?? {};
+  const { id, type, points, meta, ...rest } = attrs ?? {};
   const edgeType = (type as EdgeType | undefined) ?? defaultEdgeType;
+  const baseId = sanitizeNodeId(String(id ?? generateEdgeId(source, target, index)), 'node');
 
   return {
-    id: id ?? generateEdgeId(source, target, index),
+    id: ensureUniqueEdgeId(baseId, usedEdgeIds),
     source,
     target,
-    type: edgeType,
+    type:
+      edgeType === EdgeType.Directed || edgeType === EdgeType.Undirected
+        ? edgeType
+        : defaultEdgeType,
+    points: sanitizeEdgePoints(points),
+    meta: sanitizeRecord<NonNullable<EdgeData['meta']>>(meta),
     ...rest,
   };
 };
@@ -135,20 +234,29 @@ const processNodeEdges = (
   neighbors: Record<string, NxEdgeAttrs | NxEdgeAttrs[]>,
   defaultEdgeType: 'directed' | 'undirected',
   nodeMap: Map<string, NodeData>,
-  undirectedSeen: Set<string>
+  undirectedSeen: Set<string>,
+  usedEdgeIds: Set<string>
 ): EdgeData[] => {
   const edges: EdgeData[] = [];
 
   for (const [target, rawAttrs] of Object.entries(neighbors)) {
-    ensureNodeExists(nodeMap, target);
+    const sanitizedTarget = sanitizeNodeId(target, 'edge-endpoint');
+    ensureNodeExists(nodeMap, sanitizedTarget);
 
     const attrsList = normalizeEdgeAttributes(rawAttrs);
 
     attrsList.forEach((attrs, idx) => {
-      const edgeData = createEdgeData(source, target, idx, attrs, defaultEdgeType as EdgeType);
+      const edgeData = createEdgeData(
+        source,
+        sanitizedTarget,
+        idx,
+        attrs,
+        defaultEdgeType as EdgeType,
+        usedEdgeIds
+      );
 
       // Skip if undirected edge already seen from other direction
-      if (!isUndirectedEdgeSeen(edgeData.type!, source, target, idx, undirectedSeen)) {
+      if (!isUndirectedEdgeSeen(edgeData.type!, source, sanitizedTarget, idx, undirectedSeen)) {
         edges.push(edgeData);
       }
     });
@@ -168,12 +276,21 @@ export const fromNxGraph = (
 
   const nodeMap = buildNodeMap(graph);
   const undirectedSeen = new Set<string>();
+  const usedEdgeIds = new Set<string>();
   const edges: EdgeData[] = [];
 
   for (const [source, neighbors] of Object.entries(graph.adj)) {
-    ensureNodeExists(nodeMap, source);
+    const sanitizedSource = sanitizeNodeId(source, 'edge-endpoint');
+    ensureNodeExists(nodeMap, sanitizedSource);
 
-    const nodeEdges = processNodeEdges(source, neighbors, defaultEdgeType, nodeMap, undirectedSeen);
+    const nodeEdges = processNodeEdges(
+      sanitizedSource,
+      neighbors,
+      defaultEdgeType,
+      nodeMap,
+      undirectedSeen,
+      usedEdgeIds
+    );
 
     edges.push(...nodeEdges);
   }

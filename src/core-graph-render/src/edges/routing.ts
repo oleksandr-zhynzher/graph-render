@@ -334,12 +334,12 @@ const routeSingleEdge = (
   edgeSeparation: number,
   selfLoopRadius: number,
   parallelMeta: ParallelEdgeMeta
-): PositionedEdge => {
+): PositionedEdge | null => {
   const source = nodeMap.get(edge.source);
   const target = nodeMap.get(edge.target);
 
   if (!source || !target) {
-    return { ...edge, points: edge.points ?? [] };
+    return null;
   }
 
   const isUndirected = edge.type === EdgeType.Undirected;
@@ -423,19 +423,21 @@ export const routeEdges = (
   const selfLoopRadius = Math.max(12, opts?.selfLoopRadius ?? 32);
   const parallelIndex = buildParallelEdgeIndex(edges);
 
-  return edges.map((edge) =>
-    routeSingleEdge(
-      edge,
-      nodeMap,
-      nodes,
-      arrowPadding,
-      straight,
-      forceRightToLeft,
-      layoutDirection,
-      routingStyle,
-      edgeSeparation,
-      selfLoopRadius,
-      parallelIndex.get(edge.id) ?? { index: 0, total: 1, centeredOffset: 0 }
+  return edges
+    .map((edge) =>
+      routeSingleEdge(
+        edge,
+        nodeMap,
+        nodes,
+        arrowPadding,
+        straight,
+        forceRightToLeft,
+        layoutDirection,
+        routingStyle,
+        edgeSeparation,
+        selfLoopRadius,
+        parallelIndex.get(edge.id) ?? { index: 0, total: 1, centeredOffset: 0 }
+      )
     )
-  );
+    .filter((edge): edge is PositionedEdge => edge !== null);
 };
