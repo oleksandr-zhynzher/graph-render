@@ -1,5 +1,70 @@
 import { EdgeData, NodeData, Point, PositionedNode } from '@graph-render/types';
 import { DEFAULT_NODE_GAP, DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
+import { gridLayout } from './grid';
+
+const FORCE_LAYOUT_CACHE_LIMIT = 24;
+const MAX_SYNC_FORCE_NODES = 250;
+const forceLayoutCache = new Map<string, PositionedNode[]>();
+
+const buildForceLayoutCacheKey = (
+  nodes: NodeData[],
+  edges: EdgeData[],
+  pad: number,
+  width: number,
+  height: number,
+  gap: number
+): string => {
+  return JSON.stringify({
+    pad,
+    width,
+    height,
+    gap,
+    nodes: nodes.map((node) => ({
+      id: node.id,
+      size: node.size,
+      label: node.label,
+    })),
+    edges: edges.map((edge) => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      type: edge.type,
+    })),
+  });
+};
+
+const getCachedForceLayout = (cacheKey: string): PositionedNode[] | undefined => {
+  const cached = forceLayoutCache.get(cacheKey);
+  if (!cached) {
+    return undefined;
+  }
+
+  forceLayoutCache.delete(cacheKey);
+  forceLayoutCache.set(cacheKey, cached);
+  return cached.map((node) => ({
+    ...node,
+    position: { ...node.position },
+    size: node.size ? { ...node.size } : undefined,
+  }));
+};
+
+const setCachedForceLayout = (cacheKey: string, nodes: PositionedNode[]): void => {
+  if (forceLayoutCache.size >= FORCE_LAYOUT_CACHE_LIMIT) {
+    const oldestKey = forceLayoutCache.keys().next().value;
+    if (oldestKey) {
+      forceLayoutCache.delete(oldestKey);
+    }
+  }
+
+  forceLayoutCache.set(
+    cacheKey,
+    nodes.map((node) => ({
+      ...node,
+      position: { ...node.position },
+      size: node.size ? { ...node.size } : undefined,
+    }))
+  );
+};
 
 const clampPoint = (
   point: Point,
@@ -27,6 +92,16 @@ export const forceDirectedLayout = (
 ): PositionedNode[] => {
   if (!nodes.length) {
     return [];
+  }
+
+  if (nodes.length > MAX_SYNC_FORCE_NODES) {
+    return gridLayout(nodes, pad, gap);
+  }
+
+  const cacheKey = buildForceLayoutCacheKey(nodes, edges, pad, width, height, gap);
+  const cached = getCachedForceLayout(cacheKey);
+  if (cached) {
+    return cached;
   }
 
   const area = Math.max((width - pad * 2) * (height - pad * 2), 1);
@@ -103,7 +178,7 @@ export const forceDirectedLayout = (
     });
   }
 
-  return nodes.map((node) => {
+  const positionedNodes = nodes.map((node) => {
     const point = positions.get(node.id) as Point;
     const size = node.size ?? DEFAULT_NODE_SIZE;
 
@@ -115,4 +190,8 @@ export const forceDirectedLayout = (
       },
     } as PositionedNode;
   });
+
+  setCachedForceLayout(cacheKey, positionedNodes);
+
+  return positionedNodes;
 };
