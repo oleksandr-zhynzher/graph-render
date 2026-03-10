@@ -23,7 +23,11 @@ export interface EdgePathProps {
   onClick?: () => void;
 }
 
-export function EdgePath({
+// Memoised so that unchanged edges are skipped during re-renders of the parent
+// Graph component (e.g. when hover/selection state changes for a different edge).
+// The caller is responsible for keeping callback props (onHoverChange, onClick)
+// referentially stable via useCallback to benefit fully from the bailout.
+export const EdgePath = React.memo(function EdgePath({
   edge,
   color,
   width,
@@ -96,4 +100,4 @@ export function EdgePath({
       ) : null}
     </>
   );
-}
+});
