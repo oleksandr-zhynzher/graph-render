@@ -409,6 +409,7 @@ const GraphInner = (
   );
   const nodeBorderColor = mergedTheme.nodeBorderColor;
   const nodeBorderWidth = mergedTheme.nodeBorderWidth ?? 0;
+  const showArrows = config?.showArrows ?? true;
   const arrowMarkerId = `${markerPrefix}-arrow`;
   const hoverArrowMarkerId = `${markerPrefix}-arrow-hover`;
   const hoverIncomingArrowMarkerId = `${markerPrefix}-arrow-hover-in`;
@@ -1436,52 +1437,54 @@ const GraphInner = (
       onWheel={handleWheel}
       onKeyDown={handleKeyDown}
     >
-      <defs>
-        <marker
-          id={arrowMarkerId}
-          viewBox="0 0 10 10"
-          refX="6"
-          refY="5"
-          markerWidth="6"
-          markerHeight="6"
-          orient="auto-start-reverse"
-        >
-          <path d="M 0 0 L 10 5 L 0 10 z" fill={mergedTheme.edgeColor} />
-        </marker>
-        <marker
-          id={hoverArrowMarkerId}
-          viewBox="0 0 10 10"
-          refX="6"
-          refY="5"
-          markerWidth="6"
-          markerHeight="6"
-          orient="auto-start-reverse"
-        >
-          <path d="M 0 0 L 10 5 L 0 10 z" fill={cfg.hoverEdgeColor} />
-        </marker>
-        <marker
-          id={hoverIncomingArrowMarkerId}
-          viewBox="0 0 10 10"
-          refX="6"
-          refY="5"
-          markerWidth="6"
-          markerHeight="6"
-          orient="auto-start-reverse"
-        >
-          <path d="M 0 0 L 10 5 L 0 10 z" fill={cfg.hoverNodeOutColor} />
-        </marker>
-        <marker
-          id={selectionArrowMarkerId}
-          viewBox="0 0 10 10"
-          refX="6"
-          refY="5"
-          markerWidth="6"
-          markerHeight="6"
-          orient="auto-start-reverse"
-        >
-          <path d="M 0 0 L 10 5 L 0 10 z" fill={selectionEdgeColor} />
-        </marker>
-      </defs>
+      {showArrows ? (
+        <defs>
+          <marker
+            id={arrowMarkerId}
+            viewBox="0 0 10 10"
+            refX="6"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill={mergedTheme.edgeColor} />
+          </marker>
+          <marker
+            id={hoverArrowMarkerId}
+            viewBox="0 0 10 10"
+            refX="6"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill={cfg.hoverEdgeColor} />
+          </marker>
+          <marker
+            id={hoverIncomingArrowMarkerId}
+            viewBox="0 0 10 10"
+            refX="6"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill={cfg.hoverNodeOutColor} />
+          </marker>
+          <marker
+            id={selectionArrowMarkerId}
+            viewBox="0 0 10 10"
+            refX="6"
+            refY="5"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto-start-reverse"
+          >
+            <path d="M 0 0 L 10 5 L 0 10 z" fill={selectionEdgeColor} />
+          </marker>
+        </defs>
+      ) : null}
 
       <g transform={`translate(${viewport.x}, ${viewport.y}) scale(${viewport.zoom})`}>
         <g ref={contentRef}>
@@ -1519,7 +1522,7 @@ const GraphInner = (
                   width={mergedTheme.edgeWidth}
                   curveEdges={cfg.curveEdges && cfg.routingStyle !== 'orthogonal'}
                   curveStrength={cfg.curveStrength}
-                  markerEnd={`url(#${arrowMarkerId})`}
+                  markerEnd={showArrows ? `url(#${arrowMarkerId})` : undefined}
                   isHovered={edgeHovered}
                   isSelected={
                     selectedEdgeSet.has(edge.id) || effectiveHighlightedEdgeSet.has(edge.id)
@@ -1529,11 +1532,13 @@ const GraphInner = (
                     selectedEdgeSet.has(edge.id) ? selectionEdgeColor : highlightColor
                   }
                   labelColor={cfg.edgeLabelColor}
-                  selectionMarker={`url(#${selectionArrowMarkerId})`}
+                  selectionMarker={showArrows ? `url(#${selectionArrowMarkerId})` : undefined}
                   hoverMarker={
-                    isIncomingToHovered
-                      ? `url(#${hoverIncomingArrowMarkerId})`
-                      : `url(#${hoverArrowMarkerId})`
+                    showArrows
+                      ? isIncomingToHovered
+                        ? `url(#${hoverIncomingArrowMarkerId})`
+                        : `url(#${hoverArrowMarkerId})`
+                      : undefined
                   }
                   hoverEnabled={cfg.hoverHighlight}
                   hitStrokeWidth={mergedTheme.edgeWidth + 8}

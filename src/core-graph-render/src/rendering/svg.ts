@@ -215,7 +215,7 @@ export const renderGraphToSvg = (
     config.curveStrength,
     edgeRenderer,
     theme,
-    config.markerId
+    config.showArrows ? config.markerId : ''
   );
   const nodesMarkup = renderNodesToSvg(positionedNodes, nodeRenderer);
   const metadata = createMetadataElements(options?.title, options?.desc);

@@ -76,7 +76,7 @@ const createMarkerAttribute = (markerId: string): string => {
  * Default edge renderer - creates an SVG path with optional arrow marker
  */
 export const defaultEdgeRenderer: EdgeRenderer = (edge, pathD, theme) => {
-  const marker = shouldShowArrow(edge.type) ? createMarkerAttribute(theme.markerId) : '';
+  const marker = shouldShowArrow(edge.type) && theme.markerId ? createMarkerAttribute(theme.markerId) : '';
   const path = `<path d="${pathD}" stroke="${theme.edgeColor}" stroke-width="${theme.edgeWidth}" fill="none"${marker}/>`;
   const label =
     edge.label != null && edge.labelPosition
