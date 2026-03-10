@@ -30,13 +30,12 @@ export function extractPathKeysFromNodes(nodes: NodeWithPathMeta[]): Map<string,
     }
 
     const rawPathKeys = meta.pathKeys;
-    const rawPlayers = meta.players;
 
-    const pathKeys = Array.isArray(rawPathKeys)
-      ? rawPathKeys
-      : Array.isArray(rawPlayers)
-        ? rawPlayers
-        : [];
+    // Only read the generic `pathKeys` field. Domain-specific metadata (e.g.
+    // tournament `players`) must be mapped to `pathKeys` by the consuming
+    // package before the graph is passed to Graph — see react-tournament-tree
+    // TournamentBracket for an example.
+    const pathKeys = Array.isArray(rawPathKeys) ? rawPathKeys : [];
 
     const normalized = pathKeys
       .map((entry) => {
