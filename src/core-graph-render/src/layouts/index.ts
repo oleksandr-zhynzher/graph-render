@@ -67,7 +67,8 @@ export const layoutNodes = (options: LayoutOptions): PositionedNode[] => {
       pad,
       gap,
       layoutDirection ?? LayoutDirection.LTR,
-      height
+      height,
+      width
     );
   }
 

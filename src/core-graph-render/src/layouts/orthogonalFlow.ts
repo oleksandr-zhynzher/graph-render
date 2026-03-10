@@ -1,6 +1,7 @@
 import { EdgeData, LayoutDirection, NodeData, PositionedNode } from '@graph-render/types';
 import { DEFAULT_NODE_GAP, DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
 import { assertHierarchicalGraph, buildGraphTopology, findRootNodes } from './treeTopology';
+import { gridLayout } from './grid';
 
 const buildLevels = (nodes: NodeData[], edges: EdgeData[]): Map<string, number> => {
   assertHierarchicalGraph(nodes, edges);
@@ -34,46 +35,51 @@ export const orthogonalFlowLayout = (
   pad: number = DEFAULT_PADDING,
   gap: number = DEFAULT_NODE_GAP,
   direction: LayoutDirection = LayoutDirection.LTR,
-  height: number = 720
+  height: number = 720,
+  width: number = 960
 ): PositionedNode[] => {
   if (!nodes.length) {
     return [];
   }
 
-  const levels = buildLevels(nodes, edges);
-  const buckets = new Map<number, NodeData[]>();
-  nodes.forEach((node) => {
-    const level = levels.get(node.id) ?? 0;
-    buckets.set(level, [...(buckets.get(level) ?? []), node]);
-  });
-
-  const maxNodeWidth = Math.max(
-    ...nodes.map((node) => node.size?.width ?? DEFAULT_NODE_SIZE.width)
-  );
-  const columnGap = maxNodeWidth + gap;
-  const horizontalSign = direction === LayoutDirection.RTL ? -1 : 1;
-  const baseX = direction === LayoutDirection.RTL ? 960 - pad - maxNodeWidth : pad;
-
-  return Array.from(buckets.entries())
-    .sort((a, b) => a[0] - b[0])
-    .flatMap(([level, levelNodes]) => {
-      const contentHeight = levelNodes.reduce(
-        (sum, node) => sum + (node.size?.height ?? DEFAULT_NODE_SIZE.height),
-        0
-      );
-      const verticalGap = Math.max(20, gap * 0.45);
-      let y = Math.max(
-        pad,
-        (height - contentHeight - verticalGap * Math.max(levelNodes.length - 1, 0)) / 2
-      );
-
-      return levelNodes.map((node) => {
-        const position = {
-          x: baseX + level * columnGap * horizontalSign,
-          y,
-        };
-        y += (node.size?.height ?? DEFAULT_NODE_SIZE.height) + verticalGap;
-        return { ...node, position } as PositionedNode;
-      });
+  try {
+    const levels = buildLevels(nodes, edges);
+    const buckets = new Map<number, NodeData[]>();
+    nodes.forEach((node) => {
+      const level = levels.get(node.id) ?? 0;
+      buckets.set(level, [...(buckets.get(level) ?? []), node]);
     });
+
+    const maxNodeWidth = Math.max(
+      ...nodes.map((node) => node.size?.width ?? DEFAULT_NODE_SIZE.width)
+    );
+    const columnGap = maxNodeWidth + gap;
+    const horizontalSign = direction === LayoutDirection.RTL ? -1 : 1;
+    const baseX = direction === LayoutDirection.RTL ? width - pad - maxNodeWidth : pad;
+
+    return Array.from(buckets.entries())
+      .sort((a, b) => a[0] - b[0])
+      .flatMap(([level, levelNodes]) => {
+        const contentHeight = levelNodes.reduce(
+          (sum, node) => sum + (node.size?.height ?? DEFAULT_NODE_SIZE.height),
+          0
+        );
+        const verticalGap = Math.max(20, gap * 0.45);
+        let y = Math.max(
+          pad,
+          (height - contentHeight - verticalGap * Math.max(levelNodes.length - 1, 0)) / 2
+        );
+
+        return levelNodes.map((node) => {
+          const position = {
+            x: baseX + level * columnGap * horizontalSign,
+            y,
+          };
+          y += (node.size?.height ?? DEFAULT_NODE_SIZE.height) + verticalGap;
+          return { ...node, position } as PositionedNode;
+        });
+      });
+  } catch {
+    return gridLayout(nodes, pad, gap);
+  }
 };
