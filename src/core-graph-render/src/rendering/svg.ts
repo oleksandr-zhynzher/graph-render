@@ -18,7 +18,7 @@ import { DEFAULT_THEME, fromNxGraph } from '../utils';
 import { layoutNodes } from '../layouts';
 import { routeEdges, buildEdgePath } from '../edges';
 import { defaultNodeRenderer, defaultEdgeRenderer } from './defaultRenderers';
-import { escapeXml } from './utils';
+import { escapeXml, sanitizeCssColor, sanitizeFontFamily, sanitizeSvgId } from './utils';
 
 /**
  * Extract and normalize configuration from options
@@ -26,7 +26,9 @@ import { escapeXml } from './utils';
 const extractRenderConfig = (options?: RenderGraphToSvgOptions): RenderConfig => {
   const cfg = options?.config ?? {};
   const mergedTheme = { ...DEFAULT_THEME, ...(cfg.theme ?? {}) };
-  const safeFontFamily = escapeXml(mergedTheme.fontFamily ?? DEFAULT_THEME.fontFamily);
+  const safeFontFamily = escapeXml(
+    sanitizeFontFamily(mergedTheme.fontFamily, DEFAULT_THEME.fontFamily)
+  );
   const width = Number.isFinite(cfg.width) && (cfg.width ?? 0) > 0 ? cfg.width! : 960;
   const height = Number.isFinite(cfg.height) && (cfg.height ?? 0) > 0 ? cfg.height! : 720;
   const padding =
@@ -46,9 +48,10 @@ const extractRenderConfig = (options?: RenderGraphToSvgOptions): RenderConfig =>
     curveEdges: cfg.curveEdges ?? true,
     curveStrength,
     arrowPadding,
+    showArrows: cfg.showArrows ?? true,
     layout: cfg.layout ?? LayoutType.Centered,
     layoutDirection: cfg.layoutDirection ?? LayoutDirection.LTR,
-    markerId: options?.markerId ?? 'arrow',
+    markerId: sanitizeSvgId(options?.markerId ?? 'arrow', 'arrow'),
     edgeLabelColor: cfg.edgeLabelColor ?? '#334155',
     mergedTheme,
     safeFontFamily,
@@ -67,10 +70,10 @@ const normalizeEdges = (edges: EdgeData[], defaultType: EdgeType): EdgeData[] =>
  */
 const extractRenderTheme = (config: RenderConfig): RenderTheme => {
   return {
-    edgeColor: config.mergedTheme.edgeColor ?? DEFAULT_THEME.edgeColor,
+    edgeColor: sanitizeCssColor(config.mergedTheme.edgeColor, DEFAULT_THEME.edgeColor),
     edgeWidth: config.mergedTheme.edgeWidth ?? DEFAULT_THEME.edgeWidth,
-    edgeLabelColor: config.edgeLabelColor,
-    background: config.mergedTheme.background,
+    edgeLabelColor: sanitizeCssColor(config.edgeLabelColor, '#334155'),
+    background: sanitizeCssColor(config.mergedTheme.background, DEFAULT_THEME.background),
   };
 };
 
@@ -79,8 +82,8 @@ const extractRenderTheme = (config: RenderConfig): RenderTheme => {
  */
 const createArrowMarkerDef = (markerId: string, edgeColor: string): string => {
   return [
-    `<marker id="${markerId}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">`,
-    `<path d="M 0 0 L 10 5 L 0 10 z" fill="${edgeColor}" />`,
+    `<marker id="${escapeXml(markerId)}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">`,
+    `<path d="M 0 0 L 10 5 L 0 10 z" fill="${escapeXml(edgeColor)}" />`,
     '</marker>',
   ].join('');
 };
@@ -145,7 +148,7 @@ const assembleSvgDocument = (
   nodesMarkup: string
 ): string => {
   return [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="background:${background};font-family:${fontFamily};">`,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="background:${escapeXml(background)};font-family:${fontFamily};">`,
     metadata,
     '<defs>',
     defs,
@@ -205,7 +208,7 @@ export const renderGraphToSvg = (
   const edgeRenderer = options?.edgeRenderer ?? defaultEdgeRenderer;
 
   // Generate SVG elements
-  const defs = createArrowMarkerDef(config.markerId, theme.edgeColor);
+  const defs = config.showArrows ? createArrowMarkerDef(config.markerId, theme.edgeColor) : '';
   const edgesMarkup = renderEdgesToSvg(
     positionedEdges,
     config.curveEdges,

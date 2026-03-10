@@ -44,6 +44,7 @@ export interface RenderConfig {
   curveEdges: boolean;
   curveStrength: number;
   arrowPadding: number;
+  showArrows: boolean;
   layout: LayoutType;
   layoutDirection: LayoutDirection;
   markerId: string;
