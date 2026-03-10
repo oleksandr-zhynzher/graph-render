@@ -1,6 +1,18 @@
 import React from 'react';
 import { PositionedNode, LayoutType, LayoutDirection } from '@graph-render/types';
 
+/**
+ * Canonical dimensions for column-label pills. Exported so that the parent
+ * Graph component can compute label bounds using the same values for fit-view
+ * calculations, eliminating the two-source-of-truth problem.
+ */
+export const LABEL_PILL_WIDTH = 64;
+export const LABEL_PILL_HEIGHT = 20;
+export const LABEL_PILL_RADIUS = 8;
+
+const LABEL_PILL_FONT_SIZE = 12;
+const LABEL_PILL_FONT_WEIGHT = 700;
+
 export interface GraphLabelsProps {
   positionedNodes: PositionedNode[];
   layout: LayoutType;
@@ -8,6 +20,12 @@ export interface GraphLabelsProps {
   labels?: string[];
   autoLabels: boolean;
   labelOffset: number;
+  /** Background fill of the label pill. Defaults to `#eef1f6`. */
+  pillBackground?: string;
+  /** Border stroke of the label pill. Defaults to `#d7dbe3`. */
+  pillBorderColor?: string;
+  /** Text color inside the label pill. Defaults to `#3f434b`. */
+  pillTextColor?: string;
 }
 
 export function GraphLabels({
@@ -17,6 +35,9 @@ export function GraphLabels({
   labels,
   autoLabels,
   labelOffset,
+  pillBackground = '#eef1f6',
+  pillBorderColor = '#d7dbe3',
+  pillTextColor = '#3f434b',
 }: GraphLabelsProps) {
   const columns = new Map<number, PositionedNode[]>();
   positionedNodes.forEach((node) => {
@@ -50,10 +71,6 @@ export function GraphLabels({
       ? [...effectiveLabels].reverse()
       : effectiveLabels;
 
-  const pillWidth = 64;
-  const pillHeight = 20;
-  const pillRadius = 8;
-
   return (
     <g aria-label="labels">
       {orderedXs.map((x, idx) => {
@@ -63,24 +80,24 @@ export function GraphLabels({
 
         return (
           <g
-            key={`label-${idx}`}
-            transform={`translate(${cx - pillWidth / 2}, ${y - pillHeight + 6})`}
+            key={`col-${x}`}
+            transform={`translate(${cx - LABEL_PILL_WIDTH / 2}, ${y - LABEL_PILL_HEIGHT + 6})`}
           >
             <rect
-              width={pillWidth}
-              height={pillHeight}
-              rx={pillRadius}
-              ry={pillRadius}
-              fill="#eef1f6"
-              stroke="#d7dbe3"
+              width={LABEL_PILL_WIDTH}
+              height={LABEL_PILL_HEIGHT}
+              rx={LABEL_PILL_RADIUS}
+              ry={LABEL_PILL_RADIUS}
+              fill={pillBackground}
+              stroke={pillBorderColor}
               strokeWidth={1}
             />
             <text
-              x={pillWidth / 2}
-              y={pillHeight / 2 + 4}
-              fill="#3f434b"
-              fontSize={12}
-              fontWeight={700}
+              x={LABEL_PILL_WIDTH / 2}
+              y={LABEL_PILL_HEIGHT / 2 + 4}
+              fill={pillTextColor}
+              fontSize={LABEL_PILL_FONT_SIZE}
+              fontWeight={LABEL_PILL_FONT_WEIGHT}
               textAnchor="middle"
             >
               {label}

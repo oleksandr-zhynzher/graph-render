@@ -35,7 +35,7 @@ import {
   getGraphBounds,
 } from '../utils/viewport';
 import { EdgePath } from './EdgePath';
-import { GraphLabels } from './GraphLabels';
+import { GraphLabels, LABEL_PILL_WIDTH, LABEL_PILL_HEIGHT } from './GraphLabels';
 import { GraphNode } from './GraphNode';
 
 const DEFAULT_VIEWPORT: GraphViewport = { x: 0, y: 0, zoom: 1 };
@@ -47,8 +47,6 @@ const DEFAULT_SELECTION_COLOR = '#f59e0b';
 const DEFAULT_CONTROLS_POSITION: GraphControlsPosition = 'top-left';
 const CONTROL_BUTTON_SIZE = 26;
 const CONTROL_BUTTON_GAP = 8;
-const LABEL_PILL_WIDTH = 64;
-const LABEL_PILL_HEIGHT = 20;
 const EDGE_LABEL_WIDTH = 48;
 const EDGE_LABEL_HEIGHT = 20;
 const FIT_BOUNDS_MARGIN = 8;
@@ -1286,6 +1284,9 @@ const GraphInner = (
             labels={cfg.labels}
             autoLabels={cfg.autoLabels}
             labelOffset={cfg.labelOffset}
+            pillBackground={cfg.labelPillBackground}
+            pillBorderColor={cfg.labelPillBorderColor}
+            pillTextColor={cfg.labelPillTextColor}
           />
 
           <g aria-label="edges">

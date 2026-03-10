@@ -64,4 +64,10 @@ export interface GraphConfig {
   autoLabels?: boolean;
   labelOffset?: number;
   forceRightToLeft?: boolean;
+  /** Background color for the column-label pills. Defaults to `#eef1f6`. */
+  labelPillBackground?: string;
+  /** Border color for the column-label pills. Defaults to `#d7dbe3`. */
+  labelPillBorderColor?: string;
+  /** Text color for the column-label pills. Defaults to `#3f434b`. */
+  labelPillTextColor?: string;
 }
