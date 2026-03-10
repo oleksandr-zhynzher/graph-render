@@ -149,27 +149,34 @@ export const useGraphSearchState = <
     return hidden;
   }, [effectiveHighlightedNodeSet, hiddenNodeIds, hideUnmatchedSearch, nodes, searchQuery]);
 
-  const descendantHiddenNodeSet = useMemo(() => {
-    const outgoing = new Map<string, string[]>();
+  // Build the outgoing adjacency map once, keyed only on `edges`.
+  // Both `descendantHiddenNodeSet` (collapse traversal) and
+  // `childNodeIdsByParent` (returned to callers) previously built this map
+  // independently, causing duplicate O(n) work on every collapse toggle.
+  const outgoingBySource = useMemo(() => {
+    const map = new Map<string, string[]>();
     edges.forEach((edge) => {
-      outgoing.set(edge.source, [...(outgoing.get(edge.source) ?? []), edge.target]);
+      map.set(edge.source, [...(map.get(edge.source) ?? []), edge.target]);
     });
+    return map;
+  }, [edges]);
 
+  const descendantHiddenNodeSet = useMemo(() => {
     const hidden = new Set(hiddenNodeSet);
     collapsedIds.forEach((nodeId) => {
-      const stack = [...(outgoing.get(nodeId) ?? [])];
+      const stack = [...(outgoingBySource.get(nodeId) ?? [])];
       while (stack.length) {
         const current = stack.pop();
         if (!current || hidden.has(current)) {
           continue;
         }
         hidden.add(current);
-        stack.push(...(outgoing.get(current) ?? []));
+        stack.push(...(outgoingBySource.get(current) ?? []));
       }
     });
 
     return hidden;
-  }, [collapsedIds, edges, hiddenNodeSet]);
+  }, [collapsedIds, hiddenNodeSet, outgoingBySource]);
 
   const visibleNodes = useMemo(
     () => nodes.filter((node) => !descendantHiddenNodeSet.has(node.id)),
@@ -185,13 +192,7 @@ export const useGraphSearchState = <
     [descendantHiddenNodeSet, edges]
   );
 
-  const childNodeIdsByParent = useMemo(() => {
-    const map = new Map<string, string[]>();
-    edges.forEach((edge) => {
-      map.set(edge.source, [...(map.get(edge.source) ?? []), edge.target]);
-    });
-    return map;
-  }, [edges]);
+  const childNodeIdsByParent = outgoingBySource;
 
   return {
     effectiveHighlightedNodeSet,
