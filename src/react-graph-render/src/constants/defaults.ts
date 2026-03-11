@@ -1,5 +1,10 @@
 import { EdgeType, GraphConfig, LayoutDirection, LayoutType } from '@graph-render/types';
 
+// These three fields are intentionally absent from the default object
+// (their undefined values let consumers override them selectively).
+// Using Partial<Pick<...>> makes that intent explicit: the type says
+// "these may or may not be set" so TypeScript won't complain about them
+// being missing from the object literal below.
 export const DEFAULT_CONFIG: Required<
   Pick<
     GraphConfig,
@@ -29,7 +34,7 @@ export const DEFAULT_CONFIG: Required<
     | 'edgeLabelColor'
   >
 > &
-  Pick<GraphConfig, 'hoverNodeBorderColor' | 'hoverNodeBothColor' | 'forceRightToLeft'> = {
+  Partial<Pick<GraphConfig, 'hoverNodeBorderColor' | 'hoverNodeBothColor' | 'forceRightToLeft'>> = {
   width: 960,
   height: 720,
   defaultEdgeType: EdgeType.Directed,
