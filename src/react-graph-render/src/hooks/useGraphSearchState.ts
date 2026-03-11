@@ -134,7 +134,6 @@ export const useGraphSearchState = <
     });
     // onSearchResultsChange is intentionally read via ref — omitting it from
     // the dep array prevents inline callbacks from creating an infinite loop.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectiveHighlightedEdgeSet, effectiveHighlightedNodeSet]);
 
   const hiddenNodeSet = useMemo(() => {

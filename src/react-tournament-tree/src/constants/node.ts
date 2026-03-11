@@ -6,29 +6,40 @@ export const NODE_DIMENSIONS = {
 } as const;
 
 export const THEME_COLORS_LIGHT = {
-  BASE_BG: '#eaf2ff',
-  HOVER_BG: '#cfdfff',
-  CREST_BG: '#d9e5f7',
-  ROW_BG: '#eef3fb',
-  FOREGROUND: '#0f1728',
-  DARK_TEXT: '#0b1a3a',
-  BORDER: '#e1e5ed',
-  DARK_BORDER: '#d6dbe5',
-  WINNING_SCORE: '#059669',
+  /** Card background — clean white so cards pop against the page. */
+  BASE_BG: '#ffffff',
+  HOVER_BG: '#edf5ff',
+  CREST_BG: '#e8eef7',
+  /** Default player-row background. */
+  ROW_BG: '#f8fafc',
+  /** Winner player-row background — subtle green tint. */
+  ROW_BG_WINNER: '#f0fdf4',
+  FOREGROUND: '#1e293b',
+  DARK_TEXT: '#0f172a',
+  BORDER: '#e2e8f0',
+  DARK_BORDER: '#cbd5e1',
+  /** Card outline stroke. */
+  CARD_BORDER: '#dee3ed',
+  /** Left-accent bar and set-count highlight for the winning player. */
+  WINNER_ACCENT: '#16a34a',
+  WINNING_SCORE: '#16a34a',
   LIVE_WINNING_SCORE: '#2563eb',
   LIVE_INDICATOR: '#3b82f6',
   UPCOMING_TEXT: '#94a3b8',
 } as const;
 
 export const THEME_COLORS_DARK = {
-  BASE_BG: '#334155',
-  HOVER_BG: '#475569',
-  CREST_BG: '#1e293b',
-  ROW_BG: '#1e293b',
+  BASE_BG: '#1e2a3a',
+  HOVER_BG: '#253347',
+  CREST_BG: '#162032',
+  ROW_BG: '#192534',
+  ROW_BG_WINNER: '#0f2a1a',
   FOREGROUND: '#f1f5f9',
   DARK_TEXT: '#e2e8f0',
-  BORDER: '#64748b',
-  DARK_BORDER: '#94a3b8',
+  BORDER: '#2d3d52',
+  DARK_BORDER: '#3d5068',
+  CARD_BORDER: '#2a3d52',
+  WINNER_ACCENT: '#22c55e',
   WINNING_SCORE: '#34d399',
   LIVE_WINNING_SCORE: '#60a5fa',
   LIVE_INDICATOR: '#3b82f6',
