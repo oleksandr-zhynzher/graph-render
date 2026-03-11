@@ -1,9 +1,4 @@
-import { EdgeId, PositionedEdge } from '@graph-render/types';
-
-export interface PathTraversalResult {
-  nodes: Set<string>;
-  edges: Set<EdgeId>;
-}
+import { EdgeId, PathTraversalResult, PositionedEdge } from '@graph-render/types';
 
 export interface FocusedPath {
   nodeId: string;
