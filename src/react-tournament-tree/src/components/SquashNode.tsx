@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { VertexComponentProps } from '@graph-render/types';
 import type {
   MatchStatus,
@@ -28,6 +28,8 @@ const truncateText = (value: string, maxLength: number): string => {
 const isMatchStatus = (value: unknown): value is MatchStatus => {
   return value === 'completed' || value === 'live' || value === 'upcoming';
 };
+
+const normalizePlayerKey = (value: string): string => value.trim().toLowerCase();
 
 const normalizePlayer = (value: unknown, fallback: SquashPlayer): SquashPlayer => {
   if (!value || typeof value !== 'object') {
@@ -129,10 +131,14 @@ function ensureSquashNodeAnimations(): void {
 export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
   node,
   isHovered,
+  activePathKey,
+  activePathNodeIds,
   onPathHover,
   onPathLeave,
   renderMode = 'export',
 }) {
+  const [hoveredPlayerIndex, setHoveredPlayerIndex] = useState<number | null>(null);
+
   useEffect(() => {
     if (renderMode === 'html') {
       ensureSquashNodeAnimations();
@@ -152,6 +158,8 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
 
   // Check if match is TBD (both players or either player is TBD)
   const isTBD = p1.name === 'TBD' || p2.name === 'TBD';
+  const normalizedActivePathKey = activePathKey ? normalizePlayerKey(activePathKey) : null;
+  const isNodeInActivePath = activePathNodeIds?.has(node.id) ?? false;
 
   const setWins = sets.reduce(
     (acc, [a, b], index) => {
@@ -179,7 +187,7 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
     const crestCenterX = crestX + crestSize / 2;
     const crestCenterY = crestY + crestSize / 2;
     const playerTextY = Math.max(19, rowHeight / 2 + 5);
-    const scoreTextY = Math.max(16, rowHeight / 2 + 2);
+    const scoreTextY = rowHeight / 2;
     const tiebreakTextY = rowHeight - 5;
     const dividerTopY = 6;
     const dividerBottomY = rowHeight - 6;
@@ -235,21 +243,41 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
           const setCount = idx === 0 ? setWins.p1 : setWins.p2;
           const isWinner = status === 'completed' && setCount > (idx === 0 ? setWins.p2 : setWins.p1);
           const playerOpacity = status === 'upcoming' ? 0.65 : 1;
+          const isPlayerPathMatch =
+            isNodeInActivePath &&
+            normalizedActivePathKey !== null &&
+            normalizePlayerKey(player.name) === normalizedActivePathKey;
+          const isPlayerHovered = hoveredPlayerIndex === idx || isPlayerPathMatch;
+          const rowFill = isPlayerHovered
+            ? THEME_COLORS.ROW_HOVER_BG
+            : isWinner
+              ? THEME_COLORS.ROW_BG_WINNER
+              : THEME_COLORS.ROW_BG;
 
           return (
             <g
               key={`${node.id}-svg-p-${idx}`}
               transform={`translate(${rowInsetX}, ${rowY})`}
               opacity={playerOpacity}
-              onMouseEnter={() => !isTBD && onPathHover?.(idx, { pathKey: player.name })}
-              onMouseLeave={() => !isTBD && onPathLeave?.()}
+              onMouseEnter={() => {
+                setHoveredPlayerIndex(idx);
+                if (!isTBD) {
+                  onPathHover?.(idx, { pathKey: player.name });
+                }
+              }}
+              onMouseLeave={() => {
+                setHoveredPlayerIndex(null);
+                if (!isTBD) {
+                  onPathLeave?.();
+                }
+              }}
             >
               <rect
                 width={rowWidth}
                 height={rowHeight}
                 rx={10}
                 ry={10}
-                fill={isWinner ? THEME_COLORS.ROW_BG_WINNER : THEME_COLORS.ROW_BG}
+                fill={rowFill}
               />
               <circle
                 cx={crestCenterX}
@@ -303,19 +331,11 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
                         strokeWidth={1}
                       />
                     )}
-                    {shouldHighlight && (
-                      <circle
-                        cx={scoreX}
-                        cy={rowHeight / 2}
-                        r={9}
-                        fill={THEME_COLORS.WINNER_ACCENT}
-                        opacity={0.13}
-                      />
-                    )}
                     <text
                       x={scoreX}
                       y={scoreTextY}
                       textAnchor="middle"
+                      dominantBaseline="middle"
                       fontSize={13}
                       fontWeight={shouldHighlight ? 700 : 400}
                       fill={shouldHighlight ? THEME_COLORS.WINNING_SCORE : THEME_COLORS.FOREGROUND}
@@ -345,19 +365,11 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
                 stroke={isWinner ? THEME_COLORS.WINNER_ACCENT : THEME_COLORS.DARK_BORDER}
                 strokeWidth={1}
               />
-              {isWinner && status === 'completed' && (
-                <circle
-                  cx={setCountCenterX}
-                  cy={rowHeight / 2}
-                  r={11}
-                  fill={THEME_COLORS.WINNER_ACCENT}
-                  opacity={0.15}
-                />
-              )}
               <text
                 x={setCountCenterX}
                 y={scoreTextY}
                 textAnchor="middle"
+                dominantBaseline="middle"
                 fontSize={13}
                 fontWeight={status === 'completed' ? 900 : 400}
                 fill={isWinner && status === 'completed' ? THEME_COLORS.WINNER_ACCENT : THEME_COLORS.DARK_TEXT}
@@ -441,6 +453,16 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
             const setCount = idx === 0 ? setWins.p1 : setWins.p2;
             const isWinner = status === 'completed' && setCount > (idx === 0 ? setWins.p2 : setWins.p1);
             const playerOpacity = status === 'upcoming' ? 0.6 : 1;
+            const isPlayerPathMatch =
+              isNodeInActivePath &&
+              normalizedActivePathKey !== null &&
+              normalizePlayerKey(p.name) === normalizedActivePathKey;
+            const isPlayerHovered = hoveredPlayerIndex === idx || isPlayerPathMatch;
+            const rowBackground = isPlayerHovered
+              ? THEME_COLORS.ROW_HOVER_BG
+              : isWinner
+                ? THEME_COLORS.ROW_BG_WINNER
+                : THEME_COLORS.ROW_BG;
 
             return (
               <div
@@ -452,11 +474,22 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
                   gap: 6,
                   padding: '6px 6px',
                   borderRadius: 10,
-                  background: isWinner ? THEME_COLORS.ROW_BG_WINNER : THEME_COLORS.ROW_BG,
+                  background: rowBackground,
                   opacity: playerOpacity,
+                  transition: 'background-color 140ms ease',
                 }}
-                onMouseEnter={() => !isTBD && onPathHover?.(idx, { pathKey: p.name })}
-                onMouseLeave={() => !isTBD && onPathLeave?.()}
+                onMouseEnter={() => {
+                  setHoveredPlayerIndex(idx);
+                  if (!isTBD) {
+                    onPathHover?.(idx, { pathKey: p.name });
+                  }
+                }}
+                onMouseLeave={() => {
+                  setHoveredPlayerIndex(null);
+                  if (!isTBD) {
+                    onPathLeave?.();
+                  }
+                }}
               >
                 <div
                   style={{
@@ -535,17 +568,15 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
                           maxWidth: 20,
                           borderLeft: sIdx === 0 ? 'none' : `1px solid ${THEME_COLORS.BORDER}`,
                           paddingLeft: sIdx === 0 ? 0 : 2,
-                          borderRadius: shouldHighlight ? 4 : 0,
-                          background: shouldHighlight
-                            ? `${THEME_COLORS.WINNER_ACCENT}1e`
-                            : 'transparent',
                         }}
                       >
                         <span
                           style={{
                             textAlign: 'center',
+                            display: 'block',
                             fontWeight: shouldHighlight ? 700 : 400,
                             fontSize: 14,
+                            lineHeight: 1,
                             color: scoreColor,
                           }}
                         >
@@ -569,9 +600,13 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
                   })}
                   <span
                     style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       textAlign: 'center',
                       fontWeight: status === 'completed' ? 900 : 400,
                       fontSize: 14,
+                      lineHeight: 1,
                       color:
                         isWinner && status === 'completed'
                           ? THEME_COLORS.WINNER_ACCENT

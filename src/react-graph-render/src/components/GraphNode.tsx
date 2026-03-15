@@ -7,6 +7,8 @@ interface GraphNodeProps {
   isSelected: boolean;
   isFocused: boolean;
   isHighlighted: boolean;
+  activePathKey?: string;
+  activePathNodeIds?: Set<string>;
   highlightColor: string;
   selectionColor: string;
   nodeBorderColor?: string;
@@ -35,6 +37,8 @@ export const GraphNode = React.memo<GraphNodeProps>(
     isFocused,
     selectionColor,
     isHighlighted,
+    activePathKey,
+    activePathNodeIds,
     highlightColor,
     nodeBorderColor,
     nodeBorderWidth,
@@ -175,6 +179,8 @@ export const GraphNode = React.memo<GraphNodeProps>(
           isHoveredIn={isHoveredIn}
           isHoveredOut={isHoveredOut}
           isHoveredBoth={isHoveredBoth}
+          activePathKey={activePathKey}
+          activePathNodeIds={activePathNodeIds}
           hoverInColor={hoverNodeInColor}
           hoverOutColor={hoverNodeOutColor}
           hoverBothColor={hoverNodeBothColor}

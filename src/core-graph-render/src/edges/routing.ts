@@ -155,8 +155,15 @@ const calculateOrthogonalPoints = (
   };
   const dx = endLead.x - startLead.x;
   const dy = endLead.y - startLead.y;
+  const sourceIsHorizontal = sourceNormal.x !== 0;
+  const targetIsHorizontal = targetNormal.x !== 0;
+  const sourceIsVertical = sourceNormal.y !== 0;
+  const targetIsVertical = targetNormal.y !== 0;
+  const preferHorizontalRun =
+    (sourceIsHorizontal && targetIsHorizontal) ||
+    (!(sourceIsVertical && targetIsVertical) && Math.abs(dx) >= Math.abs(dy));
 
-  if (Math.abs(dx) >= Math.abs(dy)) {
+  if (preferHorizontalRun) {
     const midX =
       routingStyle === 'bundled'
         ? (sourceCenter.x + targetCenter.x) / 2 + parallelOffset * 0.5

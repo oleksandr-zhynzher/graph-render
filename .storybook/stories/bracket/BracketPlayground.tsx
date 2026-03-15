@@ -18,6 +18,7 @@ import {
 } from '@graph-render/react';
 import {
   BracketThemeProvider,
+  injectTournamentPathKeys,
   SquashNode,
   roundLabelsForGraph,
 } from '@graph-render/tournament-tree';
@@ -457,6 +458,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   const [hoverHighlight, setHoverHighlight] = useState(false);
   const [statusMessage, setStatusMessage] = useState('Double-click a match to collapse or expand its subtree.');
 
+  const enrichedGraph = useMemo(() => injectTournamentPathKeys(graph), [graph]);
   const labels = useMemo(() => roundLabelsForGraph(graph), [graph]);
 
   useEffect(() => {
@@ -545,7 +547,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     }
 
     const nextViewport = getFitViewportForStory(
-      graph,
+      enrichedGraph,
       config,
       labels,
       Math.max(1, element.clientWidth),
@@ -556,7 +558,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
 
     graphRef.current?.setViewport?.(nextViewport);
     setViewport(nextViewport);
-  }, [config, graph, labels]);
+  }, [config, enrichedGraph, labels]);
 
   return (
     <BracketThemeProvider mode={isDarkMode ? 'dark' : 'light'}>
@@ -885,7 +887,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
           >
             <StoryGraph
               ref={graphRef}
-              graph={graph}
+              graph={enrichedGraph}
               vertexComponent={vertexComponent}
               config={config}
               defaultViewport={INITIAL_VIEWPORT}
@@ -921,7 +923,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                       matchedNodeIds: string[];
                       matchedEdgeIds: string[];
                     }) =>
-                      getAncestryHighlight(graph, {
+                      getAncestryHighlight(enrichedGraph, {
                         nodeIds: matchedNodeIds,
                         edgeIds: matchedEdgeIds,
                       })

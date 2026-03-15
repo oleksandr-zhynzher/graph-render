@@ -20,6 +20,8 @@ export interface VertexComponentProps<
   isHoveredIn?: boolean;
   isHoveredOut?: boolean;
   isHoveredBoth?: boolean;
+  activePathKey?: string;
+  activePathNodeIds?: Set<string>;
   hoverInColor?: string;
   hoverOutColor?: string;
   hoverBothColor?: string;

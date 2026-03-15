@@ -2,55 +2,14 @@ import React, { useMemo, useRef, useState, useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { Graph } from '@graph-render/react';
-import type { GraphConfig, NxGraphInput, VertexComponentProps } from '@graph-render/types';
+import type { GraphConfig, VertexComponentProps } from '@graph-render/types';
 import type { TournamentBracketProps } from '../types';
 import { DEFAULT_TOURNAMENT_CONFIG, DARK_TOURNAMENT_CONFIG } from '../constants';
 import { SquashNode } from './SquashNode';
 import { BracketToolbar } from './BracketToolbar';
 import { BracketThemeProvider } from '../contexts/BracketThemeContext';
+import { injectTournamentPathKeys } from '../utils/pathKeys';
 import { roundLabelsForGraph } from '../utils/roundLabels';
-
-/**
- * Enrich every node in the graph with a `pathKeys` array derived from
- * `meta.players[*].name`. The generic react-graph-render path-traversal
- * utility reads only `meta.pathKeys`; mapping tournament player names here
- * keeps domain-specific knowledge inside the tournament package.
- */
-function injectPathKeys(graph: NxGraphInput): NxGraphInput {
-  if (!graph.nodes) {
-    return graph;
-  }
-
-  let changed = false;
-  const nextNodes: typeof graph.nodes = {};
-
-  for (const [id, attrs] of Object.entries(graph.nodes)) {
-    const players = (attrs.meta as Record<string, unknown> | undefined)?.players;
-    if (!Array.isArray(players) || players.length === 0) {
-      nextNodes[id] = attrs;
-      continue;
-    }
-
-    const names = players
-      .map((p) => (p && typeof p === 'object' && typeof (p as Record<string, unknown>).name === 'string'
-        ? ((p as Record<string, unknown>).name as string).trim()
-        : ''))
-      .filter(Boolean);
-
-    if (names.length === 0) {
-      nextNodes[id] = attrs;
-      continue;
-    }
-
-    changed = true;
-    nextNodes[id] = {
-      ...attrs,
-      meta: { ...(attrs.meta as object | undefined), pathKeys: names } as Record<string, unknown>,
-    };
-  }
-
-  return changed ? { ...graph, nodes: nextNodes } : graph;
-}
 
 export const TournamentBracket = React.memo<TournamentBracketProps>(function TournamentBracket({
   graph,
@@ -79,7 +38,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
     } satisfies GraphConfig;
   }, [config, labels, isDarkMode]);
 
-  const enrichedGraph = useMemo(() => injectPathKeys(graph), [graph]);
+  const enrichedGraph = useMemo(() => injectTournamentPathKeys(graph), [graph]);
 
   const handleToggleDarkMode = useCallback(() => {
     setIsDarkMode((prev) => !prev);

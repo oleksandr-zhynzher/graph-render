@@ -675,6 +675,7 @@ const GraphInner = (
     setHoveredEdgeId,
     hoveredNodeId,
     setHoveredNodeId,
+    focusedPath,
     setFocusedPath,
     pathHighlight,
     hoveredNodeStates,
@@ -1376,6 +1377,8 @@ const GraphInner = (
                 isSelected={selectedNodeSet.has(node.id)}
                 isFocused={focusedNodeId === node.id}
                 isHighlighted={effectiveHighlightedNodeSet.has(node.id)}
+                activePathKey={focusedPath?.pathKey}
+                activePathNodeIds={pathHighlight?.nodes}
                 highlightColor={highlightColor}
                 selectionColor={selectionColor}
                 nodeBorderColor={nodeBorderColor}

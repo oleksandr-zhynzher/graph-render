@@ -1,14 +1,14 @@
 import { PositionedEdge, EdgeId } from './edge';
 
 /**
- * Options for traversing graph backwards from a starting node
+ * Options for traversing a highlighted path from a starting node.
  */
 export interface PathTraversalOptions {
   startNodeId: string;
   sourceIndex?: number | null;
-  playerKey?: string;
+  pathKey?: string;
   incomingEdgesByTarget: Map<string, PositionedEdge[]>;
-  playerNamesByNode?: Map<string, string[]>;
+  pathKeysByNode?: Map<string, string[]>;
 }
 
 /**
