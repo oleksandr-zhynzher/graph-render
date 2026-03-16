@@ -30,9 +30,9 @@ export const DEFAULT_TOURNAMENT_CONFIG: Readonly<GraphConfig> = {
     height: NODE_DIMENSIONS.HEIGHT,
   },
   labelOffset: 46,
-  labelPillBackground: '#00000000',
-  labelPillBorderColor: '#00000000',
-  labelPillTextColor: '#8e8e93',
+  labelPillBackground: 'transparent',
+  labelPillBorderColor: 'transparent',
+  labelPillTextColor: '#444b55',
 } as const;
 
 export const DARK_TOURNAMENT_CONFIG: Readonly<GraphConfig> = {
@@ -41,9 +41,9 @@ export const DARK_TOURNAMENT_CONFIG: Readonly<GraphConfig> = {
   hoverNodeInColor: '#9ab08d',
   hoverNodeOutColor: '#9ab08d',
   hoverNodeBothColor: '#9ab08d',
-  labelPillBackground: '#f3f1ea',
-  labelPillBorderColor: '#d7d2c8',
-  labelPillTextColor: '#4e5560',
+  labelPillBackground: 'transparent',
+  labelPillBorderColor: 'transparent',
+  labelPillTextColor: '#d8d2c7',
   theme: {
     background: '#191e24',
     edgeColor: '#5d6470',

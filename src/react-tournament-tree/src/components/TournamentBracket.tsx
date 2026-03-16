@@ -234,6 +234,7 @@ function BracketFrame({
   children,
   title,
   badgeText,
+  stageLabels,
   isDarkMode,
   isNavigationMode,
   stageViews,
@@ -254,6 +255,7 @@ function BracketFrame({
   children: React.ReactNode;
   title: string;
   badgeText: string;
+  stageLabels: string[];
   isDarkMode: boolean;
   isNavigationMode: boolean;
   stageViews: StageView[];
@@ -374,11 +376,89 @@ function BracketFrame({
           />
         ) : null}
       </div>
+
+      {stageLabels.length ? (
+        <div
+          style={{
+            padding: '14px 32px 12px',
+            background: isDarkMode ? '#20262d' : '#fbfaf7',
+            borderBottom: `1px solid ${colors.HEADER_BORDER}`,
+          }}
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${stageLabels.length}, minmax(0, 1fr))`,
+              gap: 24,
+              alignItems: 'center',
+            }}
+          >
+            {stageLabels.map((label, index) => {
+              const isActiveStage = isNavigationMode && index === activeStageIndex;
+
+              return (
+                <div
+                  key={label}
+                  style={{
+                    display: 'grid',
+                    justifyItems: 'center',
+                    gap: 8,
+                    minWidth: 0,
+                    padding: '6px 10px',
+                    borderRadius: 14,
+                    background:
+                      isActiveStage && isDarkMode
+                        ? 'rgba(216, 210, 199, 0.08)'
+                        : isActiveStage
+                          ? 'rgba(124, 144, 112, 0.08)'
+                          : 'transparent',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 40,
+                      height: 1,
+                      background: isActiveStage
+                        ? isDarkMode
+                          ? 'rgba(247, 245, 239, 0.62)'
+                          : 'rgba(68, 75, 85, 0.34)'
+                        : isDarkMode
+                          ? 'rgba(216, 210, 199, 0.24)'
+                          : 'rgba(68, 75, 85, 0.16)',
+                    }}
+                  />
+                  <div
+                    style={{
+                      fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
+                      fontSize: 12,
+                      fontWeight: 800,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      color: isActiveStage
+                        ? isDarkMode
+                          ? '#f7f5ef'
+                          : '#2f3741'
+                        : isDarkMode
+                          ? '#d8d2c7'
+                          : '#444b55',
+                      textAlign: 'center',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {label}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
       <div
         ref={contentViewportRef}
         style={{
           position: 'relative',
-          padding: '18px 24px 24px',
+          padding: '12px 24px 24px',
           overflowX: isNavigationMode ? 'hidden' : 'auto',
           overflowY: 'hidden',
           background: isDarkMode
@@ -635,7 +715,8 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
     return {
       ...baseConfig,
       ...restConfig,
-      labels,
+      labels: undefined,
+      autoLabels: false,
       theme: { ...baseTheme, ...(themeOverride ?? {}) },
     } satisfies GraphConfig;
   }, [config, labels, isDarkMode]);
@@ -873,6 +954,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
       <BracketFrame
         title={title}
         badgeText={resolvedBadgeText}
+        stageLabels={labels}
         isDarkMode={isDarkMode}
         isNavigationMode={isNavigationMode}
         stageViews={stageViews}

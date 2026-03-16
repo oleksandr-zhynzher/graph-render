@@ -643,6 +643,9 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
       nodeSizing,
       fixedNodeSize: { width: 280, height: 112 },
       edgeLabelColor: dark ? '#e2e8f0' : '#334155',
+      labelPillBackground: 'transparent',
+      labelPillBorderColor: 'transparent',
+      labelPillTextColor: dark ? '#d8d2c7' : '#444b55',
     };
   }, [canvasSize.height, canvasSize.width, curveEdges, hoverHighlight, isDarkMode, labels, layout, layoutDirection, nodeSizing, routingStyle]);
 
