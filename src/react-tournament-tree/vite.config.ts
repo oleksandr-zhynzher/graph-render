@@ -7,8 +7,8 @@ export default defineConfig({
     lib: {
       entry: './src/index.ts',
       name: 'ReactTournamentTree',
-      formats: ['es', 'cjs'],
-      fileName: (format) => (format === 'es' ? 'index.js' : 'index.cjs'),
+      formats: ['es'],
+      fileName: () => 'index.js',
     },
     rollupOptions: {
       external: ['react', 'react-dom', '@graph-render/react', '@graph-render/types'],
