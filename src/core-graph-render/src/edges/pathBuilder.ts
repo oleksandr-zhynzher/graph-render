@@ -100,7 +100,11 @@ export const buildEdgePath = (
   curveEdges: boolean,
   curveStrength: number
 ): string => {
-  if (edge.points.length < 2) return '';
+  if (edge.points.length < 2) {
+    throw new Error(
+      `Cannot build a path for edge "${edge.id}" because it has fewer than two points.`
+    );
+  }
 
   if (!curveEdges) {
     return buildStraightPath(edge.points);

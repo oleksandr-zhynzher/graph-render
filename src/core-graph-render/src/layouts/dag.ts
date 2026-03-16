@@ -1,7 +1,6 @@
 import { EdgeData, LayoutDirection, NodeData, PositionedNode } from '@graph-render/types';
 import { DEFAULT_NODE_GAP, DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
 import { assertHierarchicalGraph, buildGraphTopology, findRootNodes } from './treeTopology';
-import { gridLayout } from './grid';
 
 const assignLayers = (
   nodes: NodeData[],
@@ -62,52 +61,46 @@ export const dagLayout = (
     return [];
   }
 
-  try {
-    const { levels } = assignLayers(nodes, edges);
-    const layers = groupNodesByLayer(nodes, levels);
-    const maxNodeWidth = Math.max(
-      ...nodes.map((node) => node.size?.width ?? DEFAULT_NODE_SIZE.width)
+  const { levels } = assignLayers(nodes, edges);
+  const layers = groupNodesByLayer(nodes, levels);
+  const maxNodeWidth = Math.max(...nodes.map((node) => node.size?.width ?? DEFAULT_NODE_SIZE.width));
+  const maxNodeHeight = Math.max(
+    ...nodes.map((node) => node.size?.height ?? DEFAULT_NODE_SIZE.height)
+  );
+  const columnGap = maxNodeWidth + gap;
+  const rowGap = maxNodeHeight + Math.max(24, gap * 0.7);
+  const contentWidth = Math.max(width - pad * 2, columnGap * Math.max(layers.length - 1, 1));
+  const baseX = direction === LayoutDirection.RTL ? width - pad - maxNodeWidth : pad;
+  const stepX = direction === LayoutDirection.RTL ? -columnGap : columnGap;
+
+  return layers.flatMap((layer, layerIndex) => {
+    const totalHeight = layer.reduce(
+      (sum, node, index) =>
+        sum +
+        (node.size?.height ?? DEFAULT_NODE_SIZE.height) +
+        (index > 0 ? rowGap - maxNodeHeight : 0),
+      0
     );
-    const maxNodeHeight = Math.max(
-      ...nodes.map((node) => node.size?.height ?? DEFAULT_NODE_SIZE.height)
-    );
-    const columnGap = maxNodeWidth + gap;
-    const rowGap = maxNodeHeight + Math.max(24, gap * 0.7);
-    const contentWidth = Math.max(width - pad * 2, columnGap * Math.max(layers.length - 1, 1));
-    const baseX = direction === LayoutDirection.RTL ? width - pad - maxNodeWidth : pad;
-    const stepX = direction === LayoutDirection.RTL ? -columnGap : columnGap;
+    let y = Math.max(pad, (height - totalHeight) / 2);
 
-    return layers.flatMap((layer, layerIndex) => {
-      const totalHeight = layer.reduce(
-        (sum, node, index) =>
-          sum +
-          (node.size?.height ?? DEFAULT_NODE_SIZE.height) +
-          (index > 0 ? rowGap - maxNodeHeight : 0),
-        0
-      );
-      let y = Math.max(pad, (height - totalHeight) / 2);
+    return layer.map((node, nodeIndex) => {
+      const nodeWidth = node.size?.width ?? DEFAULT_NODE_SIZE.width;
+      const x =
+        baseX +
+        layerIndex * stepX +
+        (direction === LayoutDirection.RTL ? maxNodeWidth - nodeWidth : 0);
+      const positioned = {
+        ...node,
+        position: {
+          x: layers.length > 1 ? x : pad + Math.max(0, (contentWidth - nodeWidth) / 2),
+          y,
+        },
+      } as PositionedNode;
 
-      return layer.map((node, nodeIndex) => {
-        const nodeWidth = node.size?.width ?? DEFAULT_NODE_SIZE.width;
-        const x =
-          baseX +
-          layerIndex * stepX +
-          (direction === LayoutDirection.RTL ? maxNodeWidth - nodeWidth : 0);
-        const positioned = {
-          ...node,
-          position: {
-            x: layers.length > 1 ? x : pad + Math.max(0, (contentWidth - nodeWidth) / 2),
-            y,
-          },
-        } as PositionedNode;
-
-        y +=
-          (node.size?.height ?? DEFAULT_NODE_SIZE.height) +
-          (nodeIndex < layer.length - 1 ? rowGap - maxNodeHeight : 0);
-        return positioned;
-      });
+      y +=
+        (node.size?.height ?? DEFAULT_NODE_SIZE.height) +
+        (nodeIndex < layer.length - 1 ? rowGap - maxNodeHeight : 0);
+      return positioned;
     });
-  } catch {
-    return gridLayout(nodes, pad, gap);
-  }
+  });
 };

@@ -9,7 +9,6 @@ import {
 } from './treeTopology';
 import { calculateTreeMetrics } from './treePositioning';
 import { positionNodesInLevels, alignNodesToParents } from './treeAlignment';
-import { gridLayout } from './grid';
 
 /**
  * Layout nodes in a tree/hierarchical structure
@@ -22,19 +21,15 @@ export const treeLayout = (
   direction: LayoutDirection = LayoutDirection.LTR,
   containerHeight?: number
 ): PositionedNode[] => {
-  try {
-    assertHierarchicalGraph(nodes, edges);
+  assertHierarchicalGraph(nodes, edges);
 
-    const { incoming, outgoing } = buildGraphTopology(edges);
-    const rootIds = findRootNodes(nodes, incoming);
-    const levelMap = assignNodesToLevels(nodes, rootIds, outgoing);
-    const levels = groupNodesByLevel(nodes, levelMap);
-    const metrics = calculateTreeMetrics(nodes, levels, gap, pad, containerHeight);
+  const { incoming, outgoing } = buildGraphTopology(edges);
+  const rootIds = findRootNodes(nodes, incoming);
+  const levelMap = assignNodesToLevels(nodes, rootIds, outgoing);
+  const levels = groupNodesByLevel(nodes, levelMap);
+  const metrics = calculateTreeMetrics(nodes, levels, gap, pad, containerHeight);
 
-    const positioned = positionNodesInLevels(nodes, levels, levelMap, metrics, gap, pad, direction);
+  const positioned = positionNodesInLevels(nodes, levels, levelMap, metrics, gap, pad, direction);
 
-    return alignNodesToParents(positioned, edges, levels, metrics.maxLevel);
-  } catch {
-    return gridLayout(nodes, pad, gap);
-  }
+  return alignNodesToParents(positioned, edges, levels, metrics.maxLevel);
 };

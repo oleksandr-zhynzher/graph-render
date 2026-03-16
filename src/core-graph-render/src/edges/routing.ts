@@ -341,12 +341,14 @@ const routeSingleEdge = (
   edgeSeparation: number,
   selfLoopRadius: number,
   parallelMeta: ParallelEdgeMeta
-): PositionedEdge | null => {
+): PositionedEdge => {
   const source = nodeMap.get(edge.source);
   const target = nodeMap.get(edge.target);
 
   if (!source || !target) {
-    return null;
+    throw new Error(
+      `Cannot route edge "${edge.id}" because endpoint nodes are missing. Source: "${edge.source}", target: "${edge.target}".`
+    );
   }
 
   const isUndirected = edge.type === EdgeType.Undirected;
@@ -445,6 +447,5 @@ export const routeEdges = (
         selfLoopRadius,
         parallelIndex.get(edge.id) ?? { index: 0, total: 1, centeredOffset: 0 }
       )
-    )
-    .filter((edge): edge is PositionedEdge => edge !== null);
+    );
 };
