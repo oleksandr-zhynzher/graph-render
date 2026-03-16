@@ -118,34 +118,32 @@ function buildStageViews(
   labelOffset: number
 ): StageView[] {
   return groupPositionedNodesByColumn(nodes).map((column, index) => {
-      const columnNodes = column.nodes;
-      const minX = Math.min(...columnNodes.map((node) => node.position.x));
-      const minY = Math.min(...columnNodes.map((node) => node.position.y));
-      const maxX = Math.max(
-        ...columnNodes.map((node) => node.position.x + (node.size?.width ?? NODE_DIMENSIONS.WIDTH))
-      );
-      const maxY = Math.max(
-        ...columnNodes.map(
-          (node) => node.position.y + (node.size?.height ?? NODE_DIMENSIONS.HEIGHT)
-        )
-      );
+    const columnNodes = column.nodes;
+    const minX = Math.min(...columnNodes.map((node) => node.position.x));
+    const minY = Math.min(...columnNodes.map((node) => node.position.y));
+    const maxX = Math.max(
+      ...columnNodes.map((node) => node.position.x + (node.size?.width ?? NODE_DIMENSIONS.WIDTH))
+    );
+    const maxY = Math.max(
+      ...columnNodes.map((node) => node.position.y + (node.size?.height ?? NODE_DIMENSIONS.HEIGHT))
+    );
 
-      const bounds = {
-        minX,
-        minY: minY - labelOffset - STAGE_LABEL_HEIGHT + 6,
-        maxX,
-        maxY,
-        width: maxX - minX,
-        height: maxY - (minY - labelOffset - STAGE_LABEL_HEIGHT + 6),
-      };
+    const bounds = {
+      minX,
+      minY: minY - labelOffset - STAGE_LABEL_HEIGHT + 6,
+      maxX,
+      maxY,
+      width: maxX - minX,
+      height: maxY - (minY - labelOffset - STAGE_LABEL_HEIGHT + 6),
+    };
 
-      return {
-        index,
-        label: labels[index] ?? `STAGE ${index + 1}`,
-        bounds,
-        nodeIds: columnNodes.map((node) => node.id),
-      };
-    });
+    return {
+      index,
+      label: labels[index] ?? `STAGE ${index + 1}`,
+      bounds,
+      nodeIds: columnNodes.map((node) => node.id),
+    };
+  });
 }
 
 function getStageViewport(
@@ -680,6 +678,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   title = 'Tournament Bracket',
   badgeText,
   showToolbar = true,
+  onInvalidNode,
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<GraphHandle>(null);
@@ -861,8 +860,10 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   const exportVertexComponent = useMemo(
     () =>
       vertexComponent ??
-      ((props: VertexComponentProps) => <SquashNode {...props} renderMode="export" />),
-    [vertexComponent]
+      ((props: VertexComponentProps) => (
+        <SquashNode {...props} renderMode="export" onRenderError={onInvalidNode} />
+      )),
+    [onInvalidNode, vertexComponent]
   );
 
   const handleExportSVG = useCallback(() => {
@@ -935,8 +936,10 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   const resolvedVertexComponent = useMemo(
     () =>
       vertexComponent ??
-      ((props: VertexComponentProps) => <SquashNode {...props} renderMode={nodeRenderMode} />),
-    [vertexComponent, nodeRenderMode]
+      ((props: VertexComponentProps) => (
+        <SquashNode {...props} renderMode={nodeRenderMode} onRenderError={onInvalidNode} />
+      )),
+    [nodeRenderMode, onInvalidNode, vertexComponent]
   );
 
   return (

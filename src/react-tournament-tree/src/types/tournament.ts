@@ -10,4 +10,5 @@ export interface TournamentBracketProps {
   title?: string;
   badgeText?: string;
   showToolbar?: boolean;
+  onInvalidNode?: (nodeId: string, error: Error) => void;
 }

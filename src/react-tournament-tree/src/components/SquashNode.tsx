@@ -6,6 +6,7 @@ import { useBracketTheme } from '../contexts/BracketThemeContext';
 
 interface SquashNodeProps extends VertexComponentProps {
   renderMode?: SquashNodeRenderMode;
+  onRenderError?: (nodeId: string, error: Error) => void;
 }
 
 const isSvgCompatibleRenderMode = (renderMode: SquashNodeRenderMode): boolean => {
@@ -259,7 +260,102 @@ const getCompletedWinnerIndex = (
   return setWins.p1 > setWins.p2 ? 0 : 1;
 };
 
-export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
+type SquashNodeErrorBoundaryProps = {
+  nodeId: string;
+  renderMode: SquashNodeRenderMode;
+  width: number;
+  height: number;
+  onRenderError?: (nodeId: string, error: Error) => void;
+  children: React.ReactNode;
+};
+
+type SquashNodeErrorBoundaryState = {
+  error: Error | null;
+};
+
+class SquashNodeErrorBoundary extends React.Component<
+  SquashNodeErrorBoundaryProps,
+  SquashNodeErrorBoundaryState
+> {
+  state: SquashNodeErrorBoundaryState = { error: null };
+
+  static getDerivedStateFromError(error: Error): SquashNodeErrorBoundaryState {
+    return { error };
+  }
+
+  componentDidCatch(error: Error): void {
+    this.props.onRenderError?.(this.props.nodeId, error);
+  }
+
+  componentDidUpdate(prevProps: SquashNodeErrorBoundaryProps): void {
+    if (
+      this.state.error &&
+      (prevProps.nodeId !== this.props.nodeId || prevProps.children !== this.props.children)
+    ) {
+      this.setState({ error: null });
+    }
+  }
+
+  render(): React.ReactNode {
+    if (!this.state.error) {
+      return this.props.children;
+    }
+
+    return renderInvalidSquashNode(
+      this.props.width,
+      this.props.height,
+      this.props.renderMode,
+      this.props.nodeId
+    );
+  }
+}
+
+const renderInvalidSquashNode = (
+  width: number,
+  height: number,
+  renderMode: SquashNodeRenderMode,
+  nodeId: string
+): React.ReactNode => {
+  if (isSvgCompatibleRenderMode(renderMode)) {
+    return (
+      <g>
+        <rect width={width} height={height} rx={16} ry={16} fill="#fff7ed" stroke="#f97316" strokeWidth={2} />
+        <text x={16} y={34} fontSize={13} fontWeight={700} fill="#9a3412" fontFamily={BODY_FONT_FAMILY}>
+          Invalid match data
+        </text>
+        <text x={16} y={56} fontSize={11} fill="#c2410c" fontFamily={BODY_FONT_FAMILY}>
+          {truncateText(nodeId, 28)}
+        </text>
+      </g>
+    );
+  }
+
+  return (
+    <foreignObject width={width} height={height} requiredExtensions="http://www.w3.org/1999/xhtml">
+      <div
+        style={{
+          boxSizing: 'border-box',
+          width: '100%',
+          height: '100%',
+          borderRadius: 16,
+          border: '2px solid #f97316',
+          background: '#fff7ed',
+          color: '#9a3412',
+          padding: '16px 14px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          fontFamily: BODY_FONT_FAMILY,
+        }}
+      >
+        <div style={{ fontSize: 13, fontWeight: 700 }}>Invalid match data</div>
+        <div style={{ marginTop: 6, fontSize: 11, color: '#c2410c' }}>{truncateText(nodeId, 28)}</div>
+      </div>
+    </foreignObject>
+  );
+};
+
+const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent({
   node,
   isHovered,
   activePathKey,
@@ -267,6 +363,7 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
   onPathHover,
   onPathLeave,
   renderMode = 'export',
+  onRenderError: _onRenderError,
 }) {
   const [hoveredPlayerIndex, setHoveredPlayerIndex] = useState<number | null>(null);
 
@@ -688,6 +785,28 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
         </div>
       </div>
     </foreignObject>
+  );
+});
+
+export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
+  node,
+  renderMode = 'export',
+  onRenderError,
+  ...props
+}) {
+  const width = node.size?.width ?? NODE_DIMENSIONS.WIDTH;
+  const height = node.size?.height ?? NODE_DIMENSIONS.HEIGHT;
+
+  return (
+    <SquashNodeErrorBoundary
+      nodeId={node.id}
+      renderMode={renderMode}
+      width={width}
+      height={height}
+      onRenderError={onRenderError}
+    >
+      <SquashNodeContent {...props} node={node} renderMode={renderMode} />
+    </SquashNodeErrorBoundary>
   );
 });
 
