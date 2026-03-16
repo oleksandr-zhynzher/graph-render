@@ -33,79 +33,139 @@ const isMatchStatus = (value: unknown): value is MatchStatus => {
 
 const normalizePlayerKey = (value: string): string => value.trim().toLowerCase();
 
-const normalizePlayer = (value: unknown, fallback: SquashPlayer): SquashPlayer => {
+const normalizePlayer = (value: unknown, label: string): SquashPlayer => {
   if (!value || typeof value !== 'object') {
-    return fallback;
+    throw new TypeError(`Invalid squash match payload: ${label} must be an object.`);
   }
 
   const player = value as Partial<SquashPlayer>;
+  if (typeof player.name !== 'string' || !player.name.trim()) {
+    throw new TypeError(`Invalid squash match payload: ${label}.name must be a non-empty string.`);
+  }
+
+  if (player.seed != null && (typeof player.seed !== 'number' || !Number.isFinite(player.seed))) {
+    throw new TypeError(`Invalid squash match payload: ${label}.seed must be a finite number.`);
+  }
+
+  if (
+    player.country != null &&
+    (typeof player.country !== 'string' || !player.country.trim())
+  ) {
+    throw new TypeError(
+      `Invalid squash match payload: ${label}.country must be a non-empty string when provided.`
+    );
+  }
+
   return {
-    name:
-      typeof player.name === 'string' && player.name.trim() ? player.name.trim() : fallback.name,
-    seed: typeof player.seed === 'number' && Number.isFinite(player.seed) ? player.seed : undefined,
-    country:
-      typeof player.country === 'string' && player.country.trim()
-        ? player.country.trim()
-        : undefined,
+    name: player.name.trim(),
+    seed: player.seed,
+    country: player.country?.trim(),
   };
 };
 
+const normalizePlayers = (value: unknown): [SquashPlayer, SquashPlayer] => {
+  if (value == null) {
+    return [DEFAULT_PLAYERS[0], DEFAULT_PLAYERS[1]];
+  }
+
+  if (!Array.isArray(value) || value.length !== 2) {
+    throw new TypeError('Invalid squash match payload: players must contain exactly two entries.');
+  }
+
+  return [normalizePlayer(value[0], 'players[0]'), normalizePlayer(value[1], 'players[1]')];
+};
+
+const normalizeScore = (value: unknown, label: string): number => {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    throw new TypeError(`Invalid squash match payload: ${label} must be a non-negative number.`);
+  }
+
+  return value;
+};
+
 const normalizeSets = (value: unknown): number[][] => {
-  if (!Array.isArray(value)) {
+  if (value == null) {
     return [];
   }
 
-  return value
-    .map((entry) => {
-      if (!Array.isArray(entry)) {
-        return [];
-      }
+  if (!Array.isArray(value)) {
+    throw new TypeError('Invalid squash match payload: sets must be an array of score pairs.');
+  }
 
-      return entry
-        .slice(0, 2)
-        .map((score) => (typeof score === 'number' && Number.isFinite(score) ? score : 0));
-    })
-    .filter((entry) => entry.length === 2);
+  return value.map((entry, index) => {
+    if (!Array.isArray(entry) || entry.length !== 2) {
+      throw new TypeError(
+        `Invalid squash match payload: sets[${index}] must contain exactly two scores.`
+      );
+    }
+
+    return [
+      normalizeScore(entry[0], `sets[${index}][0]`),
+      normalizeScore(entry[1], `sets[${index}][1]`),
+    ];
+  });
 };
 
 const normalizeTiebreaks = (value: unknown): (number[] | null)[] => {
-  if (!Array.isArray(value)) {
+  if (value == null) {
     return [];
   }
 
-  return value.map((entry) => {
-    if (!Array.isArray(entry)) {
+  if (!Array.isArray(value)) {
+    throw new TypeError(
+      'Invalid squash match payload: tiebreaks must be an array of score pairs or null entries.'
+    );
+  }
+
+  return value.map((entry, index) => {
+    if (entry == null) {
       return null;
     }
 
-    const scores = entry
-      .slice(0, 2)
-      .map((score) => (typeof score === 'number' && Number.isFinite(score) ? score : 0));
+    if (!Array.isArray(entry) || entry.length !== 2) {
+      throw new TypeError(
+        `Invalid squash match payload: tiebreaks[${index}] must contain exactly two scores or be null.`
+      );
+    }
 
-    return scores.length === 2 ? scores : null;
+    return [
+      normalizeScore(entry[0], `tiebreaks[${index}][0]`),
+      normalizeScore(entry[1], `tiebreaks[${index}][1]`),
+    ];
   });
 };
 
 const normalizeMatchMeta = (meta: unknown): Required<SquashMatchMeta> => {
-  const rawMeta = meta && typeof meta === 'object' ? (meta as Partial<SquashMatchMeta>) : undefined;
-  const players = Array.isArray(rawMeta?.players) ? rawMeta.players : [];
-  const normalizedPlayers = [
-    normalizePlayer(players[0], DEFAULT_PLAYERS[0]),
-    normalizePlayer(players[1], DEFAULT_PLAYERS[1]),
-  ];
+  if (meta != null && typeof meta !== 'object') {
+    throw new TypeError('Invalid squash match payload: node meta must be an object when provided.');
+  }
+
+  const rawMeta = meta as Partial<SquashMatchMeta> | undefined;
+  if (rawMeta?.status != null && !isMatchStatus(rawMeta.status)) {
+    throw new TypeError(
+      'Invalid squash match payload: status must be one of completed, live, or upcoming.'
+    );
+  }
+
   const sets = normalizeSets(rawMeta?.sets);
 
   return {
     stage:
       typeof rawMeta?.stage === 'string' && rawMeta.stage.trim() ? rawMeta.stage.trim() : 'Stage',
-    players: normalizedPlayers,
+    players: normalizePlayers(rawMeta?.players),
     sets,
     tiebreaks: normalizeTiebreaks(rawMeta?.tiebreaks),
-    status: isMatchStatus(rawMeta?.status) ? rawMeta.status : 'completed',
+    status: rawMeta?.status ?? 'completed',
     currentSet:
-      typeof rawMeta?.currentSet === 'number' && Number.isFinite(rawMeta.currentSet)
+      rawMeta?.currentSet == null
+        ? 0
+        : typeof rawMeta.currentSet === 'number' && Number.isFinite(rawMeta.currentSet)
         ? Math.max(0, Math.min(Math.floor(rawMeta.currentSet), Math.max(sets.length - 1, 0)))
-        : 0,
+        : (() => {
+            throw new TypeError(
+              'Invalid squash match payload: currentSet must be a finite number when provided.'
+            );
+          })(),
   };
 };
 

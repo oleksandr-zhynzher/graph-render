@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
-import { Graph } from '@graph-render/react';
+import { Graph, groupPositionedNodesByColumn } from '@graph-render/react';
 import type {
   GraphConfig,
   GraphHandle,
@@ -117,18 +117,8 @@ function buildStageViews(
   labels: string[],
   labelOffset: number
 ): StageView[] {
-  const columns = new Map<number, PositionedNode[]>();
-
-  nodes.forEach((node) => {
-    const key = Math.round(node.position.x);
-    const column = columns.get(key) ?? [];
-    column.push(node);
-    columns.set(key, column);
-  });
-
-  return Array.from(columns.entries())
-    .sort((a, b) => a[0] - b[0])
-    .map(([_, columnNodes], index) => {
+  return groupPositionedNodesByColumn(nodes).map((column, index) => {
+      const columnNodes = column.nodes;
       const minX = Math.min(...columnNodes.map((node) => node.position.x));
       const minY = Math.min(...columnNodes.map((node) => node.position.y));
       const maxX = Math.max(
