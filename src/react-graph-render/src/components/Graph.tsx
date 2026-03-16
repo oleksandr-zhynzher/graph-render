@@ -35,7 +35,12 @@ import {
   getGraphBounds,
 } from '../utils/viewport';
 import { EdgePath } from './EdgePath';
-import { GraphLabels, LABEL_PILL_WIDTH, LABEL_PILL_HEIGHT } from './GraphLabels';
+import {
+  getEffectiveGraphLabels,
+  getLabelPillWidth,
+  GraphLabels,
+  LABEL_PILL_HEIGHT,
+} from './GraphLabels';
 import { GraphNode } from './GraphNode';
 
 const DEFAULT_VIEWPORT: GraphViewport = { x: 0, y: 0, zoom: 1 };
@@ -209,18 +214,26 @@ const getLabelBounds = (
 
   const orderedXs =
     layout === LayoutType.Tree && layoutDirection === LayoutDirection.RTL ? [...xs].reverse() : xs;
+  const { orderedLabels } = getEffectiveGraphLabels(
+    nodes,
+    layout,
+    layoutDirection,
+    labels,
+    autoLabels
+  );
   const minY = Math.min(...nodes.map((node) => node.position.y));
   const topY = minY - labelOffset - LABEL_PILL_HEIGHT + 6;
 
-  return orderedXs.reduce<GraphBounds | null>((bounds, x) => {
+  return orderedXs.reduce<GraphBounds | null>((bounds, x, index) => {
     const nodeWidth = columns.get(x)?.[0]?.size?.width ?? 0;
     const centerX = x + nodeWidth / 2;
+    const labelWidth = getLabelPillWidth(orderedLabels[index] ?? '');
     const labelBounds: GraphBounds = {
-      minX: centerX - LABEL_PILL_WIDTH / 2,
+      minX: centerX - labelWidth / 2,
       minY: topY,
-      maxX: centerX + LABEL_PILL_WIDTH / 2,
+      maxX: centerX + labelWidth / 2,
       maxY: topY + LABEL_PILL_HEIGHT,
-      width: LABEL_PILL_WIDTH,
+      width: labelWidth,
       height: LABEL_PILL_HEIGHT,
     };
 
@@ -623,7 +636,9 @@ const GraphInner = (
   const fitView = useCallback(
     (padding: number = fitViewPadding) => {
       const { width, height } = getViewportDimensions();
-      updateViewport(getFitViewport(contentBounds, width, height, padding, safeMinZoom, safeMaxZoom));
+      updateViewport(
+        getFitViewport(contentBounds, width, height, padding, safeMinZoom, safeMaxZoom)
+      );
     },
     [contentBounds, fitViewPadding, getViewportDimensions, safeMaxZoom, safeMinZoom, updateViewport]
   );
@@ -1181,50 +1196,61 @@ const GraphInner = (
             onClick: () => updateViewport(DEFAULT_VIEWPORT),
           },
         ] as const
-      ).reduce<{ x: number; controls: Array<{ key: string; label: string; width: number; x: number; onClick: () => void }> }>(
-        (acc, control) => ({
-          x: acc.x + control.width + CONTROL_BUTTON_GAP,
-          controls: [...acc.controls, { ...control, x: acc.x }],
-        }),
-        { x: 0, controls: [] }
-      ).controls.map((control) => (
-        <g
-          key={control.key}
-          transform={`translate(${control.x}, 0)`}
-          role="button"
-          tabIndex={0}
-          onClick={(event) => {
-            event.stopPropagation();
-            control.onClick();
-          }}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
+      )
+        .reduce<{
+          x: number;
+          controls: Array<{
+            key: string;
+            label: string;
+            width: number;
+            x: number;
+            onClick: () => void;
+          }>;
+        }>(
+          (acc, control) => ({
+            x: acc.x + control.width + CONTROL_BUTTON_GAP,
+            controls: [...acc.controls, { ...control, x: acc.x }],
+          }),
+          { x: 0, controls: [] }
+        )
+        .controls.map((control) => (
+          <g
+            key={control.key}
+            transform={`translate(${control.x}, 0)`}
+            role="button"
+            tabIndex={0}
+            onClick={(event) => {
               event.stopPropagation();
               control.onClick();
-            }
-          }}
-        >
-          <rect
-            width={control.width}
-            height={CONTROL_BUTTON_SIZE}
-            rx={7}
-            ry={7}
-            fill="rgba(255,255,255,0.92)"
-            stroke="rgba(15,23,42,0.18)"
-          />
-          <text
-            x={control.width / 2}
-            y={CONTROL_BUTTON_SIZE / 2 + 4}
-            textAnchor="middle"
-            fontSize={control.label.length > 1 ? 10 : 16}
-            fontWeight={700}
-            fill="#0f172a"
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                event.stopPropagation();
+                control.onClick();
+              }
+            }}
           >
-            {control.label}
-          </text>
-        </g>
-      ))}
+            <rect
+              width={control.width}
+              height={CONTROL_BUTTON_SIZE}
+              rx={7}
+              ry={7}
+              fill="rgba(255,255,255,0.92)"
+              stroke="rgba(15,23,42,0.18)"
+            />
+            <text
+              x={control.width / 2}
+              y={CONTROL_BUTTON_SIZE / 2 + 4}
+              textAnchor="middle"
+              fontSize={control.label.length > 1 ? 10 : 16}
+              fontWeight={700}
+              fill="#0f172a"
+            >
+              {control.label}
+            </text>
+          </g>
+        ))}
     </g>
   ) : null;
 

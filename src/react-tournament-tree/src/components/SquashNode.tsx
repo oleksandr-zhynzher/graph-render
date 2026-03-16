@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { VertexComponentProps } from '@graph-render/types';
-import type {
-  MatchStatus,
-  SquashMatchMeta,
-  SquashNodeRenderMode,
-  SquashPlayer,
-} from '../types';
+import type { MatchStatus, SquashMatchMeta, SquashNodeRenderMode, SquashPlayer } from '../types';
 import { NODE_DIMENSIONS, DEFAULT_PLAYERS } from '../constants';
 import { useBracketTheme } from '../contexts/BracketThemeContext';
 
@@ -16,6 +11,13 @@ interface SquashNodeProps extends VertexComponentProps {
 const isSvgCompatibleRenderMode = (renderMode: SquashNodeRenderMode): boolean => {
   return renderMode === 'svg' || renderMode === 'export' || renderMode === 'server';
 };
+
+const SCORE_FONT_FAMILY = '"Space Mono", "SFMono-Regular", ui-monospace, monospace';
+const BODY_FONT_FAMILY = '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif';
+const SCORE_SEGMENT_WIDTH = 16;
+const SCORE_SEGMENT_GAP = 5;
+const SCORE_SEPARATOR_HEIGHT = 10;
+const NODE_BORDER_WIDTH = 2;
 
 const truncateText = (value: string, maxLength: number): string => {
   if (value.length <= maxLength) {
@@ -38,9 +40,13 @@ const normalizePlayer = (value: unknown, fallback: SquashPlayer): SquashPlayer =
 
   const player = value as Partial<SquashPlayer>;
   return {
-    name: typeof player.name === 'string' && player.name.trim() ? player.name.trim() : fallback.name,
+    name:
+      typeof player.name === 'string' && player.name.trim() ? player.name.trim() : fallback.name,
     seed: typeof player.seed === 'number' && Number.isFinite(player.seed) ? player.seed : undefined,
-    country: typeof player.country === 'string' && player.country.trim() ? player.country.trim() : undefined,
+    country:
+      typeof player.country === 'string' && player.country.trim()
+        ? player.country.trim()
+        : undefined,
   };
 };
 
@@ -50,7 +56,6 @@ const normalizeSets = (value: unknown): number[][] => {
   }
 
   return value
-    .slice(0, 3)
     .map((entry) => {
       if (!Array.isArray(entry)) {
         return [];
@@ -68,7 +73,7 @@ const normalizeTiebreaks = (value: unknown): (number[] | null)[] => {
     return [];
   }
 
-  return value.slice(0, 3).map((entry) => {
+  return value.map((entry) => {
     if (!Array.isArray(entry)) {
       return null;
     }
@@ -128,6 +133,72 @@ function ensureSquashNodeAnimations(): void {
   document.head.appendChild(styleTag);
 }
 
+const getPlayerBadgeText = (player: SquashPlayer): string => {
+  const initials = player.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
+
+  return initials || '–';
+};
+
+const getDisplayScores = (
+  sets: number[][],
+  tiebreaks: (number[] | null)[],
+  playerIndex: number
+): string[] => {
+  return sets.map((setScores, setIndex) => {
+    const score = setScores[playerIndex];
+
+    if (!Number.isFinite(score)) {
+      return '—';
+    }
+
+    const tiebreak = tiebreaks[setIndex];
+    const tiebreakValue = tiebreak?.[playerIndex];
+
+    if (typeof tiebreakValue === 'number' && Number.isFinite(tiebreakValue) && tiebreakValue > 0) {
+      return `${score}(${tiebreakValue})`;
+    }
+
+    return String(score);
+  });
+};
+
+const getScoreSegments = (
+  sets: number[][],
+  tiebreaks: (number[] | null)[],
+  playerIndex: number
+): string[] => {
+  const segments = getDisplayScores(sets, tiebreaks, playerIndex);
+  return segments.length ? segments : ['—'];
+};
+
+const getScoreGroupWidth = (segmentCount: number): number => {
+  if (segmentCount <= 0) {
+    return SCORE_SEGMENT_WIDTH;
+  }
+
+  return segmentCount * SCORE_SEGMENT_WIDTH + Math.max(0, segmentCount - 1) * SCORE_SEGMENT_GAP;
+};
+
+const getCompletedWinnerIndex = (
+  setWins: { p1: number; p2: number },
+  status: MatchStatus
+): number | null => {
+  if (status !== 'completed') {
+    return null;
+  }
+
+  if (setWins.p1 === setWins.p2) {
+    return null;
+  }
+
+  return setWins.p1 > setWins.p2 ? 0 : 1;
+};
+
 export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
   node,
   isHovered,
@@ -174,211 +245,185 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
     { p1: 0, p2: 0 }
   );
 
+  const winnerIndex = getCompletedWinnerIndex(setWins, status);
+  const visibleBorder = `${NODE_BORDER_WIDTH}px solid ${THEME_COLORS.CARD_BORDER}`;
+
   if (isSvgCompatibleRenderMode(renderMode)) {
-    const rowInsetX = 8;
-    const rowInsetY = rowInsetX;
-    const rowGap = 6;
-    const rowHeight = Math.max(30, (nodeHeight - rowInsetY * 2 - rowGap) / 2);
-    const rowYStart = rowInsetY;
-    const rowWidth = nodeWidth - rowInsetX * 2;
-    const crestSize = 26;
-    const crestX = 4;
-    const crestY = Math.max(2, (rowHeight - crestSize) / 2);
-    const crestCenterX = crestX + crestSize / 2;
-    const crestCenterY = crestY + crestSize / 2;
-    const playerTextY = Math.max(19, rowHeight / 2 + 5);
-    const scoreTextY = rowHeight / 2;
-    const tiebreakTextY = rowHeight - 5;
-    const dividerTopY = 6;
-    const dividerBottomY = rowHeight - 6;
-    const scoreColumns = 3;
-    const scoreColumnGap = 22;
-    const setCountCenterX = rowWidth - 12;
-    const setCountDividerX = rowWidth - 26;
-    const lastScoreCenterX = setCountDividerX - 12;
-    const scoreStartX = lastScoreCenterX - scoreColumnGap * (scoreColumns - 1);
-    const scoreCenters = Array.from({ length: scoreColumns }, (_, index) => {
-      return scoreStartX + scoreColumnGap * index;
-    });
-    const scoreDividers = scoreCenters.slice(1).map((centerX, index) => {
-      return (scoreCenters[index] + centerX) / 2;
-    });
-    const playerNameX = 38;
-    const maxNameWidth = Math.max(48, scoreStartX - playerNameX - 16);
-    const maxNameLength = Math.max(8, Math.floor(maxNameWidth / 7));
-    // Unique filter id per node so concurrent renders don't collide.
+    const insetX = 14;
+    const rowHeight = nodeHeight / 2;
+    const dividerY = rowHeight;
+    const badgeSize = 28;
+    const scoreSectionWidth = getScoreGroupWidth(Math.max(sets.length, 1));
+    const matchCountWidth = 22;
+    const internalDividerX = nodeWidth - insetX - matchCountWidth - 10;
+    const scoreGroupRightX = internalDividerX - 6;
+    const matchCountX = nodeWidth - insetX - matchCountWidth / 2;
+    const playerTextX = insetX + badgeSize + 10;
+    const maxNameWidth = Math.max(56, internalDividerX - playerTextX - scoreSectionWidth - 10);
+    const maxNameLength = Math.max(10, Math.floor(maxNameWidth / 7));
     const filterId = `ds-${node.id.replace(/[^a-z0-9]/gi, '')}`;
 
     return (
       <g>
         <defs>
-          <filter id={filterId} x="-4%" y="-8%" width="110%" height="124%">
-            <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="rgba(15,23,42,0.09)" />
-          </filter>
+          <clipPath id={filterId}>
+            <rect width={nodeWidth} height={nodeHeight} rx={16} ry={16} />
+          </clipPath>
         </defs>
         <rect
           width={nodeWidth}
           height={nodeHeight}
-          rx={12}
-          ry={12}
+          rx={16}
+          ry={16}
           fill={isHovered ? THEME_COLORS.HOVER_BG : THEME_COLORS.BASE_BG}
           stroke={THEME_COLORS.CARD_BORDER}
-          strokeWidth={1}
-          filter={`url(#${filterId})`}
+          strokeWidth={NODE_BORDER_WIDTH}
         />
 
         {status === 'live' && (
-          <g transform={`translate(${nodeWidth - 22}, 11)`}>
+          <g transform={`translate(${nodeWidth - 18}, 14)`}>
             <circle r={4} fill={THEME_COLORS.LIVE_INDICATOR} />
           </g>
         )}
 
-        {[p1, p2].map((player, idx) => {
-          const rowY = rowYStart + idx * (rowHeight + rowGap);
-          const initials = player.name ? player.name.substring(0, 2).toUpperCase() : '??';
-          const perSet = [0, 0, 0].map((_, setIndex) => {
-            const value = sets[setIndex]?.[idx === 0 ? 0 : 1];
-            return Number.isFinite(value) ? value : '—';
-          });
-          const setCount = idx === 0 ? setWins.p1 : setWins.p2;
-          const isWinner = status === 'completed' && setCount > (idx === 0 ? setWins.p2 : setWins.p1);
-          const playerOpacity = status === 'upcoming' ? 0.65 : 1;
-          const isPlayerPathMatch =
-            isNodeInActivePath &&
-            normalizedActivePathKey !== null &&
-            normalizePlayerKey(player.name) === normalizedActivePathKey;
-          const isPlayerHovered = hoveredPlayerIndex === idx || isPlayerPathMatch;
-          const rowFill = isPlayerHovered
-            ? THEME_COLORS.ROW_HOVER_BG
-            : isWinner
-              ? THEME_COLORS.ROW_BG_WINNER
-              : THEME_COLORS.ROW_BG;
+        <g clipPath={`url(#${filterId})`}>
+          {[p1, p2].map((player, idx) => {
+            const rowY = idx * rowHeight;
+            const scoreSegments = getScoreSegments(sets, tiebreaks, idx);
+            const scoreGroupWidth = getScoreGroupWidth(scoreSegments.length);
+            const scoreGroupLeftX = scoreGroupRightX - scoreGroupWidth;
+            const setCount = idx === 0 ? setWins.p1 : setWins.p2;
+            const isWinner = winnerIndex === idx;
+            const playerOpacity = status === 'upcoming' ? 0.6 : 1;
+            const isPlayerPathMatch =
+              isNodeInActivePath &&
+              normalizedActivePathKey !== null &&
+              normalizePlayerKey(player.name) === normalizedActivePathKey;
+            const isPlayerHovered = hoveredPlayerIndex === idx || isPlayerPathMatch;
+            const rowFill = isPlayerHovered ? THEME_COLORS.ROW_HOVER_BG : THEME_COLORS.ROW_BG;
+            const badgeFill = isWinner ? THEME_COLORS.WINNER_CREST_BG : THEME_COLORS.CREST_BG;
+            const badgeTextColor = isWinner
+              ? THEME_COLORS.WINNER_CREST_TEXT
+              : THEME_COLORS.CREST_TEXT;
+            const textColor = isWinner ? THEME_COLORS.FOREGROUND : THEME_COLORS.MUTED_TEXT;
+            const badgeText = getPlayerBadgeText(player);
 
-          return (
-            <g
-              key={`${node.id}-svg-p-${idx}`}
-              transform={`translate(${rowInsetX}, ${rowY})`}
-              opacity={playerOpacity}
-              onMouseEnter={() => {
-                setHoveredPlayerIndex(idx);
-                if (!isTBD) {
-                  onPathHover?.(idx, { pathKey: player.name });
-                }
-              }}
-              onMouseLeave={() => {
-                setHoveredPlayerIndex(null);
-                if (!isTBD) {
-                  onPathLeave?.();
-                }
-              }}
-            >
-              <rect
-                width={rowWidth}
-                height={rowHeight}
-                rx={10}
-                ry={10}
-                fill={rowFill}
-              />
-              <circle
-                cx={crestCenterX}
-                cy={crestCenterY}
-                r={crestSize / 2}
-                fill={THEME_COLORS.CREST_BG}
-              />
-              <text
-                x={crestCenterX}
-                y={crestCenterY}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontSize={10}
-                fontWeight={800}
-                fill={THEME_COLORS.FOREGROUND}
+            return (
+              <g
+                key={`${node.id}-svg-p-${idx}`}
+                transform={`translate(0, ${rowY})`}
+                opacity={playerOpacity}
+                onMouseEnter={() => {
+                  setHoveredPlayerIndex(idx);
+                  if (!isTBD) {
+                    onPathHover?.(idx, { pathKey: player.name });
+                  }
+                }}
+                onMouseLeave={() => {
+                  setHoveredPlayerIndex(null);
+                  if (!isTBD) {
+                    onPathLeave?.();
+                  }
+                }}
               >
-                {initials}
-              </text>
-              <text
-                x={playerNameX}
-                y={playerTextY}
-                fontSize={13}
-                fontWeight={isWinner && status === 'completed' ? 800 : 700}
-                fill={isWinner && status === 'completed' ? THEME_COLORS.WINNER_ACCENT : THEME_COLORS.FOREGROUND}
-              >
-                {truncateText(player.name, maxNameLength)}
-              </text>
+                <rect x={0} width={nodeWidth} height={rowHeight} fill={rowFill} />
+                <rect
+                  x={insetX}
+                  y={(rowHeight - badgeSize) / 2}
+                  width={badgeSize}
+                  height={badgeSize}
+                  rx={7}
+                  ry={7}
+                  fill={badgeFill}
+                />
+                <text
+                  x={insetX + badgeSize / 2}
+                  y={rowHeight / 2 + 4}
+                  textAnchor="middle"
+                  fontSize={12}
+                  fontWeight={700}
+                  fill={badgeTextColor}
+                  fontFamily={BODY_FONT_FAMILY}
+                >
+                  {badgeText}
+                </text>
+                <text
+                  x={playerTextX}
+                  y={rowHeight / 2 + 4}
+                  fontSize={13}
+                  fontWeight={isWinner ? 600 : 500}
+                  fill={textColor}
+                  fontFamily={BODY_FONT_FAMILY}
+                >
+                  {truncateText(player.name, maxNameLength)}
+                </text>
+                <line
+                  x1={internalDividerX}
+                  y1={rowHeight / 2 - 9}
+                  x2={internalDividerX}
+                  y2={rowHeight / 2 + 9}
+                  stroke={THEME_COLORS.DARK_BORDER}
+                  strokeWidth={1}
+                />
+                {scoreSegments.map((segment, segmentIndex) => {
+                  const segmentX =
+                    scoreGroupLeftX +
+                    SCORE_SEGMENT_WIDTH / 2 +
+                    segmentIndex * (SCORE_SEGMENT_WIDTH + SCORE_SEGMENT_GAP);
+                  const dividerX = segmentX + SCORE_SEGMENT_WIDTH / 2 + SCORE_SEGMENT_GAP / 2;
 
-              {perSet.map((value, setIndex) => {
-                const opponentValue = sets[setIndex]?.[idx === 0 ? 1 : 0];
-                const wonSet =
-                  typeof value === 'number' &&
-                  typeof opponentValue === 'number' &&
-                  value > opponentValue;
-                const isCurrentSet = status === 'live' && setIndex === currentSet;
-                const shouldHighlight = wonSet && !(status === 'live' && isCurrentSet);
-                const tiebreak = tiebreaks[setIndex];
-                const hasTiebreak = tiebreak && tiebreak.length === 2;
-                const scoreX = scoreCenters[setIndex] ?? scoreStartX;
-                const dividerX = scoreDividers[setIndex - 1];
-
-                return (
-                  <g key={`${node.id}-svg-p-${idx}-set-${setIndex}`}>
-                    {setIndex > 0 && dividerX != null && (
-                      <line
-                        x1={dividerX}
-                        y1={dividerTopY}
-                        x2={dividerX}
-                        y2={dividerBottomY}
-                        stroke={THEME_COLORS.BORDER}
-                        strokeWidth={1}
-                      />
-                    )}
-                    <text
-                      x={scoreX}
-                      y={scoreTextY}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fontSize={13}
-                      fontWeight={shouldHighlight ? 700 : 400}
-                      fill={shouldHighlight ? THEME_COLORS.WINNING_SCORE : THEME_COLORS.FOREGROUND}
-                    >
-                      {value}
-                    </text>
-                    {hasTiebreak && (
+                  return (
+                    <g key={`${node.id}-svg-score-${idx}-${segmentIndex}`}>
                       <text
-                        x={scoreX}
-                        y={tiebreakTextY}
+                        x={segmentX}
+                        y={rowHeight / 2 + 1}
                         textAnchor="middle"
-                        fontSize={8}
-                        fill={THEME_COLORS.DARK_TEXT}
+                        dominantBaseline="middle"
+                        fontSize={10.5}
+                        fontWeight={400}
+                        fill={textColor}
+                        fontFamily={SCORE_FONT_FAMILY}
                       >
-                        {tiebreak[idx]}
+                        {truncateText(segment, 4)}
                       </text>
-                    )}
-                  </g>
-                );
-              })}
+                      {segmentIndex < scoreSegments.length - 1 ? (
+                        <line
+                          x1={dividerX}
+                          y1={rowHeight / 2 - SCORE_SEPARATOR_HEIGHT / 2}
+                          x2={dividerX}
+                          y2={rowHeight / 2 + SCORE_SEPARATOR_HEIGHT / 2}
+                          stroke={THEME_COLORS.BORDER}
+                          strokeWidth={1}
+                        />
+                      ) : null}
+                    </g>
+                  );
+                })}
+                <text
+                  x={matchCountX}
+                  y={rowHeight / 2 + 1}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize={18}
+                  fontWeight={700}
+                  fill={textColor}
+                  fontFamily={BODY_FONT_FAMILY}
+                >
+                  {setCount}
+                </text>
+              </g>
+            );
+          })}
 
-              <line
-                x1={setCountDividerX}
-                y1={dividerTopY}
-                x2={setCountDividerX}
-                y2={dividerBottomY}
-                stroke={isWinner ? THEME_COLORS.WINNER_ACCENT : THEME_COLORS.DARK_BORDER}
-                strokeWidth={1}
-              />
-              <text
-                x={setCountCenterX}
-                y={scoreTextY}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fontSize={13}
-                fontWeight={status === 'completed' ? 900 : 400}
-                fill={isWinner && status === 'completed' ? THEME_COLORS.WINNER_ACCENT : THEME_COLORS.DARK_TEXT}
-              >
-                {setCount}
-              </text>
-            </g>
-          );
-        })}
+          <line
+            x1={0}
+            y1={dividerY}
+            x2={nodeWidth}
+            y2={dividerY}
+            stroke={THEME_COLORS.BORDER}
+            strokeWidth={1}
+          />
+        </g>
       </g>
     );
   }
@@ -394,17 +439,12 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
           boxSizing: 'border-box',
           width: '100%',
           height: '100%',
-          padding: '6px 8px',
-          borderRadius: 12,
+          borderRadius: 16,
           background: isHovered ? THEME_COLORS.HOVER_BG : THEME_COLORS.BASE_BG,
-          border: `1px solid ${THEME_COLORS.CARD_BORDER}`,
+          border: visibleBorder,
           color: THEME_COLORS.FOREGROUND,
           display: 'flex',
           flexDirection: 'column',
-          gap: 4,
-          boxShadow: isHovered
-            ? '0 8px 24px rgba(15,23,42,0.14)'
-            : '0 2px 8px rgba(15,23,42,0.08)',
           transition: 'background-color 120ms ease, box-shadow 120ms ease',
           transform: 'none',
           overflow: 'hidden',
@@ -415,8 +455,8 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
           <div
             style={{
               position: 'absolute',
-              top: 4,
-              right: 8,
+              top: 10,
+              right: 12,
               display: 'flex',
               alignItems: 'center',
               gap: 4,
@@ -441,42 +481,40 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
           style={{
             display: 'grid',
             gridTemplateRows: 'repeat(2, 1fr)',
-            gap: 4,
           }}
         >
           {[p1, p2].map((p, idx) => {
-            const initials = p.name ? p.name.substring(0, 2).toUpperCase() : '??';
-            const perSet = [0, 0, 0].map((_, sIdx) => {
-              const val = sets[sIdx]?.[idx === 0 ? 0 : 1];
-              return Number.isFinite(val) ? val : '—';
-            });
+            const badgeText = getPlayerBadgeText(p);
+            const scoreSegments = getScoreSegments(sets, tiebreaks, idx);
+            const scoreGroupWidth = getScoreGroupWidth(Math.max(sets.length, 1));
             const setCount = idx === 0 ? setWins.p1 : setWins.p2;
-            const isWinner = status === 'completed' && setCount > (idx === 0 ? setWins.p2 : setWins.p1);
+            const isWinner = winnerIndex === idx;
             const playerOpacity = status === 'upcoming' ? 0.6 : 1;
             const isPlayerPathMatch =
               isNodeInActivePath &&
               normalizedActivePathKey !== null &&
               normalizePlayerKey(p.name) === normalizedActivePathKey;
             const isPlayerHovered = hoveredPlayerIndex === idx || isPlayerPathMatch;
-            const rowBackground = isPlayerHovered
-              ? THEME_COLORS.ROW_HOVER_BG
-              : isWinner
-                ? THEME_COLORS.ROW_BG_WINNER
-                : THEME_COLORS.ROW_BG;
+            const rowBackground = isPlayerHovered ? THEME_COLORS.ROW_HOVER_BG : THEME_COLORS.ROW_BG;
+            const rowTextColor = isWinner ? THEME_COLORS.FOREGROUND : THEME_COLORS.MUTED_TEXT;
+            const badgeBackground = isWinner ? THEME_COLORS.WINNER_CREST_BG : THEME_COLORS.CREST_BG;
+            const badgeColor = isWinner ? THEME_COLORS.WINNER_CREST_TEXT : THEME_COLORS.CREST_TEXT;
 
             return (
               <div
                 key={`${node.id}-p-${idx}`}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '28px 1fr repeat(3, 26px)',
+                  gridTemplateColumns: `28px minmax(0, 1fr) ${scoreGroupWidth}px 24px`,
                   alignItems: 'center',
-                  gap: 6,
-                  padding: '6px 6px',
-                  borderRadius: 10,
+                  gap: 8,
+                  padding: '14px 12px',
+                  minHeight: nodeHeight / 2,
                   background: rowBackground,
                   opacity: playerOpacity,
                   transition: 'background-color 140ms ease',
+                  borderTop: idx === 1 ? `1px solid ${THEME_COLORS.BORDER}` : 'none',
+                  boxSizing: 'border-box',
                 }}
                 onMouseEnter={() => {
                   setHoveredPlayerIndex(idx);
@@ -493,133 +531,97 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
               >
                 <div
                   style={{
-                    width: 26,
-                    height: 26,
-                    borderRadius: '50%',
-                    background: THEME_COLORS.CREST_BG,
+                    width: 28,
+                    height: 28,
+                    borderRadius: 7,
+                    background: badgeBackground,
                     display: 'grid',
                     placeItems: 'center',
-                    fontWeight: 800,
-                    color: THEME_COLORS.FOREGROUND,
-                    fontSize: 10,
+                    fontWeight: 700,
+                    color: badgeColor,
+                    fontSize: 12,
                     flexShrink: 0,
+                    fontFamily: BODY_FONT_FAMILY,
                   }}
                   aria-label={`crest-${p.name}`}
                 >
-                  {initials}
+                  {badgeText}
                 </div>
                 <div
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 1,
                     minWidth: 0,
                   }}
                 >
                   <span
                     style={{
                       fontSize: 13,
-                      fontWeight: isWinner && status === 'completed' ? 800 : 700,
-                      color:
-                        isWinner && status === 'completed'
-                          ? THEME_COLORS.WINNER_ACCENT
-                          : THEME_COLORS.FOREGROUND,
+                      fontWeight: isWinner ? 600 : 500,
+                      color: rowTextColor,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
+                      fontFamily: BODY_FONT_FAMILY,
                     }}
                   >
                     {p.name}
                   </span>
                 </div>
-                <div
+                <span
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 1fr)',
-                    gap: 2,
-                    maxWidth: 80,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    minWidth: 0,
                     width: '100%',
+                    gap: SCORE_SEGMENT_GAP,
                   }}
                 >
-                  {perSet.map((val, sIdx) => {
-                    // Check if this player won this set
-                    const opponentVal = sets[sIdx]?.[idx === 0 ? 1 : 0];
-                    const wonSet =
-                      typeof val === 'number' &&
-                      typeof opponentVal === 'number' &&
-                      val > opponentVal;
-                    const isCurrentSet = status === 'live' && sIdx === currentSet;
-                    const tiebreak = tiebreaks[sIdx];
-                    const hasTiebreak = tiebreak && tiebreak.length === 2;
-
-                    const shouldHighlight = wonSet && !(status === 'live' && isCurrentSet);
-                    const scoreColor = shouldHighlight
-                      ? THEME_COLORS.WINNING_SCORE
-                      : THEME_COLORS.FOREGROUND;
-
-                    return (
-                      <div
-                        key={`${node.id}-p-${idx}-set-${sIdx}`}
+                  {scoreSegments.map((segment, segmentIndex) => (
+                    <React.Fragment key={`${node.id}-html-score-${idx}-${segmentIndex}`}>
+                      <span
                         style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          minWidth: 20,
-                          maxWidth: 20,
-                          borderLeft: sIdx === 0 ? 'none' : `1px solid ${THEME_COLORS.BORDER}`,
-                          paddingLeft: sIdx === 0 ? 0 : 2,
+                          width: SCORE_SEGMENT_WIDTH,
+                          fontSize: 10.5,
+                          color: rowTextColor,
+                          fontFamily: SCORE_FONT_FAMILY,
+                          textAlign: 'center',
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0,
                         }}
                       >
+                        {truncateText(segment, 4)}
+                      </span>
+                      {segmentIndex < scoreSegments.length - 1 ? (
                         <span
                           style={{
-                            textAlign: 'center',
-                            display: 'block',
-                            fontWeight: shouldHighlight ? 700 : 400,
-                            fontSize: 14,
-                            lineHeight: 1,
-                            color: scoreColor,
+                            width: 1,
+                            height: SCORE_SEPARATOR_HEIGHT,
+                            background: THEME_COLORS.BORDER,
+                            flexShrink: 0,
                           }}
-                        >
-                          {val}
-                        </span>
-                        {hasTiebreak && (
-                          <span
-                            style={{
-                              textAlign: 'center',
-                              fontWeight: 400,
-                              fontSize: 9,
-                              color: THEME_COLORS.DARK_TEXT,
-                              marginTop: -2,
-                            }}
-                          >
-                            {tiebreak[idx]}
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                  <span
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      textAlign: 'center',
-                      fontWeight: status === 'completed' ? 900 : 400,
-                      fontSize: 14,
-                      lineHeight: 1,
-                      color:
-                        isWinner && status === 'completed'
-                          ? THEME_COLORS.WINNER_ACCENT
-                          : THEME_COLORS.DARK_TEXT,
-                      minWidth: 20,
-                      maxWidth: 20,
-                      borderLeft: `1px solid ${isWinner ? THEME_COLORS.WINNER_ACCENT : THEME_COLORS.DARK_BORDER}`,
-                      paddingLeft: 3,
-                    }}
-                  >
-                    {setCount}
-                  </span>
-                </div>
+                        />
+                      ) : null}
+                    </React.Fragment>
+                  ))}
+                </span>
+                <span
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: 20,
+                    borderLeft: `1px solid ${THEME_COLORS.DARK_BORDER}`,
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: rowTextColor,
+                    fontFamily: BODY_FONT_FAMILY,
+                    paddingLeft: 8,
+                  }}
+                >
+                  {setCount}
+                </span>
               </div>
             );
           })}

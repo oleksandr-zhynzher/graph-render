@@ -2,142 +2,131 @@ import React from 'react';
 
 interface BracketToolbarProps {
   isDarkMode: boolean;
+  isNavigationMode: boolean;
   onToggleDarkMode: () => void;
+  onToggleNavigationMode: () => void;
   onExportSVG: () => void;
 }
 
+const iconSize = 16;
+
+const DownloadIcon = () => (
+  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M12 4v9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    <path
+      d="m8.5 10.5 3.5 3.5 3.5-3.5"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path d="M5 19h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
+const SunMoonIcon = ({ isDarkMode }: { isDarkMode: boolean }) => (
+  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    {isDarkMode ? (
+      <>
+        <circle cx="12" cy="12" r="4.5" stroke="currentColor" strokeWidth="2" />
+        <path
+          d="M12 2.5v2.25M12 19.25v2.25M4.75 12H2.5M21.5 12h-2.25M5.78 5.78 4.2 4.2M19.8 19.8l-1.58-1.58M18.22 5.78 19.8 4.2M4.2 19.8l1.58-1.58"
+          stroke="currentColor"
+          strokeWidth="1.7"
+          strokeLinecap="round"
+        />
+      </>
+    ) : (
+      <path
+        d="M20 14.7A8.5 8.5 0 0 1 9.3 4a8.5 8.5 0 1 0 10.7 10.7Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    )}
+  </svg>
+);
+
+const NavigationIcon = ({ isActive }: { isActive: boolean }) => (
+  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <rect
+      x="3.5"
+      y="5"
+      width="17"
+      height="14"
+      rx="3"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      opacity={isActive ? 1 : 0.9}
+    />
+    <path d="M8.5 5v14M15.5 5v14" stroke="currentColor" strokeWidth="1.4" opacity={0.7} />
+    <circle cx="12" cy="12" r="2.2" fill="currentColor" />
+  </svg>
+);
+
 export const BracketToolbar = React.memo<BracketToolbarProps>(function BracketToolbar({
   isDarkMode,
+  isNavigationMode,
   onToggleDarkMode,
+  onToggleNavigationMode,
   onExportSVG,
 }) {
   const buttonBaseStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 10,
-    borderRadius: 8,
-    border: 'none',
-    background: isDarkMode ? '#334155' : '#ffffff',
-    color: isDarkMode ? '#f1f5f9' : '#0f1728',
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    border: `1px solid ${isDarkMode ? '#38424d' : '#e4ded2'}`,
+    background: isDarkMode ? '#232b33' : '#f7f3ec',
+    color: isDarkMode ? '#f7f5ef' : '#4b5563',
     cursor: 'pointer',
-    boxShadow: isDarkMode ? '0 2px 8px rgba(0, 0, 0, 0.4)' : '0 2px 8px rgba(0, 0, 0, 0.1)',
-    transition: 'all 150ms ease',
-  };
-
-  const iconStyle: React.CSSProperties = {
-    width: 16,
-    height: 16,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    boxShadow: 'none',
+    transition: 'background-color 120ms ease, color 120ms ease, transform 120ms ease',
   };
 
   return (
     <div
       style={{
-        position: 'absolute',
-        top: 16,
-        right: 16,
         display: 'flex',
         gap: 8,
-        zIndex: 1000,
+        alignItems: 'center',
       }}
     >
-      <button
-        onClick={onExportSVG}
-        style={buttonBaseStyle}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-1px)';
-          e.currentTarget.style.boxShadow = isDarkMode
-            ? '0 4px 12px rgba(0, 0, 0, 0.5)'
-            : '0 4px 12px rgba(0, 0, 0, 0.15)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = isDarkMode
-            ? '0 2px 8px rgba(0, 0, 0, 0.4)'
-            : '0 2px 8px rgba(0, 0, 0, 0.1)';
-        }}
-        title="Export as SVG"
-      >
-        <span style={iconStyle}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            width="18"
-            height="18"
-          >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-        </span>
+      <button type="button" onClick={onExportSVG} style={buttonBaseStyle} title="Export as SVG">
+        <DownloadIcon />
       </button>
 
       <button
+        type="button"
+        onClick={onToggleNavigationMode}
+        style={{
+          ...buttonBaseStyle,
+          background: isNavigationMode
+            ? isDarkMode
+              ? '#33403d'
+              : '#e7ede3'
+            : buttonBaseStyle.background,
+          borderColor: isNavigationMode
+            ? isDarkMode
+              ? '#6d8470'
+              : '#b8c7ae'
+            : buttonBaseStyle.border as string,
+          color: isNavigationMode ? (isDarkMode ? '#f5f8f2' : '#516347') : buttonBaseStyle.color,
+        }}
+        title={isNavigationMode ? 'Exit Navigation Mode' : 'Enter Navigation Mode'}
+      >
+        <NavigationIcon isActive={isNavigationMode} />
+      </button>
+
+      <button
+        type="button"
         onClick={onToggleDarkMode}
         style={buttonBaseStyle}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-1px)';
-          e.currentTarget.style.boxShadow = isDarkMode
-            ? '0 4px 12px rgba(0, 0, 0, 0.5)'
-            : '0 4px 12px rgba(0, 0, 0, 0.15)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = isDarkMode
-            ? '0 2px 8px rgba(0, 0, 0, 0.4)'
-            : '0 2px 8px rgba(0, 0, 0, 0.1)';
-        }}
         title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
       >
-        <span style={iconStyle}>
-          {isDarkMode ? (
-            // Sun icon for light mode
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              width="18"
-              height="18"
-            >
-              <circle cx="12" cy="12" r="5" />
-              <line x1="12" y1="1" x2="12" y2="3" />
-              <line x1="12" y1="21" x2="12" y2="23" />
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-              <line x1="1" y1="12" x2="3" y2="12" />
-              <line x1="21" y1="12" x2="23" y2="12" />
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-            </svg>
-          ) : (
-            // Moon icon for dark mode
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              width="18"
-              height="18"
-            >
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-          )}
-        </span>
+        <SunMoonIcon isDarkMode={isDarkMode} />
       </button>
     </div>
   );

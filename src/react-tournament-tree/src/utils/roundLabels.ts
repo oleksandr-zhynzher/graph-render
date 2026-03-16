@@ -76,7 +76,19 @@ export function roundLabelsForRoundCount(roundCount: number): string[] {
 
   return Array.from({ length: roundCount }, (_, idx) => {
     const remaining = roundCount - idx;
-    return remaining === 1 ? 'Final' : `1/${2 ** (remaining - 1)}`;
+    if (remaining === 1) {
+      return 'FINAL';
+    }
+
+    if (remaining === 2) {
+      return 'SEMIFINALS';
+    }
+
+    if (remaining === 3) {
+      return 'QUARTERFINALS';
+    }
+
+    return `ROUND OF ${2 ** (remaining - 1)}`;
   });
 }
 

@@ -1,7 +1,7 @@
 import { NxGraphInput } from '@graph-render/react';
 
-const defaultSize = { width: 220, height: 94 };
-const finalSize = { width: 240, height: 90 };
+const defaultSize = { width: 280, height: 112 };
+const finalSize = { width: 280, height: 112 };
 
 // Tournament starting from Round of 32 (32 players)
 export const bracketGraph: NxGraphInput = {

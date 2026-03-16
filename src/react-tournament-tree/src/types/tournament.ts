@@ -7,4 +7,7 @@ export interface TournamentBracketProps {
   config?: Partial<GraphConfig>;
   vertexComponent?: VertexComponent;
   nodeRenderMode?: SquashNodeRenderMode;
+  title?: string;
+  badgeText?: string;
+  showToolbar?: boolean;
 }

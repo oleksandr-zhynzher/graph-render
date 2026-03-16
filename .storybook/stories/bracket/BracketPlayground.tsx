@@ -33,7 +33,7 @@ type SquashNodeRenderMode = 'svg' | 'html' | 'export' | 'server';
 
 const LIGHT_THEME: NonNullable<GraphConfig['theme']> = {
   background: '#ffffff',
-  edgeColor: '#3f434b',
+  edgeColor: '#d9d6cf',
   edgeWidth: 2,
   nodeGap: 48,
   fontFamily: '"Space Grotesk", "Segoe UI", system-ui, sans-serif',
@@ -41,7 +41,7 @@ const LIGHT_THEME: NonNullable<GraphConfig['theme']> = {
 
 const DARK_THEME: NonNullable<GraphConfig['theme']> = {
   background: '#020617',
-  edgeColor: '#64748b',
+  edgeColor: '#5d6470',
   edgeWidth: 2,
   nodeGap: 48,
   fontFamily: '"Space Grotesk", "Segoe UI", system-ui, sans-serif',
@@ -54,6 +54,12 @@ const StoryGraph = Graph as unknown as React.ComponentType<any>;
 const DEFAULT_CANVAS_SIZE = { width: 1200, height: 900 };
 const LABEL_PILL_WIDTH = 64;
 const LABEL_PILL_HEIGHT = 20;
+const NAVIGATION_STAGE_PADDING_X = 52;
+const NAVIGATION_STAGE_PADDING_Y = 44;
+const NAVIGATION_STAGE_MIN_WIDTH = 420;
+const NAVIGATION_STAGE_MIN_HEIGHT = 250;
+const NAVIGATION_MIN_ZOOM = 0.45;
+const NAVIGATION_MAX_ZOOM = 2.1;
 const FIT_PADDING = {
   top: 48,
   right: 24,
@@ -188,6 +194,27 @@ const SettingsIcon = () => (
     />
   </svg>
 );
+
+const StageNavigationIcon = () => (
+  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <rect x="3.5" y="5" width="17" height="14" rx="3" stroke="currentColor" strokeWidth="1.8" />
+    <path d="M8.5 5v14M15.5 5v14" stroke="currentColor" strokeWidth="1.4" opacity="0.72" />
+    <circle cx="12" cy="12" r="2.2" fill="currentColor" />
+  </svg>
+);
+
+type StageView = {
+  index: number;
+  label: string;
+  bounds: { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number };
+};
+
+type VerticalStagePosition = 'top' | 'bottom';
+
+type StageViewportResult = {
+  viewport: GraphViewport;
+  canPageVertically: boolean;
+};
 
 const areStringArraysEqual = (left: string[], right: string[]): boolean => {
   if (left.length !== right.length) {
@@ -429,10 +456,95 @@ const getFitViewportForStory = (
   };
 };
 
+const getStageViewsForStory = (graph: NxGraphInput, config: GraphConfig, labels: string[]): StageView[] => {
+  const { nodes, edges } = fromNxGraph(graph, config.defaultEdgeType);
+  const positionedNodes = layoutNodes({
+    nodes,
+    edges,
+    theme: config.theme,
+    padding: config.padding,
+    layout: config.layout,
+    width: config.width,
+    height: config.height,
+    layoutDirection: config.layoutDirection,
+    nodeSizing: config.nodeSizing,
+    fixedNodeSize: config.fixedNodeSize,
+    labelMeasurementPaddingX: config.labelMeasurementPaddingX,
+    labelMeasurementPaddingY: config.labelMeasurementPaddingY,
+    labelMeasurementCharWidth: config.labelMeasurementCharWidth,
+    labelMeasurementLineHeight: config.labelMeasurementLineHeight,
+  });
+
+  const columns = new Map<number, PositionedNode[]>();
+  positionedNodes.forEach((node) => {
+    const key = Math.round(node.position.x);
+    const column = columns.get(key) ?? [];
+    column.push(node);
+    columns.set(key, column);
+  });
+
+  return Array.from(columns.entries())
+    .sort((a, b) => a[0] - b[0])
+    .map(([_, columnNodes], index) => {
+      const minX = Math.min(...columnNodes.map((node) => node.position.x));
+      const minY = Math.min(...columnNodes.map((node) => node.position.y));
+      const maxX = Math.max(...columnNodes.map((node) => node.position.x + (node.size?.width ?? 280)));
+      const maxY = Math.max(...columnNodes.map((node) => node.position.y + (node.size?.height ?? 112)));
+
+      return {
+        index,
+        label: labels[index] ?? `STAGE ${index + 1}`,
+        bounds: {
+          minX,
+          minY: minY - (config.labelOffset ?? 40) - LABEL_PILL_HEIGHT + 6,
+          maxX,
+          maxY,
+          width: maxX - minX,
+          height: maxY - (minY - (config.labelOffset ?? 40) - LABEL_PILL_HEIGHT + 6),
+        },
+      };
+    });
+};
+
+const getStageViewportForStory = (
+  bounds: StageView['bounds'],
+  width: number,
+  height: number,
+  verticalPosition: VerticalStagePosition = 'top'
+): StageViewportResult => {
+  const targetWidth = Math.max(bounds.width + NAVIGATION_STAGE_PADDING_X * 2, NAVIGATION_STAGE_MIN_WIDTH);
+  const targetHeight = Math.max(bounds.height + NAVIGATION_STAGE_PADDING_Y * 2, NAVIGATION_STAGE_MIN_HEIGHT);
+  const zoom = Math.min(
+    NAVIGATION_MAX_ZOOM,
+    Math.max(NAVIGATION_MIN_ZOOM, Math.min(width / targetWidth, height / targetHeight))
+  );
+
+  const visibleWorldHeight = height / zoom;
+  const minTop = bounds.minY - NAVIGATION_STAGE_PADDING_Y;
+  const maxTop = bounds.maxY + NAVIGATION_STAGE_PADDING_Y - visibleWorldHeight;
+  const canPageVertically = maxTop > minTop + 1;
+  const centeredTop = bounds.minY + bounds.height / 2 - visibleWorldHeight / 2;
+  const topWorld = canPageVertically
+    ? verticalPosition === 'bottom'
+      ? maxTop
+      : minTop
+    : centeredTop;
+
+  return {
+    canPageVertically,
+    viewport: {
+      zoom,
+      x: (width - bounds.width * zoom) / 2 - bounds.minX * zoom,
+      y: -topWorld * zoom,
+    },
+  };
+};
+
 export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   const graphRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isStageNavigationMode, setIsStageNavigationMode] = useState(false);
   const [isToolbarExpanded, setIsToolbarExpanded] = useState(false);
   const [canvasSize, setCanvasSize] = useState(DEFAULT_CANVAS_SIZE);
   const [viewport, setViewport] = useState<GraphViewport>(INITIAL_VIEWPORT);
@@ -446,7 +558,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   const [layoutDirection, setLayoutDirection] = useState<GraphConfig['layoutDirection']>(
     LayoutDirection.LTR
   );
-  const [routingStyle, setRoutingStyle] = useState<GraphConfig['routingStyle']>('smart');
+  const [routingStyle, setRoutingStyle] = useState<GraphConfig['routingStyle']>('orthogonal');
   const [nodeSizing, setNodeSizing] = useState<GraphConfig['nodeSizing']>('fixed');
   const [selectionMode, setSelectionMode] = useState<'single' | 'multiple'>('multiple');
   const [renderMode, setRenderMode] = useState<SquashNodeRenderMode>('export');
@@ -457,6 +569,10 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   const [marqueeSelectionEnabled, setMarqueeSelectionEnabled] = useState(true);
   const [hoverHighlight, setHoverHighlight] = useState(false);
   const [statusMessage, setStatusMessage] = useState('Double-click a match to collapse or expand its subtree.');
+  const [activeStageIndex, setActiveStageIndex] = useState(0);
+  const [verticalStagePosition, setVerticalStagePosition] = useState<VerticalStagePosition>('top');
+  const [canPagePlayersVertically, setCanPagePlayersVertically] = useState(false);
+  const previousViewportRef = useRef<GraphViewport | null>(null);
 
   const enrichedGraph = useMemo(() => injectTournamentPathKeys(graph), [graph]);
   const labels = useMemo(() => roundLabelsForGraph(graph), [graph]);
@@ -514,10 +630,10 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
       curveStrength: 0.2,
       forceRightToLeft: true,
       hoverHighlight,
-      hoverEdgeColor: dark ? '#cbd5e1' : '#475569',
-      hoverNodeInColor: dark ? '#cbd5e1' : '#475569',
-      hoverNodeOutColor: dark ? '#cbd5e1' : '#475569',
-      hoverNodeBothColor: dark ? '#cbd5e1' : '#475569',
+      hoverEdgeColor: dark ? '#5d6470' : '#d9d6cf',
+      hoverNodeInColor: dark ? '#9ab08d' : '#7c9070',
+      hoverNodeOutColor: dark ? '#9ab08d' : '#7c9070',
+      hoverNodeBothColor: dark ? '#9ab08d' : '#7c9070',
       theme: dark ? DARK_THEME : LIGHT_THEME,
       labelOffset: 40,
       labels,
@@ -525,10 +641,12 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
       edgeSeparation: 20,
       selfLoopRadius: 34,
       nodeSizing,
-      fixedNodeSize: { width: 220, height: 94 },
+      fixedNodeSize: { width: 280, height: 112 },
       edgeLabelColor: dark ? '#e2e8f0' : '#334155',
     };
   }, [canvasSize.height, canvasSize.width, curveEdges, hoverHighlight, isDarkMode, labels, layout, layoutDirection, nodeSizing, routingStyle]);
+
+  const stageViews = useMemo(() => getStageViewsForStory(enrichedGraph, config, labels), [config, enrichedGraph, labels]);
 
   const handleViewportChange = useCallback((nextViewport: GraphViewport) => {
     setViewport((current) => (areViewportsEqual(current, nextViewport) ? current : nextViewport));
@@ -559,6 +677,83 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     graphRef.current?.setViewport?.(nextViewport);
     setViewport(nextViewport);
   }, [config, enrichedGraph, labels]);
+
+  const focusStage = useCallback(
+    (stageIndex: number) => {
+      const stage = stageViews[stageIndex];
+      const element = containerRef.current;
+      if (!stage || !element) {
+        return;
+      }
+
+      const nextStageViewport = getStageViewportForStory(
+        stage.bounds,
+        Math.max(1, element.clientWidth),
+        Math.max(1, element.clientHeight),
+        verticalStagePosition
+      );
+
+      setCanPagePlayersVertically(nextStageViewport.canPageVertically);
+      graphRef.current?.setViewport?.(nextStageViewport.viewport);
+      setViewport(nextStageViewport.viewport);
+    },
+    [stageViews, verticalStagePosition]
+  );
+
+  const handleToggleStageNavigationMode = useCallback(() => {
+    if (isStageNavigationMode) {
+      const previousViewport = previousViewportRef.current;
+      if (previousViewport) {
+        graphRef.current?.setViewport?.(previousViewport);
+        setViewport(previousViewport);
+      } else {
+        handleStoryFit();
+      }
+      setIsStageNavigationMode(false);
+      setStatusMessage('Exited stage navigation mode.');
+      return;
+    }
+
+    previousViewportRef.current = viewport;
+    setVerticalStagePosition('top');
+    setIsStageNavigationMode(true);
+    setStatusMessage('Stage navigation mode active. Use the arrows or stage chips to move between rounds.');
+  }, [handleStoryFit, isStageNavigationMode, viewport]);
+
+  useEffect(() => {
+    setActiveStageIndex((current) => Math.min(current, Math.max(stageViews.length - 1, 0)));
+  }, [stageViews.length]);
+
+  useEffect(() => {
+    if (!isStageNavigationMode || !stageViews.length) {
+      return;
+    }
+
+    focusStage(activeStageIndex);
+  }, [activeStageIndex, focusStage, isStageNavigationMode, stageViews.length]);
+
+  const handleSelectStage = useCallback((stageIndex: number) => {
+    setVerticalStagePosition('top');
+    setActiveStageIndex(stageIndex);
+  }, []);
+
+  const handlePreviousStage = useCallback(() => {
+    setVerticalStagePosition('top');
+    setActiveStageIndex((current) => Math.max(current - 1, 0));
+  }, []);
+
+  const handleNextStage = useCallback(() => {
+    setVerticalStagePosition('top');
+    setActiveStageIndex((current) => Math.min(current + 1, stageViews.length - 1));
+  }, [stageViews.length]);
+
+  const handlePagePlayersUp = useCallback(() => {
+    setVerticalStagePosition('top');
+  }, []);
+
+  const handlePagePlayersDown = useCallback(() => {
+    setVerticalStagePosition('bottom');
+  }, []);
 
   return (
     <BracketThemeProvider mode={isDarkMode ? 'dark' : 'light'}>
@@ -897,6 +1092,9 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
               minZoom={0.05}
               maxZoom={3}
               zoomStep={0.12}
+              panEnabled={!isStageNavigationMode}
+              zoomEnabled={!isStageNavigationMode}
+              pinchZoomEnabled={!isStageNavigationMode}
               selectionMode={selectionMode}
               nodeSelectionEnabled={false}
               edgeSelectionEnabled={false}
@@ -978,6 +1176,35 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                 >
                   <SettingsIcon />
                 </button>
+                <button
+                  type="button"
+                  aria-label={isStageNavigationMode ? 'Exit stage navigation mode' : 'Enter stage navigation mode'}
+                  title={isStageNavigationMode ? 'Exit stage navigation mode' : 'Enter stage navigation mode'}
+                  onClick={handleToggleStageNavigationMode}
+                  style={{
+                    ...iconButtonBaseStyle,
+                    background: isDarkMode
+                      ? 'rgba(30, 41, 59, 0.96)'
+                      : 'rgba(255, 255, 255, 0.96)',
+                    color: isStageNavigationMode
+                      ? isDarkMode
+                        ? '#cfe3c1'
+                        : '#516347'
+                      : isDarkMode
+                        ? '#e2e8f0'
+                        : '#0f172a',
+                    borderColor: isDarkMode
+                      ? 'rgba(148, 163, 184, 0.2)'
+                      : 'rgba(148, 163, 184, 0.22)',
+                    boxShadow: isStageNavigationMode
+                      ? isDarkMode
+                        ? '0 10px 24px rgba(124, 144, 112, 0.28)'
+                        : '0 10px 24px rgba(124, 144, 112, 0.2)'
+                      : iconButtonBaseStyle.boxShadow,
+                  }}
+                >
+                  <StageNavigationIcon />
+                </button>
                 {isToolbarExpanded
                   ? [
                   {
@@ -1022,10 +1249,23 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                         background: isDarkMode
                           ? 'rgba(30, 41, 59, 0.96)'
                           : 'rgba(255, 255, 255, 0.96)',
-                        color: isDarkMode ? '#e2e8f0' : '#0f172a',
+                        color:
+                          control.key === 'stage-navigation' && isStageNavigationMode
+                            ? isDarkMode
+                              ? '#cfe3c1'
+                              : '#516347'
+                            : isDarkMode
+                              ? '#e2e8f0'
+                              : '#0f172a',
                         borderColor: isDarkMode
                           ? 'rgba(148, 163, 184, 0.2)'
                           : 'rgba(148, 163, 184, 0.22)',
+                        boxShadow:
+                          control.key === 'stage-navigation' && isStageNavigationMode
+                            ? isDarkMode
+                              ? '0 10px 24px rgba(124, 144, 112, 0.28)'
+                              : '0 10px 24px rgba(124, 144, 112, 0.2)'
+                            : iconButtonBaseStyle.boxShadow,
                       }}
                     >
                       {control.icon}
@@ -1033,6 +1273,140 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                   ))
                   : null}
               </div>
+            ) : null}
+
+            {isStageNavigationMode && stageViews.length > 1 ? (
+              <>
+                <button
+                  type="button"
+                  aria-label="Previous stage"
+                  onClick={handlePreviousStage}
+                  disabled={activeStageIndex === 0}
+                  style={{
+                    position: 'absolute',
+                    left: 14,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    ...iconButtonBaseStyle,
+                    background: isDarkMode ? 'rgba(30, 41, 59, 0.96)' : 'rgba(255, 255, 255, 0.96)',
+                    color: isDarkMode ? '#e2e8f0' : '#0f172a',
+                    opacity: activeStageIndex === 0 ? 0.45 : 1,
+                    cursor: activeStageIndex === 0 ? 'default' : 'pointer',
+                    zIndex: 2,
+                  }}
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next stage"
+                  onClick={handleNextStage}
+                  disabled={activeStageIndex >= stageViews.length - 1}
+                  style={{
+                    position: 'absolute',
+                    right: 14,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    ...iconButtonBaseStyle,
+                    background: isDarkMode ? 'rgba(30, 41, 59, 0.96)' : 'rgba(255, 255, 255, 0.96)',
+                    color: isDarkMode ? '#e2e8f0' : '#0f172a',
+                    opacity: activeStageIndex >= stageViews.length - 1 ? 0.45 : 1,
+                    cursor: activeStageIndex >= stageViews.length - 1 ? 'default' : 'pointer',
+                    zIndex: 2,
+                  }}
+                >
+                  →
+                </button>
+                {canPagePlayersVertically ? (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      right: 14,
+                      bottom: 86,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 8,
+                      zIndex: 2,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      aria-label="Show upper players"
+                      onClick={handlePagePlayersUp}
+                      disabled={verticalStagePosition === 'top'}
+                      style={{
+                        ...iconButtonBaseStyle,
+                        background: isDarkMode ? 'rgba(30, 41, 59, 0.96)' : 'rgba(255, 255, 255, 0.96)',
+                        color: isDarkMode ? '#e2e8f0' : '#0f172a',
+                        opacity: verticalStagePosition === 'top' ? 0.45 : 1,
+                        cursor: verticalStagePosition === 'top' ? 'default' : 'pointer',
+                      }}
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Show lower players"
+                      onClick={handlePagePlayersDown}
+                      disabled={verticalStagePosition === 'bottom'}
+                      style={{
+                        ...iconButtonBaseStyle,
+                        background: isDarkMode ? 'rgba(30, 41, 59, 0.96)' : 'rgba(255, 255, 255, 0.96)',
+                        color: isDarkMode ? '#e2e8f0' : '#0f172a',
+                        opacity: verticalStagePosition === 'bottom' ? 0.45 : 1,
+                        cursor: verticalStagePosition === 'bottom' ? 'default' : 'pointer',
+                      }}
+                    >
+                      ↓
+                    </button>
+                  </div>
+                ) : null}
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: '50%',
+                    bottom: 14,
+                    transform: 'translateX(-50%)',
+                    display: 'flex',
+                    gap: 8,
+                    alignItems: 'center',
+                    maxWidth: 'calc(100% - 120px)',
+                    padding: '8px 10px',
+                    borderRadius: 999,
+                    border: `1px solid ${isDarkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(148, 163, 184, 0.22)'}`,
+                    background: isDarkMode ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.94)',
+                    backdropFilter: 'blur(16px)',
+                    boxShadow: isDarkMode ? '0 16px 40px rgba(2, 6, 23, 0.45)' : '0 16px 40px rgba(15, 23, 42, 0.14)',
+                    overflowX: 'auto',
+                    zIndex: 2,
+                  }}
+                >
+                  {stageViews.map((stage, index) => {
+                    const isActive = index === activeStageIndex;
+                    return (
+                      <button
+                        key={stage.label}
+                        type="button"
+                        onClick={() => handleSelectStage(index)}
+                        style={{
+                          padding: '8px 14px',
+                          borderRadius: 999,
+                          border: `1px solid ${isActive ? '#7c9070' : 'transparent'}`,
+                          background: isActive ? '#7c9070' : 'transparent',
+                          color: isActive ? '#ffffff' : isDarkMode ? '#cbd5e1' : '#334155',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          letterSpacing: '0.04em',
+                          whiteSpace: 'nowrap',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {stage.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
             ) : null}
           </div>
         </main>
