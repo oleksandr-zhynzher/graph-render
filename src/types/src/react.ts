@@ -92,6 +92,13 @@ export interface GraphSearchResults {
   edgeIds: string[];
 }
 
+export type GraphErrorPhase = 'layout-override' | 'routing-override';
+
+export interface GraphErrorContext<TGraph extends NxGraphInput = NxGraphInput> {
+  graph: TGraph;
+  phase: GraphErrorPhase;
+}
+
 export interface GraphHandle {
   fitView: (padding?: number) => void;
   centerOnNode: (nodeId: string) => void;
@@ -186,6 +193,7 @@ export interface GraphProps<
   ) => TEdge[];
   renderBackground?: (context: GraphRenderContext<TGraph, TNode, TEdge>) => ReactNode;
   renderOverlay?: (context: GraphRenderContext<TGraph, TNode, TEdge>) => ReactNode;
+  onError?: (error: Error, context: GraphErrorContext<TGraph>) => void;
   onNodeHoverChange?: (node: TNode, hovered: boolean, meta: GraphHoverMeta) => void;
   onEdgeHoverChange?: (edge: TEdge, hovered: boolean, meta: GraphHoverMeta) => void;
   onNodeClick?: (node: TNode) => void;

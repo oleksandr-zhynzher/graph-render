@@ -382,6 +382,7 @@ const GraphInner = (
     routeEdgesOverride,
     renderBackground,
     renderOverlay,
+    onError,
     onNodeHoverChange,
     onEdgeHoverChange,
     onNodeClick,
@@ -561,6 +562,7 @@ const GraphInner = (
     onSearchResultsChange,
     layoutNodesOverride,
     routeEdgesOverride,
+    onError,
   });
 
   useEffect(() => {

@@ -39,6 +39,7 @@ interface UseGraphModelOptions {
     edges: EdgeData[],
     options?: RouteEdgesOptions
   ) => PositionedEdge[];
+  onError?: (error: Error, context: { graph: NxGraphInput; phase: 'layout-override' | 'routing-override' }) => void;
 }
 
 export interface GraphModelResult {
@@ -67,6 +68,7 @@ export const useGraphModel = ({
   onSearchResultsChange,
   layoutNodesOverride,
   routeEdgesOverride,
+  onError,
 }: UseGraphModelOptions): GraphModelResult => {
   const [measuredNodeSizes, setMeasuredNodeSizes] = useState<
     Record<string, { width: number; height: number }>
@@ -170,8 +172,22 @@ export const useGraphModel = ({
   );
 
   const positionedNodes: PositionedNode[] = useMemo(
-    () => (layoutNodesOverride ? layoutNodesOverride(layoutOptions) : layoutNodes(layoutOptions)),
-    [layoutNodesOverride, layoutOptions]
+    () => {
+      if (!layoutNodesOverride) {
+        return layoutNodes(layoutOptions);
+      }
+
+      try {
+        return layoutNodesOverride(layoutOptions);
+      } catch (error) {
+        onError?.(error instanceof Error ? error : new Error(String(error)), {
+          graph,
+          phase: 'layout-override',
+        });
+        return layoutNodes(layoutOptions);
+      }
+    },
+    [graph, layoutNodesOverride, layoutOptions, onError]
   );
 
   const edgeRoutingOptions = useMemo(
@@ -188,11 +204,22 @@ export const useGraphModel = ({
   );
 
   const positionedEdges: PositionedEdge[] = useMemo(
-    () =>
-      routeEdgesOverride
-        ? routeEdgesOverride(positionedNodes, visibleEdges, edgeRoutingOptions)
-        : routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions),
-    [edgeRoutingOptions, positionedNodes, routeEdgesOverride, visibleEdges]
+    () => {
+      if (!routeEdgesOverride) {
+        return routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions);
+      }
+
+      try {
+        return routeEdgesOverride(positionedNodes, visibleEdges, edgeRoutingOptions);
+      } catch (error) {
+        onError?.(error instanceof Error ? error : new Error(String(error)), {
+          graph,
+          phase: 'routing-override',
+        });
+        return routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions);
+      }
+    },
+    [edgeRoutingOptions, graph, onError, positionedNodes, routeEdgesOverride, visibleEdges]
   );
 
   return {
