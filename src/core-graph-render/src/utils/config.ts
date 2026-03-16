@@ -1,4 +1,10 @@
-import { EdgeType, GraphConfig, GraphTheme, LayoutDirection, LayoutType } from '@graph-render/types';
+import {
+  EdgeType,
+  GraphConfig,
+  GraphTheme,
+  LayoutDirection,
+  LayoutType,
+} from '@graph-render/types';
 import { DEFAULT_THEME, DEFAULT_NODE_SIZE } from './constants';
 
 const DEFAULT_WIDTH = 960;
@@ -54,14 +60,15 @@ const getRoutingStyle = (
   return value === 'smart' || value === 'orthogonal' || value === 'bundled' ? value : fallback;
 };
 
-const normalizeFixedNodeSize = (
-  value: unknown
-): NonNullable<GraphConfig['fixedNodeSize']> => {
+const normalizeFixedNodeSize = (value: unknown): NonNullable<GraphConfig['fixedNodeSize']> => {
   if (!value || typeof value !== 'object') {
     return DEFAULT_NODE_SIZE;
   }
 
-  const width = getFinitePositive((value as GraphConfig['fixedNodeSize'])?.width, DEFAULT_NODE_SIZE.width);
+  const width = getFinitePositive(
+    (value as GraphConfig['fixedNodeSize'])?.width,
+    DEFAULT_NODE_SIZE.width
+  );
   const height = getFinitePositive(
     (value as GraphConfig['fixedNodeSize'])?.height,
     DEFAULT_NODE_SIZE.height
@@ -76,7 +83,9 @@ const normalizeTheme = (theme?: GraphTheme): GraphTheme => ({
   edgeWidth: getFinitePositive(theme?.edgeWidth, DEFAULT_THEME.edgeWidth),
   nodeGap: getFinitePositive(theme?.nodeGap, DEFAULT_THEME.nodeGap),
   nodeBorderWidth:
-    typeof theme?.nodeBorderWidth === 'number' && Number.isFinite(theme.nodeBorderWidth) && theme.nodeBorderWidth >= 0
+    typeof theme?.nodeBorderWidth === 'number' &&
+    Number.isFinite(theme.nodeBorderWidth) &&
+    theme.nodeBorderWidth >= 0
       ? theme.nodeBorderWidth
       : theme?.nodeBorderWidth,
 });

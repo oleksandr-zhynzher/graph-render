@@ -112,7 +112,11 @@ const StageNavigationIcon = ({ color }: { color: string }) => (
   </svg>
 );
 
-function buildStageViews(nodes: PositionedNode[], labels: string[], labelOffset: number): StageView[] {
+function buildStageViews(
+  nodes: PositionedNode[],
+  labels: string[],
+  labelOffset: number
+): StageView[] {
   const columns = new Map<number, PositionedNode[]>();
 
   nodes.forEach((node) => {
@@ -131,7 +135,9 @@ function buildStageViews(nodes: PositionedNode[], labels: string[], labelOffset:
         ...columnNodes.map((node) => node.position.x + (node.size?.width ?? NODE_DIMENSIONS.WIDTH))
       );
       const maxY = Math.max(
-        ...columnNodes.map((node) => node.position.y + (node.size?.height ?? NODE_DIMENSIONS.HEIGHT))
+        ...columnNodes.map(
+          (node) => node.position.y + (node.size?.height ?? NODE_DIMENSIONS.HEIGHT)
+        )
       );
 
       const bounds = {
@@ -158,7 +164,10 @@ function getStageViewport(
   height: number,
   verticalPosition: VerticalStagePosition = 'top'
 ): StageViewportResult {
-  const targetWidth = Math.max(bounds.width + NAVIGATION_STAGE_PADDING_X * 2, NAVIGATION_STAGE_MIN_WIDTH);
+  const targetWidth = Math.max(
+    bounds.width + NAVIGATION_STAGE_PADDING_X * 2,
+    NAVIGATION_STAGE_MIN_WIDTH
+  );
   const targetHeight = Math.max(
     bounds.height + NAVIGATION_STAGE_PADDING_Y * 2,
     NAVIGATION_STAGE_MIN_HEIGHT
@@ -414,7 +423,9 @@ function BracketFrame({
                 cursor: 'pointer',
               }}
             >
-              <StageNavigationIcon color={isNavigationMode ? colors.ICON_FG : floatingControlText} />
+              <StageNavigationIcon
+                color={isNavigationMode ? colors.ICON_FG : floatingControlText}
+              />
             </button>
           </div>
         ) : null}
@@ -439,7 +450,9 @@ function BracketFrame({
                 color: navButtonTextColor,
                 display: 'grid',
                 placeItems: 'center',
-                boxShadow: isDarkMode ? '0 12px 30px rgba(0, 0, 0, 0.22)' : '0 12px 30px rgba(45, 45, 45, 0.12)',
+                boxShadow: isDarkMode
+                  ? '0 12px 30px rgba(0, 0, 0, 0.22)'
+                  : '0 12px 30px rgba(45, 45, 45, 0.12)',
                 opacity: canGoPrev ? 1 : 0.45,
                 cursor: canGoPrev ? 'pointer' : 'default',
               }}
@@ -465,7 +478,9 @@ function BracketFrame({
                 color: navButtonTextColor,
                 display: 'grid',
                 placeItems: 'center',
-                boxShadow: isDarkMode ? '0 12px 30px rgba(0, 0, 0, 0.22)' : '0 12px 30px rgba(45, 45, 45, 0.12)',
+                boxShadow: isDarkMode
+                  ? '0 12px 30px rgba(0, 0, 0, 0.22)'
+                  : '0 12px 30px rgba(45, 45, 45, 0.12)',
                 opacity: canGoNext ? 1 : 0.45,
                 cursor: canGoNext ? 'pointer' : 'default',
               }}
@@ -498,7 +513,9 @@ function BracketFrame({
                     color: navButtonTextColor,
                     display: 'grid',
                     placeItems: 'center',
-                    boxShadow: isDarkMode ? '0 12px 30px rgba(0, 0, 0, 0.22)' : '0 12px 30px rgba(45, 45, 45, 0.12)',
+                    boxShadow: isDarkMode
+                      ? '0 12px 30px rgba(0, 0, 0, 0.22)'
+                      : '0 12px 30px rgba(45, 45, 45, 0.12)',
                     opacity: canPageUp ? 1 : 0.45,
                     cursor: canPageUp ? 'pointer' : 'default',
                   }}
@@ -519,7 +536,9 @@ function BracketFrame({
                     color: navButtonTextColor,
                     display: 'grid',
                     placeItems: 'center',
-                    boxShadow: isDarkMode ? '0 12px 30px rgba(0, 0, 0, 0.22)' : '0 12px 30px rgba(45, 45, 45, 0.12)',
+                    boxShadow: isDarkMode
+                      ? '0 12px 30px rgba(0, 0, 0, 0.22)'
+                      : '0 12px 30px rgba(45, 45, 45, 0.12)',
                     opacity: canPageDown ? 1 : 0.45,
                     cursor: canPageDown ? 'pointer' : 'default',
                   }}
@@ -543,7 +562,9 @@ function BracketFrame({
                 borderRadius: 999,
                 border: `1px solid ${navButtonBorder}`,
                 background: navButtonBg,
-                boxShadow: isDarkMode ? '0 18px 38px rgba(0, 0, 0, 0.24)' : '0 18px 38px rgba(45, 45, 45, 0.12)',
+                boxShadow: isDarkMode
+                  ? '0 18px 38px rgba(0, 0, 0, 0.24)'
+                  : '0 18px 38px rgba(45, 45, 45, 0.12)',
                 overflowX: 'auto',
               }}
             >
@@ -597,8 +618,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   const [isNavigationMode, setIsNavigationMode] = useState(false);
   const [activeStageIndex, setActiveStageIndex] = useState(0);
   const [stageViews, setStageViews] = useState<StageView[]>([]);
-  const [verticalStagePosition, setVerticalStagePosition] =
-    useState<VerticalStagePosition>('top');
+  const [verticalStagePosition, setVerticalStagePosition] = useState<VerticalStagePosition>('top');
   const [canPagePlayersVertically, setCanPagePlayersVertically] = useState(false);
   const previousViewportRef = useRef<GraphViewport | null>(null);
 

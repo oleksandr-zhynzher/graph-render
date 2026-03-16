@@ -31,15 +31,7 @@ export const treeLayout = (
     const levels = groupNodesByLevel(nodes, levelMap);
     const metrics = calculateTreeMetrics(nodes, levels, gap, pad, containerHeight);
 
-    const positioned = positionNodesInLevels(
-      nodes,
-      levels,
-      levelMap,
-      metrics,
-      gap,
-      pad,
-      direction
-    );
+    const positioned = positionNodesInLevels(nodes, levels, levelMap, metrics, gap, pad, direction);
 
     return alignNodesToParents(positioned, edges, levels, metrics.maxLevel);
   } catch {

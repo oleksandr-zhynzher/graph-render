@@ -1,4 +1,10 @@
-import { NodeData, PositionedNode, LayoutOptions, LayoutType, LayoutDirection } from '@graph-render/types';
+import {
+  NodeData,
+  PositionedNode,
+  LayoutOptions,
+  LayoutType,
+  LayoutDirection,
+} from '@graph-render/types';
 import { DEFAULT_NODE_GAP, DEFAULT_PADDING, applyNodeSizing } from '../utils';
 import { gridLayout } from './grid';
 import { centeredLayout } from './centered';
@@ -81,7 +87,9 @@ const getAnchoredLayoutOffset = (
       const laidOut = autoLayout.find((node) => node.id === fixedNode.id);
       return laidOut ? { fixedNode, laidOut } : null;
     })
-    .filter((entry): entry is { fixedNode: PositionedNode; laidOut: PositionedNode } => entry !== null);
+    .filter(
+      (entry): entry is { fixedNode: PositionedNode; laidOut: PositionedNode } => entry !== null
+    );
 
   if (!positionedFixed.length) {
     return { x: 0, y: 0 };

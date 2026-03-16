@@ -112,7 +112,7 @@ export const BracketToolbar = React.memo<BracketToolbarProps>(function BracketTo
             ? isDarkMode
               ? '#6d8470'
               : '#b8c7ae'
-            : buttonBaseStyle.border as string,
+            : (buttonBaseStyle.border as string),
           color: isNavigationMode ? (isDarkMode ? '#f5f8f2' : '#516347') : buttonBaseStyle.color,
         }}
         title={isNavigationMode ? 'Exit Navigation Mode' : 'Enter Navigation Mode'}

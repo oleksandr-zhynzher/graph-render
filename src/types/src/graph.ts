@@ -6,10 +6,9 @@ export type NxNodeAttrs<
   TMeta extends object = Record<string, unknown>,
   TLabel = unknown,
 > = Partial<Omit<NodeData<TData, TMeta, TLabel>, 'id'>>;
-export type NxEdgeAttrs<
-  TMeta extends object = Record<string, unknown>,
-  TLabel = unknown,
-> = Partial<Omit<EdgeData<TMeta, TLabel>, 'id' | 'source' | 'target'>> & { id?: string };
+export type NxEdgeAttrs<TMeta extends object = Record<string, unknown>, TLabel = unknown> = Partial<
+  Omit<EdgeData<TMeta, TLabel>, 'id' | 'source' | 'target'>
+> & { id?: string };
 
 export interface NxGraphInput<
   TNodeData = unknown,
@@ -19,5 +18,8 @@ export interface NxGraphInput<
   TEdgeLabel = unknown,
 > {
   nodes?: Record<NodeId, NxNodeAttrs<TNodeData, TNodeMeta, TNodeLabel>>;
-  adj: Record<NodeId, Record<NodeId, NxEdgeAttrs<TEdgeMeta, TEdgeLabel> | NxEdgeAttrs<TEdgeMeta, TEdgeLabel>[]>>;
+  adj: Record<
+    NodeId,
+    Record<NodeId, NxEdgeAttrs<TEdgeMeta, TEdgeLabel> | NxEdgeAttrs<TEdgeMeta, TEdgeLabel>[]>
+  >;
 }

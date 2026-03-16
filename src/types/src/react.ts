@@ -51,9 +51,8 @@ export interface EdgePathProps<TEdge extends PositionedEdge<any, any> = Position
   onClick?: () => void;
 }
 
-export type VertexComponent<
-  TNode extends CorePositionedNode<any, any, any> = CorePositionedNode,
-> = ComponentType<VertexComponentProps<TNode>>;
+export type VertexComponent<TNode extends CorePositionedNode<any, any, any> = CorePositionedNode> =
+  ComponentType<VertexComponentProps<TNode>>;
 export type EdgeComponent<TEdge extends PositionedEdge<any, any> = PositionedEdge> = ComponentType<
   EdgePathProps<TEdge>
 >;

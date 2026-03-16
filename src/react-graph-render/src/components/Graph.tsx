@@ -499,7 +499,6 @@ const GraphInner = (
     },
     // viewport and onViewportChange are intentionally excluded: both are read
     // via refs so the callback stays stable across renders.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [controlledViewport, safeMaxZoom, safeMinZoom]
   );
 

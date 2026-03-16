@@ -1,10 +1,10 @@
 import { NxGraphInput, NodeData, EdgeData, NxEdgeAttrs, EdgeType } from '@graph-render/types';
 
-type GraphNodeTuple<
+type GraphNodeTuple<TNodeData, TNodeMeta extends Record<string, unknown>, TNodeLabel> = NodeData<
   TNodeData,
-  TNodeMeta extends Record<string, unknown>,
-  TNodeLabel,
-> = NodeData<TNodeData, TNodeMeta, TNodeLabel>;
+  TNodeMeta,
+  TNodeLabel
+>;
 
 type GraphEdgeTuple<TEdgeMeta extends Record<string, unknown>, TEdgeLabel> = EdgeData<
   TEdgeMeta,
@@ -49,17 +49,11 @@ const sanitizeRecord = <T extends Record<string, unknown>>(value: unknown): T | 
   return isPlainObject(value) ? (value as T) : undefined;
 };
 
-const sanitizeMeasurementHints = (
-  value: unknown
-): NodeData['measurementHints'] | undefined => {
+const sanitizeMeasurementHints = (value: unknown): NodeData['measurementHints'] | undefined => {
   return isPlainObject(value) ? (value as NodeData['measurementHints']) : undefined;
 };
 
-const sanitizeNodeData = <
-  TNodeData,
-  TNodeMeta extends Record<string, unknown>,
-  TNodeLabel,
->(
+const sanitizeNodeData = <TNodeData, TNodeMeta extends Record<string, unknown>, TNodeLabel>(
   id: string,
   attrs: Record<string, unknown>
 ): GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel> => {
@@ -170,7 +164,10 @@ const buildNodeMap = <
       }
 
       const sanitizedId = sanitizeNodeId(id, 'node');
-      nodeMap.set(sanitizedId, sanitizeNodeData<TNodeData, TNodeMeta, TNodeLabel>(sanitizedId, attrs ?? {}));
+      nodeMap.set(
+        sanitizedId,
+        sanitizeNodeData<TNodeData, TNodeMeta, TNodeLabel>(sanitizedId, attrs ?? {})
+      );
     }
   }
 
@@ -180,20 +177,17 @@ const buildNodeMap = <
 /**
  * Ensure a node exists in the map, creating it if necessary
  */
-const ensureNodeExists = <
-  TNodeData,
-  TNodeMeta extends Record<string, unknown>,
-  TNodeLabel,
->(
+const ensureNodeExists = <TNodeData, TNodeMeta extends Record<string, unknown>, TNodeLabel>(
   nodeMap: Map<string, NodeData<TNodeData, TNodeMeta, TNodeLabel>>,
   nodeId: string
 ): void => {
   const sanitizedNodeId = sanitizeNodeId(nodeId, 'edge-endpoint');
   if (!nodeMap.has(sanitizedNodeId)) {
-    nodeMap.set(
-      sanitizedNodeId,
-      { id: sanitizedNodeId } as NodeData<TNodeData, TNodeMeta, TNodeLabel>
-    );
+    nodeMap.set(sanitizedNodeId, { id: sanitizedNodeId } as NodeData<
+      TNodeData,
+      TNodeMeta,
+      TNodeLabel
+    >);
   }
 };
 
@@ -335,7 +329,10 @@ const processTypedNodeEdges = <
   TEdgeLabel,
 >(
   source: string,
-  neighbors: Record<string, NxEdgeAttrs<TEdgeMeta, TEdgeLabel> | NxEdgeAttrs<TEdgeMeta, TEdgeLabel>[]>,
+  neighbors: Record<
+    string,
+    NxEdgeAttrs<TEdgeMeta, TEdgeLabel> | NxEdgeAttrs<TEdgeMeta, TEdgeLabel>[]
+  >,
   defaultEdgeType: 'directed' | 'undirected',
   nodeMap: Map<string, GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel>>,
   undirectedSeen: Set<string>,
