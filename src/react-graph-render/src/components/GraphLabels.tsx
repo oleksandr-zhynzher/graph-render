@@ -1,5 +1,6 @@
 import React from 'react';
 import { PositionedNode, LayoutType, LayoutDirection } from '@graph-render/types';
+import { groupPositionedNodesByColumn } from '../utils/columns';
 
 /**
  * Canonical dimensions for column-label pills. Exported so that the parent
@@ -29,21 +30,14 @@ export function getEffectiveGraphLabels(
   labels?: string[],
   autoLabels = false
 ): { orderedXs: number[]; orderedLabels: string[] } {
-  const columns = new Map<number, PositionedNode[]>();
-  positionedNodes.forEach((node) => {
-    const colKey = Math.round(node.position.x);
-    const column = columns.get(colKey) ?? [];
-    column.push(node);
-    columns.set(colKey, column);
-  });
-
-  const xs = Array.from(columns.keys()).sort((a, b) => a - b);
+  const columns = groupPositionedNodesByColumn(positionedNodes);
+  const xs = columns.map((column) => column.centerX);
 
   if (!xs.length) {
     return { orderedXs: [], orderedLabels: [] };
   }
 
-  const levelCounts = xs.map((x) => columns.get(x)?.length ?? 0);
+  const levelCounts = columns.map((column) => column.nodes.length);
 
   const inferred = levelCounts.map((count) => {
     const denom = count * 2;
@@ -88,14 +82,6 @@ export function GraphLabels({
   pillBorderColor = '#d7dbe3',
   pillTextColor = '#3f434b',
 }: GraphLabelsProps) {
-  const columns = new Map<number, PositionedNode[]>();
-  positionedNodes.forEach((node) => {
-    const key = Math.round(node.position.x);
-    const column = columns.get(key) ?? [];
-    column.push(node);
-    columns.set(key, column);
-  });
-
   const { orderedXs, orderedLabels } = getEffectiveGraphLabels(
     positionedNodes,
     layout,
@@ -114,8 +100,7 @@ export function GraphLabels({
       {orderedXs.map((x, idx) => {
         const label = orderedLabels[idx] ?? '';
         const pillWidth = getLabelPillWidth(label);
-        const nodeWidth = columns.get(x)?.[0]?.size?.width ?? 0;
-        const cx = x + nodeWidth / 2;
+        const cx = x;
 
         return (
           <g

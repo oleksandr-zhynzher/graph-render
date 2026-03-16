@@ -27,6 +27,7 @@ import {
 import { useGraphHover } from '../hooks/useGraphHover';
 import { useGraphModel } from '../hooks/useGraphModel';
 import { useStableConfig } from '../hooks/useStableConfig';
+import { groupPositionedNodesByColumn } from '../utils/columns';
 import {
   GraphBounds,
   centerViewportOnNode,
@@ -200,20 +201,15 @@ const getLabelBounds = (
     return null;
   }
 
-  const columns = new Map<number, PositionedNode[]>();
-  nodes.forEach((node) => {
-    const column = columns.get(node.position.x) ?? [];
-    column.push(node);
-    columns.set(node.position.x, column);
-  });
-
-  const xs = Array.from(columns.keys()).sort((a, b) => a - b);
-  if (!xs.length) {
+  const columns = groupPositionedNodesByColumn(nodes);
+  if (!columns.length) {
     return null;
   }
 
-  const orderedXs =
-    layout === LayoutType.Tree && layoutDirection === LayoutDirection.RTL ? [...xs].reverse() : xs;
+  const orderedColumns =
+    layout === LayoutType.Tree && layoutDirection === LayoutDirection.RTL
+      ? [...columns].reverse()
+      : columns;
   const { orderedLabels } = getEffectiveGraphLabels(
     nodes,
     layout,
@@ -224,14 +220,12 @@ const getLabelBounds = (
   const minY = Math.min(...nodes.map((node) => node.position.y));
   const topY = minY - labelOffset - LABEL_PILL_HEIGHT + 6;
 
-  return orderedXs.reduce<GraphBounds | null>((bounds, x, index) => {
-    const nodeWidth = columns.get(x)?.[0]?.size?.width ?? 0;
-    const centerX = x + nodeWidth / 2;
+  return orderedColumns.reduce<GraphBounds | null>((bounds, column, index) => {
     const labelWidth = getLabelPillWidth(orderedLabels[index] ?? '');
     const labelBounds: GraphBounds = {
-      minX: centerX - labelWidth / 2,
+      minX: column.centerX - labelWidth / 2,
       minY: topY,
-      maxX: centerX + labelWidth / 2,
+      maxX: column.centerX + labelWidth / 2,
       maxY: topY + LABEL_PILL_HEIGHT,
       width: labelWidth,
       height: LABEL_PILL_HEIGHT,
@@ -392,7 +386,7 @@ const GraphInner = (
     onEdgeHoverChange,
     onNodeClick,
     onEdgeClick,
-  }: GraphProps<any, any, any, any, any>,
+  }: GraphProps<NxGraphInput, PositionedNode, PositionedEdge, NodeData, EdgeData>,
   ref: React.ForwardedRef<GraphHandle>
 ) => {
   const zoomRange = useMemo(() => normalizeZoomRange(minZoom, maxZoom), [minZoom, maxZoom]);
@@ -472,9 +466,13 @@ const GraphInner = (
     }),
     [selectedNodeIds, selectedEdgeIds, internalSelection]
   );
+  const selectionRef = useRef(selection);
+  selectionRef.current = selection;
   const focusedNodeId =
     controlledFocusedNodeId !== undefined ? controlledFocusedNodeId : internalFocusedNodeId;
   const collapsedIds = collapsedNodeIds ?? internalCollapsedNodeIds;
+  const collapsedIdsRef = useRef(collapsedIds);
+  collapsedIdsRef.current = collapsedIds;
   const selectedNodeSet = useMemo(() => new Set(selection.nodeIds), [selection.nodeIds]);
   const selectedEdgeSet = useMemo(() => new Set(selection.edgeIds), [selection.edgeIds]);
 
@@ -504,16 +502,17 @@ const GraphInner = (
 
   const updateSelection = useCallback(
     (next: GraphSelection | ((current: GraphSelection) => GraphSelection)) => {
-      const resolved = typeof next === 'function' ? next(selection) : next;
+      const current = selectionRef.current;
+      const resolved = typeof next === 'function' ? next(current) : next;
       if (selectedNodeIds == null || selectedEdgeIds == null) {
-        setInternalSelection((current) => ({
-          nodeIds: selectedNodeIds == null ? resolved.nodeIds : current.nodeIds,
-          edgeIds: selectedEdgeIds == null ? resolved.edgeIds : current.edgeIds,
+        setInternalSelection((previous) => ({
+          nodeIds: selectedNodeIds == null ? resolved.nodeIds : previous.nodeIds,
+          edgeIds: selectedEdgeIds == null ? resolved.edgeIds : previous.edgeIds,
         }));
       }
       onSelectionChange?.(resolved);
     },
-    [onSelectionChange, selectedEdgeIds, selectedNodeIds, selection]
+    [onSelectionChange, selectedEdgeIds, selectedNodeIds]
   );
 
   const updateFocusedNode = useCallback(
@@ -528,13 +527,14 @@ const GraphInner = (
 
   const updateCollapsedNodeIds = useCallback(
     (next: string[] | ((current: string[]) => string[])) => {
-      const resolved = typeof next === 'function' ? next(collapsedIds) : next;
+      const current = collapsedIdsRef.current;
+      const resolved = typeof next === 'function' ? next(current) : next;
       if (collapsedNodeIds == null) {
         setInternalCollapsedNodeIds(resolved);
       }
       onCollapsedNodeIdsChange?.(resolved);
     },
-    [collapsedIds, collapsedNodeIds, onCollapsedNodeIdsChange]
+    [collapsedNodeIds, onCollapsedNodeIdsChange]
   );
   const collapsedNodeSet = useMemo(() => new Set(collapsedIds), [collapsedIds]);
   const {
@@ -1460,7 +1460,10 @@ type GraphComponent = <
 ) => React.ReactElement | null;
 
 const GraphBase = React.memo(
-  React.forwardRef<GraphHandle, GraphProps<any, any, any, any, any>>(GraphInner)
+  React.forwardRef<
+    GraphHandle,
+    GraphProps<NxGraphInput, PositionedNode, PositionedEdge, NodeData, EdgeData>
+  >(GraphInner)
 );
 
 GraphBase.displayName = 'Graph';

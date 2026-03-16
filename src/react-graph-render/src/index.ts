@@ -45,6 +45,7 @@ export type {
 } from '@graph-render/types';
 export { Graph } from './components/Graph';
 export { EdgePath } from './components/EdgePath';
+export { groupPositionedNodesByColumn } from './utils/columns';
 
 // Re-export core functionality
 export {
