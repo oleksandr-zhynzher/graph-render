@@ -20,58 +20,53 @@ const runSelectedLayout = (options: LayoutOptions, sizedNodes: NodeData[]): Posi
   const gap = theme?.nodeGap ?? DEFAULT_NODE_GAP;
   const pad = padding ?? DEFAULT_PADDING;
 
-  if (layout === LayoutType.Tree) {
-    return treeLayout(sizedNodes, edges, pad, gap, layoutDirection ?? LayoutDirection.LTR, height);
-  }
+  const assertUnreachable = (value: never): never => {
+    throw new Error(`Unsupported layout type: ${String(value)}`);
+  };
 
-  if (layout === LayoutType.Radial) {
-    return radialTreeLayout(sizedNodes, edges, pad, width, height, gap);
+  switch (layout) {
+    case LayoutType.Tree:
+      return treeLayout(sizedNodes, edges, pad, gap, layoutDirection ?? LayoutDirection.LTR, height);
+    case LayoutType.Radial:
+      return radialTreeLayout(sizedNodes, edges, pad, width, height, gap);
+    case LayoutType.Centered:
+      return centeredLayout(sizedNodes, pad, width, height);
+    case LayoutType.Dag:
+      return dagLayout(
+        sizedNodes,
+        edges,
+        pad,
+        gap,
+        layoutDirection ?? LayoutDirection.LTR,
+        width,
+        height
+      );
+    case LayoutType.ForceDirected:
+      return forceDirectedLayout(sizedNodes, edges, pad, width, height, gap);
+    case LayoutType.CompactBracket:
+      return compactBracketLayout(
+        sizedNodes,
+        edges,
+        pad,
+        gap,
+        layoutDirection ?? LayoutDirection.LTR,
+        height
+      );
+    case LayoutType.OrthogonalFlow:
+      return orthogonalFlowLayout(
+        sizedNodes,
+        edges,
+        pad,
+        gap,
+        layoutDirection ?? LayoutDirection.LTR,
+        height,
+        width
+      );
+    case LayoutType.Grid:
+      return gridLayout(sizedNodes, pad, gap);
+    default:
+      return assertUnreachable(layout);
   }
-
-  if (layout === LayoutType.Centered) {
-    return centeredLayout(sizedNodes, pad, width, height);
-  }
-
-  if (layout === LayoutType.Dag) {
-    return dagLayout(
-      sizedNodes,
-      edges,
-      pad,
-      gap,
-      layoutDirection ?? LayoutDirection.LTR,
-      width,
-      height
-    );
-  }
-
-  if (layout === LayoutType.ForceDirected) {
-    return forceDirectedLayout(sizedNodes, edges, pad, width, height, gap);
-  }
-
-  if (layout === LayoutType.CompactBracket) {
-    return compactBracketLayout(
-      sizedNodes,
-      edges,
-      pad,
-      gap,
-      layoutDirection ?? LayoutDirection.LTR,
-      height
-    );
-  }
-
-  if (layout === LayoutType.OrthogonalFlow) {
-    return orthogonalFlowLayout(
-      sizedNodes,
-      edges,
-      pad,
-      gap,
-      layoutDirection ?? LayoutDirection.LTR,
-      height,
-      width
-    );
-  }
-
-  return gridLayout(sizedNodes, pad, gap);
 };
 
 const getAnchoredLayoutOffset = (
