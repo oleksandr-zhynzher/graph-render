@@ -91,11 +91,12 @@ export const orthogonalFlowLayout = (
       (sum, node) => sum + (node.size?.height ?? DEFAULT_NODE_SIZE.height),
       0
     );
+    const totalGap = verticalGap * Math.max(levelNodes.length - 1, 0);
+    const centeredY = (safeHeight - contentHeight - totalGap) / 2;
+    // When content + gaps exceed the available height, centeredY goes negative
+    // and the column is top-anchored at safePad instead of disappearing off-canvas.
     const maxY = safeHeight - safePad;
-    let y = Math.max(
-      safePad,
-      (safeHeight - contentHeight - verticalGap * Math.max(levelNodes.length - 1, 0)) / 2
-    );
+    let y = Math.max(safePad, centeredY);
 
     return levelNodes.map((node) => {
       const nodeHeight = node.size?.height ?? DEFAULT_NODE_SIZE.height;
