@@ -4,6 +4,12 @@ import { gridLayout } from './grid';
 
 const FORCE_LAYOUT_CACHE_LIMIT = 24;
 const MAX_SYNC_FORCE_NODES = 250;
+// NOTE: this cache is intentionally module-level so warm hits persist across
+// sequential renders of the same graph (common during viewport-only updates).
+// Trade-off: all <Graph> instances in the same JS bundle share the same 24-slot
+// LRU.  Keys include the full node/edge topology, so stale hits are extremely
+// unlikely.  If you mount many independent graphs with similar-but-distinct
+// topologies and see layout lag, increase FORCE_LAYOUT_CACHE_LIMIT.
 const forceLayoutCache = new Map<string, PositionedNode[]>();
 
 const buildForceLayoutCacheKey = (
@@ -13,27 +19,35 @@ const buildForceLayoutCacheKey = (
   width: number,
   height: number,
   gap: number
-): string => {
-  return JSON.stringify({
-    pad,
-    width,
-    height,
-    gap,
-    nodes: nodes.map((node) => ({
-      id: node.id,
-      size: node.size,
-      label: node.label,
-    })),
-    edges: edges.map((edge) => ({
-      id: edge.id,
-      source: edge.source,
-      target: edge.target,
-      type: edge.type,
-    })),
-  });
+): string | null => {
+  try {
+    return JSON.stringify({
+      pad,
+      width,
+      height,
+      gap,
+      nodes: nodes.map((node) => ({
+        id: node.id,
+        size: node.size,
+        label: node.label,
+      })),
+      edges: edges.map((edge) => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        type: edge.type,
+      })),
+    });
+  } catch {
+    return null;
+  }
 };
 
-const getCachedForceLayout = (cacheKey: string): PositionedNode[] | undefined => {
+const getCachedForceLayout = (cacheKey: string | null): PositionedNode[] | undefined => {
+  if (!cacheKey) {
+    return undefined;
+  }
+
   const cached = forceLayoutCache.get(cacheKey);
   if (!cached) {
     return undefined;
@@ -48,7 +62,11 @@ const getCachedForceLayout = (cacheKey: string): PositionedNode[] | undefined =>
   }));
 };
 
-const setCachedForceLayout = (cacheKey: string, nodes: PositionedNode[]): void => {
+const setCachedForceLayout = (cacheKey: string | null, nodes: PositionedNode[]): void => {
+  if (!cacheKey) {
+    return;
+  }
+
   if (forceLayoutCache.size >= FORCE_LAYOUT_CACHE_LIMIT) {
     const oldestKey = forceLayoutCache.keys().next().value;
     if (oldestKey) {
