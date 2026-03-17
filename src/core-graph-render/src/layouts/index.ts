@@ -19,12 +19,13 @@ const runSelectedLayout = (options: LayoutOptions, sizedNodes: NodeData[]): Posi
   const { edges, padding, theme, layout, width, height, layoutDirection } = options;
   const gap = theme?.nodeGap ?? DEFAULT_NODE_GAP;
   const pad = padding ?? DEFAULT_PADDING;
+  const resolvedLayout = layout ?? LayoutType.Grid;
 
   const assertUnreachable = (value: never): never => {
     throw new Error(`Unsupported layout type: ${String(value)}`);
   };
 
-  switch (layout) {
+  switch (resolvedLayout) {
     case LayoutType.Tree:
       return treeLayout(sizedNodes, edges, pad, gap, layoutDirection ?? LayoutDirection.LTR, height);
     case LayoutType.Radial:
@@ -65,7 +66,7 @@ const runSelectedLayout = (options: LayoutOptions, sizedNodes: NodeData[]): Posi
     case LayoutType.Grid:
       return gridLayout(sizedNodes, pad, gap);
     default:
-      return assertUnreachable(layout);
+      return assertUnreachable(resolvedLayout);
   }
 };
 

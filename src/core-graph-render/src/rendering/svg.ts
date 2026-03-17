@@ -1,5 +1,6 @@
 import {
   NxGraphInput,
+  NodeData,
   PositionedNode,
   PositionedEdge,
   EdgeData,
@@ -82,7 +83,7 @@ const buildFallbackPositionedEdges = (
 };
 
 const getPositionedNodesWithFallback = (
-  sourceNodes: PositionedNode[],
+  sourceNodes: NodeData[],
   normalizedEdges: EdgeData[],
   config: RenderConfig
 ): PositionedNode[] => {
