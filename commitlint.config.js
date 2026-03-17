@@ -1,7 +1,11 @@
 /** @type {import('@commitlint/types').UserConfig} */
+// body-max-line-length and footer-max-line-length are disabled because any
+// commit body containing a URL (e.g. issue refs, links) will exceed 100 chars.
 module.exports = {
   extends: ['@commitlint/config-conventional'],
   rules: {
+    'body-max-line-length': [0],
+    'footer-max-line-length': [0],
     // Enforce allowed commit types
     'type-enum': [
       2,

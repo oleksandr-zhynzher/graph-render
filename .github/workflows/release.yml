@@ -37,7 +37,8 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        # HUSKY=0 prevents husky from installing git hooks in CI.
+        run: HUSKY=0 yarn install --frozen-lockfile
 
       - name: Build all packages
         run: yarn build
@@ -49,4 +50,6 @@ jobs:
           # Falls back to the built-in GITHUB_TOKEN when GH_TOKEN is not set.
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Disable husky so the machine-generated release commit is not linted.
+          HUSKY: '0'
         run: npx multi-semantic-release
