@@ -111,21 +111,15 @@ const sanitizeEdgePoints = (value: unknown): EdgeData['points'] | undefined => {
   return points.length >= 2 ? points : undefined;
 };
 
-const ensureUniqueEdgeId = (candidate: string, usedEdgeIds: Set<string>): string => {
-  if (!usedEdgeIds.has(candidate)) {
-    usedEdgeIds.add(candidate);
-    return candidate;
+const assertUniqueEdgeId = (candidate: string, usedEdgeIds: Set<string>): string => {
+  if (usedEdgeIds.has(candidate)) {
+    throw new TypeError(
+      `Graph edge identifiers must be unique. Duplicate edge id "${candidate}" was provided.`
+    );
   }
 
-  let attempt = 2;
-  let nextId = `${candidate}-${attempt}`;
-  while (usedEdgeIds.has(nextId)) {
-    attempt += 1;
-    nextId = `${candidate}-${attempt}`;
-  }
-
-  usedEdgeIds.add(nextId);
-  return nextId;
+  usedEdgeIds.add(candidate);
+  return candidate;
 };
 
 const assertValidGraphInput = (graph: NxGraphInput): void => {
@@ -271,7 +265,7 @@ const createEdgeData = (
   const baseId = sanitizeNodeId(String(id ?? generateEdgeId(source, target, index)), 'node');
 
   return {
-    id: ensureUniqueEdgeId(baseId, usedEdgeIds),
+    id: assertUniqueEdgeId(baseId, usedEdgeIds),
     source,
     target,
     type:
