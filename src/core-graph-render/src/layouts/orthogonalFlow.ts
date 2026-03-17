@@ -4,6 +4,7 @@ import { assignDagLevels } from './treeTopology';
 
 const VERTICAL_GAP_RATIO = 0.45;
 const VERTICAL_GAP_MIN = 20;
+const VERTICAL_GAP_HEIGHT_RATIO = 0.3;
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 720;
 
@@ -72,11 +73,20 @@ export const orthogonalFlowLayout = (
     }
   }
 
-  const verticalGap = Math.max(VERTICAL_GAP_MIN, safeGap * VERTICAL_GAP_RATIO);
-
   return sortedColumns.flatMap(([level, levelNodes]) => {
     const colMaxWidth = colMaxWidths.get(level)!;
     const colStartX = colX.get(level)!;
+    const colMaxNodeHeight = levelNodes.reduce(
+      (max, node) => Math.max(max, node.size?.height ?? DEFAULT_NODE_SIZE.height),
+      0
+    );
+    // Gap is proportional to both the user-supplied spacing parameter and each
+    // column's tallest node so that visually dense columns stay readable.
+    const verticalGap = Math.max(
+      VERTICAL_GAP_MIN,
+      safeGap * VERTICAL_GAP_RATIO,
+      colMaxNodeHeight * VERTICAL_GAP_HEIGHT_RATIO
+    );
     const contentHeight = levelNodes.reduce(
       (sum, node) => sum + (node.size?.height ?? DEFAULT_NODE_SIZE.height),
       0
