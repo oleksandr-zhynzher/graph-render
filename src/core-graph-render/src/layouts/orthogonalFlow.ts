@@ -23,7 +23,10 @@ export const orthogonalFlowLayout = (
   const { levels } = assignDagLevels(nodes, edges);
   const buckets = new Map<number, NodeData[]>();
   nodes.forEach((node) => {
-    const level = levels.get(node.id) ?? 0;
+    const level = levels.get(node.id);
+    if (level == null) {
+      throw new Error(`DAG layout could not assign a level to node "${node.id}".`);
+    }
     const bucket = buckets.get(level) ?? [];
     bucket.push(node);
     buckets.set(level, bucket);
