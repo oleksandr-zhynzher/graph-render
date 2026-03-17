@@ -1,5 +1,10 @@
 import { EdgeData, LayoutDirection, NodeData, PositionedNode } from '@graph-render/types';
-import { DEFAULT_NODE_GAP, DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
+import {
+  DEFAULT_NODE_GAP,
+  DEFAULT_NODE_SIZE,
+  DEFAULT_PADDING,
+  getMaxNodeDimensions,
+} from '../utils';
 import { assertHierarchicalGraph, buildGraphTopology, findRootNodes } from './treeTopology';
 
 const assignLayers = (
@@ -63,10 +68,7 @@ export const dagLayout = (
 
   const { levels } = assignLayers(nodes, edges);
   const layers = groupNodesByLayer(nodes, levels);
-  const maxNodeWidth = Math.max(...nodes.map((node) => node.size?.width ?? DEFAULT_NODE_SIZE.width));
-  const maxNodeHeight = Math.max(
-    ...nodes.map((node) => node.size?.height ?? DEFAULT_NODE_SIZE.height)
-  );
+  const { maxWidth: maxNodeWidth, maxHeight: maxNodeHeight } = getMaxNodeDimensions(nodes);
   const columnGap = maxNodeWidth + gap;
   const rowGap = maxNodeHeight + Math.max(24, gap * 0.7);
   const contentWidth = Math.max(width - pad * 2, columnGap * Math.max(layers.length - 1, 1));

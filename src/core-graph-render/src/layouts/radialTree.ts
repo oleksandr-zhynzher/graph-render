@@ -33,13 +33,16 @@ export const radialTreeLayout = (
   const levels = groupNodesByLevel(nodes, levelsMap);
   const centerX = width / 2;
   const centerY = height / 2;
-  const maxNodeSize = Math.max(
-    ...nodes.map((node) =>
+  // FIX: use reduce instead of spread+Math.max to avoid a RangeError when the
+  // node array exceeds the JS engine's argument-count limit (~125 k in V8).
+  const maxNodeSize = nodes.reduce(
+    (max, node) =>
       Math.max(
+        max,
         node.size?.width ?? DEFAULT_NODE_SIZE.width,
         node.size?.height ?? DEFAULT_NODE_SIZE.height
-      )
-    )
+      ),
+    0
   );
   const maxRadius = Math.max(0, Math.min(width, height) / 2 - pad - maxNodeSize / 2);
   const radiusStep = levels.length > 1 ? maxRadius / (levels.length - 1) : 0;

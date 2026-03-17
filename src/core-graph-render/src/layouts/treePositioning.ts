@@ -1,5 +1,5 @@
 import { NodeData, TreeMetrics, LayoutDirection } from '@graph-render/types';
-import { DEFAULT_NODE_SIZE } from '../utils';
+import { getMaxNodeHeight } from '../utils';
 
 /**
  * Calculate tree layout metrics
@@ -12,7 +12,7 @@ export const calculateTreeMetrics = (
   containerHeight?: number
 ): TreeMetrics => {
   const maxLevel = levels.length ? levels.length - 1 : 0;
-  const maxNodeHeight = Math.max(...nodes.map((n) => n.size?.height ?? DEFAULT_NODE_SIZE.height));
+  const maxNodeHeight = getMaxNodeHeight(nodes);
   const maxLevelCount = Math.max(1, ...levels.map((l) => l?.length ?? 0));
   const totalHeight = maxLevelCount * maxNodeHeight + (maxLevelCount - 1) * gap;
   const baseY =

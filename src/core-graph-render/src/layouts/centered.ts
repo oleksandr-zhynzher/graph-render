@@ -1,5 +1,5 @@
 import { NodeData, Point, PositionedNode } from '@graph-render/types';
-import { DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
+import { DEFAULT_NODE_SIZE, DEFAULT_PADDING, getMaxNodeDimensions } from '../utils';
 
 /**
  * Calculate the center point of the container
@@ -9,16 +9,6 @@ const getContainerCenter = (width: number, height: number): Point => {
     x: width / 2,
     y: height / 2,
   };
-};
-
-/**
- * Calculate the maximum node dimensions
- */
-const getMaxNodeDimensions = (nodes: NodeData[]): { maxWidth: number; maxHeight: number } => {
-  const maxWidth = Math.max(...nodes.map((node) => node.size?.width ?? DEFAULT_NODE_SIZE.width));
-  const maxHeight = Math.max(...nodes.map((node) => node.size?.height ?? DEFAULT_NODE_SIZE.height));
-
-  return { maxWidth, maxHeight };
 };
 
 /**

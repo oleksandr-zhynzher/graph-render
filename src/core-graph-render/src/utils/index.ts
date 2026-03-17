@@ -14,5 +14,6 @@ export {
 } from './constants';
 export { groupEdgesByTarget, sortEdgesBySourcePosition } from './graphTraversal';
 export { applyNodeSizing } from './nodeSizing';
+export { getMaxNodeDimensions, getMaxNodeHeight, getMaxNodeWidth } from './nodeMetrics';
 export { normalizeGraphConfig } from './config';
 export type { NormalizedGraphConfig } from './config';

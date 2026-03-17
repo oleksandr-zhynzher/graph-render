@@ -1,5 +1,10 @@
 import { EdgeData, LayoutDirection, NodeData, PositionedNode } from '@graph-render/types';
-import { DEFAULT_NODE_GAP, DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
+import {
+  DEFAULT_NODE_GAP,
+  DEFAULT_NODE_SIZE,
+  DEFAULT_PADDING,
+  getMaxNodeWidth,
+} from '../utils';
 import { assertHierarchicalGraph, buildGraphTopology, findRootNodes } from './treeTopology';
 
 const buildLevels = (nodes: NodeData[], edges: EdgeData[]): Map<string, number> => {
@@ -48,7 +53,7 @@ export const orthogonalFlowLayout = (
     buckets.set(level, [...(buckets.get(level) ?? []), node]);
   });
 
-  const maxNodeWidth = Math.max(...nodes.map((node) => node.size?.width ?? DEFAULT_NODE_SIZE.width));
+  const maxNodeWidth = getMaxNodeWidth(nodes);
   const columnGap = maxNodeWidth + gap;
   const horizontalSign = direction === LayoutDirection.RTL ? -1 : 1;
   const baseX = direction === LayoutDirection.RTL ? width - pad - maxNodeWidth : pad;
