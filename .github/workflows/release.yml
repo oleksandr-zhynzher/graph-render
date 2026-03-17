@@ -44,12 +44,9 @@ jobs:
 
       - name: Release
         env:
-          # GH_TOKEN: Personal Access Token with repo write + workflow scopes.
-          # Create at github.com → Settings → Developer Settings → Tokens,
-          # then add as a repository secret named GH_TOKEN.
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-          # NPM_TOKEN: npm automation token.
-          # Create at npmjs.com → Access Tokens → Generate New Token (Automation),
-          # then add as a repository secret named NPM_TOKEN.
+          # Prefer a PAT (GH_TOKEN) so semantic-release can push tags and the
+          # version-bump commit even when branch protection rules are enabled.
+          # Falls back to the built-in GITHUB_TOKEN when GH_TOKEN is not set.
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx multi-semantic-release
