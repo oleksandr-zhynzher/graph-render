@@ -1,5 +1,6 @@
 import { NodeData, Point, PositionedNode } from '@graph-render/types';
 import { DEFAULT_NODE_SIZE, DEFAULT_PADDING, getMaxNodeDimensions } from '../utils';
+import { gridLayout } from './grid';
 
 /**
  * Calculate the center point of the container
@@ -86,6 +87,10 @@ export const centeredLayout = (
 
   const { maxWidth, maxHeight } = getMaxNodeDimensions(nodes);
   const radius = calculateCircleRadius(width, height, pad, maxWidth, maxHeight);
+
+  if (radius === 0) {
+    return gridLayout(nodes, pad, Math.max(24, Math.min(maxWidth, maxHeight) * 0.25));
+  }
 
   return nodes.map((node, index) => {
     if (node.position) {
