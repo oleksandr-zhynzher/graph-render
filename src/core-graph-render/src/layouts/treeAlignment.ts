@@ -42,17 +42,9 @@ export const positionNodesInLevels = (
   });
 };
 
-/**
- * Get parent nodes for a given node
- * @deprecated Use the incomingByTarget Map built inside alignNodesToParents instead.
- */
-const getParentNodes = (nodeId: string, edges: EdgeData[]): string[] => {
-  return edges.filter((e) => e.target === nodeId).map((e) => e.source);
-};
-
-// Silence the linter: getParentNodes is kept for external consumers who may
-// have imported it; internal callers use the pre-built map.
-void getParentNodes;
+// FIX: deleted the file-private `getParentNodes` helper.  It was replaced by
+// the `incomingByTarget` Map built inside `alignNodesToParents` (O(n+e) vs the
+// previous O(n×e)) and was never exported, so no external callers exist.
 
 /**
  * Calculate average Y center of parent nodes
