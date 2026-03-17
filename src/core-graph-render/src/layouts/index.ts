@@ -60,8 +60,8 @@ const runSelectedLayout = (options: LayoutOptions, sizedNodes: NodeData[]): Posi
         pad,
         gap,
         layoutDirection ?? LayoutDirection.LTR,
-        height,
-        width
+        width,
+        height
       );
     case LayoutType.Grid:
       return gridLayout(sizedNodes, pad, gap);

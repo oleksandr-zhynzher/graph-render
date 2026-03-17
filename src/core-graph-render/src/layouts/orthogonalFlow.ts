@@ -39,8 +39,8 @@ export const orthogonalFlowLayout = (
   pad: number = DEFAULT_PADDING,
   gap: number = DEFAULT_NODE_GAP,
   direction: LayoutDirection = LayoutDirection.LTR,
-  height: number = 720,
-  width: number = 960
+  width: number = 960,
+  height: number = 720
 ): PositionedNode[] => {
   if (!nodes.length) {
     return [];
