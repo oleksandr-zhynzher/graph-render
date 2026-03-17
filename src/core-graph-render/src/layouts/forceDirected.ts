@@ -100,6 +100,16 @@ const clampPoint = (
   };
 };
 
+const getRequiredPoint = (points: Map<string, Point>, nodeId: string): Point => {
+  const point = points.get(nodeId);
+
+  if (!point) {
+    throw new Error(`Force-directed layout could not resolve point data for node "${nodeId}".`);
+  }
+
+  return point;
+};
+
 export const forceDirectedLayout = (
   nodes: NodeData[],
   edges: EdgeData[],
@@ -148,16 +158,16 @@ export const forceDirectedLayout = (
       for (let j = i + 1; j < nodes.length; j += 1) {
         const source = nodes[i];
         const target = nodes[j];
-        const sourcePos = positions.get(source.id) as Point;
-        const targetPos = positions.get(target.id) as Point;
+        const sourcePos = getRequiredPoint(positions, source.id);
+        const targetPos = getRequiredPoint(positions, target.id);
         const dx = sourcePos.x - targetPos.x;
         const dy = sourcePos.y - targetPos.y;
         const distance = Math.max(1, Math.hypot(dx, dy));
         const force = (k * k) / distance;
         const offsetX = (dx / distance) * force;
         const offsetY = (dy / distance) * force;
-        const sourceDisp = displacement.get(source.id) as Point;
-        const targetDisp = displacement.get(target.id) as Point;
+        const sourceDisp = getRequiredPoint(displacement, source.id);
+        const targetDisp = getRequiredPoint(displacement, target.id);
         sourceDisp.x += offsetX;
         sourceDisp.y += offsetY;
         targetDisp.x -= offsetX;
@@ -166,16 +176,16 @@ export const forceDirectedLayout = (
     }
 
     edges.forEach((edge) => {
-      const sourcePos = positions.get(edge.source) as Point;
-      const targetPos = positions.get(edge.target) as Point;
+      const sourcePos = getRequiredPoint(positions, edge.source);
+      const targetPos = getRequiredPoint(positions, edge.target);
       const dx = sourcePos.x - targetPos.x;
       const dy = sourcePos.y - targetPos.y;
       const distance = Math.max(1, Math.hypot(dx, dy));
       const force = (distance * distance) / k;
       const offsetX = (dx / distance) * force;
       const offsetY = (dy / distance) * force;
-      const sourceDisp = displacement.get(edge.source) as Point;
-      const targetDisp = displacement.get(edge.target) as Point;
+      const sourceDisp = getRequiredPoint(displacement, edge.source);
+      const targetDisp = getRequiredPoint(displacement, edge.target);
       sourceDisp.x -= offsetX;
       sourceDisp.y -= offsetY;
       targetDisp.x += offsetX;
@@ -184,8 +194,8 @@ export const forceDirectedLayout = (
 
     const temperature = Math.max(2, gap * (1 - iteration / 80));
     nodes.forEach((node) => {
-      const point = positions.get(node.id) as Point;
-      const disp = displacement.get(node.id) as Point;
+      const point = getRequiredPoint(positions, node.id);
+      const disp = getRequiredPoint(displacement, node.id);
       const magnitude = Math.max(1, Math.hypot(disp.x, disp.y));
       const nextPoint = {
         x: point.x + (disp.x / magnitude) * Math.min(magnitude, temperature),
@@ -196,7 +206,7 @@ export const forceDirectedLayout = (
   }
 
   const positionedNodes = nodes.map((node) => {
-    const point = positions.get(node.id) as Point;
+    const point = getRequiredPoint(positions, node.id);
     const size = node.size ?? DEFAULT_NODE_SIZE;
 
     return {
