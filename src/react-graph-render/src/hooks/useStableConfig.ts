@@ -26,7 +26,14 @@ import { useRef } from 'react';
 export function useStableConfig<T>(config: T): T {
   const ref = useRef<{ value: T; serialized: string } | null>(null);
 
-  const serialized = JSON.stringify(config);
+  let serialized: string | null = null;
+
+  try {
+    serialized = JSON.stringify(config);
+  } catch {
+    ref.current = { value: config, serialized: '__unserializable__' };
+    return config;
+  }
 
   if (ref.current === null || ref.current.serialized !== serialized) {
     // Writing to a ref during render is safe when the write is idempotent

@@ -1,5 +1,7 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { PositionedNode, Size, VertexComponent } from '@graph-render/types';
+
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 interface GraphNodeProps {
   node: PositionedNode;
@@ -94,7 +96,7 @@ export const GraphNode = React.memo<GraphNodeProps>(
       borderOpacity = hoverNodeHighlight && isHoveredNode ? 1 : 0.4;
     }
 
-    useLayoutEffect(() => {
+    useIsomorphicLayoutEffect(() => {
       if (!groupRef.current || !onNodeMeasure) {
         return;
       }
