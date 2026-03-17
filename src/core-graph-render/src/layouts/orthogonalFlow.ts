@@ -1,5 +1,5 @@
 import { EdgeData, LayoutDirection, NodeData, PositionedNode } from '@graph-render/types';
-import { DEFAULT_NODE_GAP, DEFAULT_NODE_SIZE, DEFAULT_PADDING, getMaxNodeWidth } from '../utils';
+import { DEFAULT_NODE_GAP, DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
 import { assignDagLevels } from './treeTopology';
 
 const VERTICAL_GAP_RATIO = 0.45;
@@ -37,35 +37,65 @@ export const orthogonalFlowLayout = (
     buckets.set(level, bucket);
   });
 
-  const maxNodeWidth = getMaxNodeWidth(nodes);
-  const columnGap = maxNodeWidth + safeGap;
   const isRTL = direction === LayoutDirection.RTL;
-  const horizontalSign = isRTL ? -1 : 1;
-  const baseX = isRTL ? safeWidth - safePad - maxNodeWidth : safePad;
+
+  // Sort columns by level once so per-column x accumulation is deterministic.
+  const sortedColumns = Array.from(buckets.entries()).sort((a, b) => a[0] - b[0]);
+
+  // Per-column max node width drives column pitch; avoids a single wide node in
+  // one column inflating the spacing of every other column.
+  const colMaxWidths = new Map<number, number>(
+    sortedColumns.map(([level, levelNodes]) => [
+      level,
+      levelNodes.reduce(
+        (max, node) => Math.max(max, node.size?.width ?? DEFAULT_NODE_SIZE.width),
+        0
+      ),
+    ])
+  );
+
+  // Accumulate column x start positions so each column occupies exactly its own
+  // content width rather than the global max width.
+  const colX = new Map<number, number>();
+  if (isRTL) {
+    let xCursor = safeWidth - safePad;
+    for (const [level] of sortedColumns) {
+      xCursor -= colMaxWidths.get(level)!;
+      colX.set(level, xCursor);
+      xCursor -= safeGap;
+    }
+  } else {
+    let xCursor = safePad;
+    for (const [level] of sortedColumns) {
+      colX.set(level, xCursor);
+      xCursor += colMaxWidths.get(level)! + safeGap;
+    }
+  }
+
   const verticalGap = Math.max(VERTICAL_GAP_MIN, safeGap * VERTICAL_GAP_RATIO);
 
-  return Array.from(buckets.entries())
-    .sort((a, b) => a[0] - b[0])
-    .flatMap(([level, levelNodes]) => {
-      const contentHeight = levelNodes.reduce(
-        (sum, node) => sum + (node.size?.height ?? DEFAULT_NODE_SIZE.height),
-        0
-      );
-      const maxY = safeHeight - safePad;
-      let y = Math.max(
-        safePad,
-        (safeHeight - contentHeight - verticalGap * Math.max(levelNodes.length - 1, 0)) / 2
-      );
+  return sortedColumns.flatMap(([level, levelNodes]) => {
+    const colMaxWidth = colMaxWidths.get(level)!;
+    const colStartX = colX.get(level)!;
+    const contentHeight = levelNodes.reduce(
+      (sum, node) => sum + (node.size?.height ?? DEFAULT_NODE_SIZE.height),
+      0
+    );
+    const maxY = safeHeight - safePad;
+    let y = Math.max(
+      safePad,
+      (safeHeight - contentHeight - verticalGap * Math.max(levelNodes.length - 1, 0)) / 2
+    );
 
-      return levelNodes.map((node) => {
-        const nodeHeight = node.size?.height ?? DEFAULT_NODE_SIZE.height;
-        const nodeWidth = node.size?.width ?? DEFAULT_NODE_SIZE.width;
-        const position = {
-          x: baseX + level * columnGap * horizontalSign + (isRTL ? maxNodeWidth - nodeWidth : 0),
-          y: Math.min(y, maxY - nodeHeight),
-        };
-        y += nodeHeight + verticalGap;
-        return { ...node, position } as PositionedNode;
-      });
+    return levelNodes.map((node) => {
+      const nodeHeight = node.size?.height ?? DEFAULT_NODE_SIZE.height;
+      const nodeWidth = node.size?.width ?? DEFAULT_NODE_SIZE.width;
+      const position = {
+        x: colStartX + (isRTL ? colMaxWidth - nodeWidth : 0),
+        y: Math.min(y, maxY - nodeHeight),
+      };
+      y += nodeHeight + verticalGap;
+      return { ...node, position } as PositionedNode;
     });
+  });
 };
