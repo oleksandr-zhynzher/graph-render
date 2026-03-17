@@ -19,6 +19,22 @@ export function useGraphHover(
   const [hoveredEdgeId, setHoveredEdgeId] = useState<EdgeId | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [focusedPath, setFocusedPath] = useState<FocusedPath | null>(null);
+  const edgeById = useMemo(
+    () => new Map(positionedEdges.map((edge) => [edge.id, edge])),
+    [positionedEdges]
+  );
+  const edgesByNodeId = useMemo(() => {
+    const map = new Map<string, PositionedEdge[]>();
+
+    positionedEdges.forEach((edge) => {
+      map.set(edge.source, [...(map.get(edge.source) ?? []), edge]);
+      if (edge.target !== edge.source) {
+        map.set(edge.target, [...(map.get(edge.target) ?? []), edge]);
+      }
+    });
+
+    return map;
+  }, [positionedEdges]);
 
   const nodePos = useMemo(() => {
     const m = new Map<string, { x: number; y: number }>();
@@ -70,7 +86,7 @@ export function useGraphHover(
     } else {
       if (hoverHighlight) {
         if (hoveredEdgeId) {
-          const match = positionedEdges.find((e) => e.id === hoveredEdgeId);
+          const match = edgeById.get(hoveredEdgeId);
           if (match) {
             const add = (id: string, dir: 'in' | 'out') => {
               const curr = map.get(id) ?? { in: false, out: false };
@@ -93,7 +109,7 @@ export function useGraphHover(
             const curr = map.get(id) ?? { in: false, out: false };
             map.set(id, { ...curr, [dir]: true });
           };
-          positionedEdges.forEach((e) => {
+          (edgesByNodeId.get(hoveredNodeId) ?? []).forEach((e) => {
             const isUndir = e.type === 'undirected';
             if (e.source === hoveredNodeId) {
               if (isUndir) {
@@ -125,7 +141,15 @@ export function useGraphHover(
     }
 
     return map.size ? map : null;
-  }, [hoverHighlight, hoveredEdgeId, hoveredNodeId, positionedEdges, pathHighlight, focusedPath]);
+  }, [
+    edgeById,
+    edgesByNodeId,
+    hoverHighlight,
+    hoveredEdgeId,
+    hoveredNodeId,
+    pathHighlight,
+    focusedPath,
+  ]);
 
   const edgesForRender = useMemo(() => {
     const highlightIds = new Set<string>();
@@ -137,7 +161,7 @@ export function useGraphHover(
         if (hoveredEdgeId) {
           highlightIds.add(hoveredEdgeId);
         } else if (hoveredNodeId) {
-          positionedEdges.forEach((e) => {
+          (edgesByNodeId.get(hoveredNodeId) ?? []).forEach((e) => {
             if (e.source === hoveredNodeId || e.target === hoveredNodeId) {
               highlightIds.add(e.id);
             }
@@ -158,7 +182,15 @@ export function useGraphHover(
       else back.push(e);
     });
     return [...back, ...front];
-  }, [hoverHighlight, hoveredEdgeId, hoveredNodeId, positionedEdges, pathHighlight, focusedPath]);
+  }, [
+    edgesByNodeId,
+    hoverHighlight,
+    hoveredEdgeId,
+    hoveredNodeId,
+    positionedEdges,
+    pathHighlight,
+    focusedPath,
+  ]);
 
   return {
     hoveredEdgeId,

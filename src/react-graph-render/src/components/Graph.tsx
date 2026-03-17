@@ -663,7 +663,8 @@ const GraphInner = (
 
   const centerOnNode = useCallback(
     (nodeId: string) => {
-      const node = positionedNodes.find((entry) => entry.id === nodeId);
+      // FIX: use the pre-built O(1) Map instead of an O(n) Array.find.
+      const node = positionedNodeMap.get(nodeId);
       if (!node) {
         return;
       }
@@ -671,7 +672,7 @@ const GraphInner = (
       const { width, height } = getViewportDimensions();
       updateViewport(centerViewportOnNode(node, width, height, viewport.zoom));
     },
-    [getViewportDimensions, positionedNodes, updateViewport, viewport.zoom]
+    [getViewportDimensions, positionedNodeMap, updateViewport, viewport.zoom]
   );
 
   useImperativeHandle(
@@ -1046,7 +1047,8 @@ const GraphInner = (
         case 'ArrowDown': {
           event.preventDefault();
           if (focusedNodeId) {
-            const currentNode = positionedNodes.find((node) => node.id === focusedNodeId);
+            // FIX: use the pre-built O(1) Map instead of an O(n) Array.find.
+            const currentNode = positionedNodeMap.get(focusedNodeId);
             if (currentNode) {
               const direction =
                 event.key === 'ArrowLeft'
@@ -1087,7 +1089,8 @@ const GraphInner = (
             break;
           }
           event.preventDefault();
-          const focusedNode = positionedNodes.find((node) => node.id === focusedNodeId);
+          // FIX: use the pre-built O(1) Map instead of an O(n) Array.find.
+          const focusedNode = positionedNodeMap.get(focusedNodeId);
           if (focusedNode) {
             handleNodeSelection(focusedNode);
           }
@@ -1109,6 +1112,7 @@ const GraphInner = (
       focusedNodeId,
       handleNodeSelection,
       keyboardNavigation,
+      positionedNodeMap,
       positionedNodes,
       setFocusedPath,
       updateFocusedNode,
@@ -1149,12 +1153,13 @@ const GraphInner = (
   const handlePathHover = useCallback(
     (nodeId: string, sourceIndex: number, pathKey?: string) => {
       setFocusedPath({ nodeId, sourceIndex, pathKey });
-      const node = positionedNodes.find((entry) => entry.id === nodeId);
+      // FIX: use the pre-built O(1) Map instead of an O(n) Array.find.
+      const node = positionedNodeMap.get(nodeId);
       if (node) {
         emitNodeHover(node, true, 'path');
       }
     },
-    [emitNodeHover, positionedNodes, setFocusedPath]
+    [emitNodeHover, positionedNodeMap, setFocusedPath]
   );
 
   const handlePathLeave = useCallback(() => {
