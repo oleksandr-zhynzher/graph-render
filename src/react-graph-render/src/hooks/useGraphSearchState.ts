@@ -129,12 +129,12 @@ export const useGraphSearchState = <
 
   useEffect(() => {
     onSearchResultsChangeRef.current?.({
-      nodeIds: Array.from(effectiveHighlightedNodeSet),
-      edgeIds: Array.from(effectiveHighlightedEdgeSet),
+      nodeIds: searchMatchedNodeIds,
+      edgeIds: searchMatchedEdgeIds,
     });
     // onSearchResultsChange is intentionally read via ref — omitting it from
     // the dep array prevents inline callbacks from creating an infinite loop.
-  }, [effectiveHighlightedEdgeSet, effectiveHighlightedNodeSet]);
+  }, [searchMatchedEdgeIds, searchMatchedNodeIds]);
 
   const hiddenNodeSet = useMemo(() => {
     const hidden = new Set(hiddenNodeIds ?? []);
