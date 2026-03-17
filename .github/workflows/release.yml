@@ -25,9 +25,10 @@ jobs:
           # Full history is required — semantic-release reads every commit since
           # the last release tag to determine the next version.
           fetch-depth: 0
-          # Use a PAT (GH_TOKEN) rather than GITHUB_TOKEN so the release commit
-          # can be pushed even when branch protection rules are enabled.
-          token: ${{ secrets.GH_TOKEN }}
+          # Prefer a PAT (GH_TOKEN) so the release commit can be pushed when
+          # branch protection rules are enabled. Falls back to the built-in
+          # GITHUB_TOKEN when GH_TOKEN has not been configured yet.
+          token: ${{ secrets.GH_TOKEN || github.token }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
