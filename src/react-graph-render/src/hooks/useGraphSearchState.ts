@@ -55,7 +55,11 @@ export const useGraphSearchState = <
     return nodes
       .filter((node) => {
         if (searchPredicate) {
-          return searchPredicate(node, query);
+          try {
+            return searchPredicate(node, query);
+          } catch {
+            return false;
+          }
         }
 
         const label =
@@ -97,13 +101,21 @@ export const useGraphSearchState = <
     }
 
     return (
-      highlightStrategy?.({
-        nodes,
-        edges,
-        query: searchQuery,
-        matchedNodeIds: searchMatchedNodeIds,
-        matchedEdgeIds: searchMatchedEdgeIds,
-      }) ?? { nodeIds: [], edgeIds: [] }
+      (() => {
+        try {
+          return (
+            highlightStrategy?.({
+              nodes,
+              edges,
+              query: searchQuery,
+              matchedNodeIds: searchMatchedNodeIds,
+              matchedEdgeIds: searchMatchedEdgeIds,
+            }) ?? { nodeIds: [], edgeIds: [] }
+          );
+        } catch {
+          return { nodeIds: [], edgeIds: [] };
+        }
+      })()
     );
   }, [edges, highlightStrategy, nodes, searchMatchedEdgeIds, searchMatchedNodeIds, searchQuery]);
 
