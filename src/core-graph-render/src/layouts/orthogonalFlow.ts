@@ -40,21 +40,23 @@ export const orthogonalFlowLayout = (
         0
       );
       const verticalGap = Math.max(20, gap * 0.45);
+      const maxY = height - pad;
       let y = Math.max(
         pad,
         (height - contentHeight - verticalGap * Math.max(levelNodes.length - 1, 0)) / 2
       );
 
       return levelNodes.map((node) => {
+        const nodeHeight = node.size?.height ?? DEFAULT_NODE_SIZE.height;
         const nodeWidth = node.size?.width ?? DEFAULT_NODE_SIZE.width;
         const position = {
           x:
             baseX +
             level * columnGap * horizontalSign +
             (direction === LayoutDirection.RTL ? maxNodeWidth - nodeWidth : 0),
-          y,
+          y: Math.min(y, maxY - nodeHeight),
         };
-        y += (node.size?.height ?? DEFAULT_NODE_SIZE.height) + verticalGap;
+        y += nodeHeight + verticalGap;
         return { ...node, position } as PositionedNode;
       });
     });
