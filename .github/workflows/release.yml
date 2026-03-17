@@ -38,7 +38,9 @@ jobs:
 
       - name: Install dependencies
         # HUSKY=0 prevents husky from installing git hooks in CI.
-        run: HUSKY=0 yarn install --frozen-lockfile
+        # No --frozen-lockfile: semantic-release updates package.json versions,
+        # which can cause lockfile mismatches if the lockfile is held frozen.
+        run: HUSKY=0 yarn install
 
       - name: Build all packages
         run: yarn build
