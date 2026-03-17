@@ -9,6 +9,7 @@ import { DEFAULT_THEME, DEFAULT_NODE_SIZE } from './constants';
 
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 720;
+const MAX_DIMENSION = 32768;
 const DEFAULT_CURVE_STRENGTH = 0.3;
 const DEFAULT_ARROW_PADDING = 6;
 const DEFAULT_EDGE_SEPARATION = 18;
@@ -127,8 +128,8 @@ export interface NormalizedGraphConfig extends Omit<GraphConfig, 'theme' | 'fixe
 export const normalizeGraphConfig = (config?: GraphConfig): NormalizedGraphConfig => {
   return {
     ...config,
-    width: getFinitePositive(config?.width, DEFAULT_WIDTH),
-    height: getFinitePositive(config?.height, DEFAULT_HEIGHT),
+    width: getFiniteBounded(config?.width, 1, MAX_DIMENSION, DEFAULT_WIDTH),
+    height: getFiniteBounded(config?.height, 1, MAX_DIMENSION, DEFAULT_HEIGHT),
     padding: getFiniteNonNegative(config?.padding, 24),
     defaultEdgeType: getEdgeType(config?.defaultEdgeType, EdgeType.Directed),
     showArrows: config?.showArrows ?? true,
