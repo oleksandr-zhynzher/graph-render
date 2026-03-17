@@ -5,33 +5,7 @@ import {
   DEFAULT_PADDING,
   getMaxNodeWidth,
 } from '../utils';
-import { assertHierarchicalGraph, buildGraphTopology, findRootNodes } from './treeTopology';
-
-const buildLevels = (nodes: NodeData[], edges: EdgeData[]): Map<string, number> => {
-  assertHierarchicalGraph(nodes, edges);
-  const { incoming, outgoing } = buildGraphTopology(edges);
-  const inDegree = new Map<string, number>();
-  const levels = new Map<string, number>();
-  nodes.forEach((node) => inDegree.set(node.id, incoming.get(node.id) ?? 0));
-  const queue = findRootNodes(nodes, incoming);
-  queue.forEach((id) => levels.set(id, 0));
-
-  for (let index = 0; index < queue.length; index += 1) {
-    const current = queue[index];
-    const currentLevel = levels.get(current) ?? 0;
-
-    (outgoing.get(current) ?? []).forEach((child) => {
-      levels.set(child, Math.max(levels.get(child) ?? 0, currentLevel + 1));
-      const nextInDegree = (inDegree.get(child) ?? 0) - 1;
-      inDegree.set(child, nextInDegree);
-      if (nextInDegree === 0) {
-        queue.push(child);
-      }
-    });
-  }
-
-  return levels;
-};
+import { assignDagLevels } from './treeTopology';
 
 export const orthogonalFlowLayout = (
   nodes: NodeData[],
@@ -46,7 +20,7 @@ export const orthogonalFlowLayout = (
     return [];
   }
 
-  const levels = buildLevels(nodes, edges);
+  const { levels } = assignDagLevels(nodes, edges);
   const buckets = new Map<number, NodeData[]>();
   nodes.forEach((node) => {
     const level = levels.get(node.id) ?? 0;

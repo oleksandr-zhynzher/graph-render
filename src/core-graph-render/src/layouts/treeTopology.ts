@@ -100,6 +100,72 @@ export const assignNodesToLevels = (
 };
 
 /**
+ * Assign DAG-style max-depth levels using a single Kahn's BFS pass.
+ * Validates edge references and detects cycles in the same traversal,
+ * replacing the three-pass pattern of assertHierarchicalGraph +
+ * buildGraphTopology + an inline BFS.
+ */
+export const assignDagLevels = (
+  nodes: NodeData[],
+  edges: EdgeData[]
+): { levels: Map<string, number>; outgoing: Map<string, string[]> } => {
+  if (!nodes.length) {
+    return { levels: new Map(), outgoing: new Map() };
+  }
+
+  const nodeSet = new Set(nodes.map((n) => n.id));
+  const inDegree = new Map<string, number>(nodes.map((n) => [n.id, 0]));
+  const outgoing = new Map<string, string[]>();
+
+  for (const edge of edges) {
+    if (!nodeSet.has(edge.source) || !nodeSet.has(edge.target)) {
+      throw new Error(
+        `DAG layout requires every edge to reference existing nodes. Invalid edge: ${edge.source} -> ${edge.target}.`
+      );
+    }
+    inDegree.set(edge.target, (inDegree.get(edge.target) ?? 0) + 1);
+    const children = outgoing.get(edge.source) ?? [];
+    children.push(edge.target);
+    outgoing.set(edge.source, children);
+  }
+
+  const levels = new Map<string, number>();
+  const queue = nodes.filter((n) => inDegree.get(n.id) === 0).map((n) => n.id);
+
+  if (!queue.length) {
+    throw new Error(
+      'DAG layout requires at least one root node and does not support cyclic graphs.'
+    );
+  }
+
+  queue.forEach((id) => levels.set(id, 0));
+  let processed = 0;
+
+  for (let index = 0; index < queue.length; index += 1) {
+    const current = queue[index];
+    processed += 1;
+    const currentLevel = levels.get(current) ?? 0;
+
+    for (const child of outgoing.get(current) ?? []) {
+      levels.set(child, Math.max(levels.get(child) ?? 0, currentLevel + 1));
+      const nextInDegree = (inDegree.get(child) ?? 0) - 1;
+      inDegree.set(child, nextInDegree);
+      if (nextInDegree === 0) {
+        queue.push(child);
+      }
+    }
+  }
+
+  if (processed !== nodes.length) {
+    throw new Error(
+      'DAG layout requires an acyclic graph. Cycles were detected in the input graph.'
+    );
+  }
+
+  return { levels, outgoing };
+};
+
+/**
  * Group nodes by their level
  */
 export const groupNodesByLevel = (nodes: NodeData[], levelMap: Map<string, number>): string[][] => {

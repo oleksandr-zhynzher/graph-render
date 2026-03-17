@@ -5,39 +5,7 @@ import {
   DEFAULT_PADDING,
   getMaxNodeDimensions,
 } from '../utils';
-import { assertHierarchicalGraph, buildGraphTopology, findRootNodes } from './treeTopology';
-
-const assignLayers = (
-  nodes: NodeData[],
-  edges: EdgeData[]
-): { levels: Map<string, number>; outgoing: Map<string, string[]> } => {
-  assertHierarchicalGraph(nodes, edges);
-
-  const { incoming, outgoing } = buildGraphTopology(edges);
-  const inDegree = new Map<string, number>();
-  nodes.forEach((node) => inDegree.set(node.id, incoming.get(node.id) ?? 0));
-
-  const levels = new Map<string, number>();
-  const queue = findRootNodes(nodes, incoming);
-  queue.forEach((id) => levels.set(id, 0));
-
-  for (let index = 0; index < queue.length; index += 1) {
-    const current = queue[index];
-    const currentLevel = levels.get(current) ?? 0;
-
-    (outgoing.get(current) ?? []).forEach((child) => {
-      const nextLevel = Math.max(levels.get(child) ?? 0, currentLevel + 1);
-      levels.set(child, nextLevel);
-      const nextInDegree = (inDegree.get(child) ?? 0) - 1;
-      inDegree.set(child, nextInDegree);
-      if (nextInDegree === 0) {
-        queue.push(child);
-      }
-    });
-  }
-
-  return { levels, outgoing };
-};
+import { assignDagLevels } from './treeTopology';
 
 const groupNodesByLayer = (nodes: NodeData[], levels: Map<string, number>): NodeData[][] => {
   const buckets = new Map<number, NodeData[]>();
@@ -66,7 +34,7 @@ export const dagLayout = (
     return [];
   }
 
-  const { levels } = assignLayers(nodes, edges);
+  const { levels } = assignDagLevels(nodes, edges);
   const layers = groupNodesByLayer(nodes, levels);
   const { maxWidth: maxNodeWidth, maxHeight: maxNodeHeight } = getMaxNodeDimensions(nodes);
   const columnGap = maxNodeWidth + gap;
