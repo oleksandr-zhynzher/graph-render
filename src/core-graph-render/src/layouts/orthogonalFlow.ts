@@ -46,8 +46,12 @@ export const orthogonalFlowLayout = (
       );
 
       return levelNodes.map((node) => {
+        const nodeWidth = node.size?.width ?? DEFAULT_NODE_SIZE.width;
         const position = {
-          x: baseX + level * columnGap * horizontalSign,
+          x:
+            baseX +
+            level * columnGap * horizontalSign +
+            (direction === LayoutDirection.RTL ? maxNodeWidth - nodeWidth : 0),
           y,
         };
         y += (node.size?.height ?? DEFAULT_NODE_SIZE.height) + verticalGap;
