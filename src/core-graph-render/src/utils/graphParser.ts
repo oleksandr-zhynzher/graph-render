@@ -50,7 +50,29 @@ const sanitizeRecord = <T extends Record<string, unknown>>(value: unknown): T | 
 };
 
 const sanitizeMeasurementHints = (value: unknown): NodeData['measurementHints'] | undefined => {
-  return isPlainObject(value) ? (value as NodeData['measurementHints']) : undefined;
+  if (!isPlainObject(value)) return undefined;
+  // FIX: was a bare cast `(value as NodeData['measurementHints'])` that let
+  // non-numeric values (e.g., paddingX: "8px") flow into layout arithmetic and
+  // produce NaN node sizes.  Each field is now validated individually.
+  return {
+    label: typeof value.label === 'string' ? value.label : undefined,
+    paddingX:
+      isFiniteNumber(value.paddingX) && (value.paddingX as number) >= 0
+        ? (value.paddingX as number)
+        : undefined,
+    paddingY:
+      isFiniteNumber(value.paddingY) && (value.paddingY as number) >= 0
+        ? (value.paddingY as number)
+        : undefined,
+    estimatedCharWidth:
+      isFiniteNumber(value.estimatedCharWidth) && (value.estimatedCharWidth as number) > 0
+        ? (value.estimatedCharWidth as number)
+        : undefined,
+    lineHeight:
+      isFiniteNumber(value.lineHeight) && (value.lineHeight as number) > 0
+        ? (value.lineHeight as number)
+        : undefined,
+  };
 };
 
 const sanitizeNodeData = <TNodeData, TNodeMeta extends Record<string, unknown>, TNodeLabel>(

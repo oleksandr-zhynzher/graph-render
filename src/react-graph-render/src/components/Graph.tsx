@@ -217,7 +217,12 @@ const getLabelBounds = (
     labels,
     autoLabels
   );
-  const minY = Math.min(...nodes.map((node) => node.position.y));
+  // FIX: avoid spreading a potentially large node array into Math.min, which
+  // can throw a RangeError when the argument count exceeds the JS engine limit.
+  const minY = nodes.reduce(
+    (min, node) => Math.min(min, node.position.y),
+    Number.POSITIVE_INFINITY
+  );
   const topY = minY - labelOffset - LABEL_PILL_HEIGHT + 6;
 
   return orderedColumns.reduce<GraphBounds | null>((bounds, column, index) => {
@@ -591,6 +596,18 @@ const GraphInner = (
     visibleNodesWithMeasuredSize,
   ]);
 
+  // FIX: pre-build O(1) id→node and id→edge lookup Maps so that hover callbacks
+  // can use Map.get() instead of Array.find(), avoiding O(n) scans on every
+  // pointer event (which was the main cause of per-hover full-tree re-renders).
+  const positionedNodeMap = useMemo(
+    () => new Map(positionedNodes.map((n) => [n.id, n])),
+    [positionedNodes]
+  );
+  const positionedEdgeMap = useMemo(
+    () => new Map(positionedEdges.map((e) => [e.id, e])),
+    [positionedEdges]
+  );
+
   const graphBounds = useMemo(() => getGraphBounds(positionedNodes), [positionedNodes]);
   const contentBounds = useMemo(() => {
     const bounds = mergeBounds(
@@ -697,6 +714,13 @@ const GraphInner = (
     hoveredNodeStates,
     edgesForRender,
   } = useGraphHover(positionedNodes, positionedEdges, cfg.hoverHighlight);
+
+  // FIX: mirror hoveredNodeId in a ref so that handleNodeMouseLeave can always
+  // read the current value without depending on the state snapshot that changes
+  // every hover event.  Without this, handleNodeMouseLeave was recreated on
+  // every hover, invalidating React.memo on every GraphNode (full re-render).
+  const hoveredNodeIdRef = useRef(hoveredNodeId);
+  hoveredNodeIdRef.current = hoveredNodeId;
 
   const renderContext = useMemo<GraphRenderContext>(
     () => ({
@@ -973,10 +997,15 @@ const GraphInner = (
 
       event.preventDefault();
       const pointer = getRelativeSvgPoint(svgRef.current, event.clientX, event.clientY);
-      const worldX = (pointer.x - viewport.x) / viewport.zoom;
-      const worldY = (pointer.y - viewport.y) / viewport.zoom;
+      // FIX: read the current viewport from the ref instead of the render-closure
+      // snapshot.  Rapid wheel/trackpad events fire before React commits the next
+      // render, so using a stale `viewport` closure variable to compute the zoom
+      // anchor causes the focal point to drift with every fast scroll tick.
+      const current = viewportRef.current;
+      const worldX = (pointer.x - current.x) / current.zoom;
+      const worldY = (pointer.y - current.y) / current.zoom;
       const nextZoom = clampZoom(
-        viewport.zoom + (event.deltaY < 0 ? zoomStep : -zoomStep),
+        current.zoom + (event.deltaY < 0 ? zoomStep : -zoomStep),
         safeMinZoom,
         safeMaxZoom
       );
@@ -987,7 +1016,7 @@ const GraphInner = (
         y: pointer.y - worldY * nextZoom,
       });
     },
-    [safeMaxZoom, safeMinZoom, updateViewport, viewport, zoomEnabled, zoomStep]
+    [safeMaxZoom, safeMinZoom, updateViewport, zoomEnabled, zoomStep]
   );
 
   const handleKeyDown = useCallback(
@@ -1092,24 +1121,30 @@ const GraphInner = (
   const handleNodeMouseEnter = useCallback(
     (nodeId: string) => {
       setHoveredNodeId(nodeId);
-      const node = positionedNodes.find((entry) => entry.id === nodeId);
+      // FIX: use the pre-built Map for O(1) lookup instead of an O(n) Array.find.
+      const node = positionedNodeMap.get(nodeId);
       if (node) {
         emitNodeHover(node, true);
       }
     },
-    [emitNodeHover, positionedNodes, setHoveredNodeId]
+    [emitNodeHover, positionedNodeMap, setHoveredNodeId]
   );
 
   const handleNodeMouseLeave = useCallback(() => {
-    if (hoveredNodeId) {
-      const node = positionedNodes.find((entry) => entry.id === hoveredNodeId);
+    // FIX: read from hoveredNodeIdRef instead of the hoveredNodeId state
+    // snapshot.  The old dep on hoveredNodeId caused a new callback reference
+    // on every hover change, which broke React.memo on every GraphNode child
+    // and triggered a full-node re-render on each single hover event.
+    const currentHoveredId = hoveredNodeIdRef.current;
+    if (currentHoveredId) {
+      const node = positionedNodeMap.get(currentHoveredId);
       if (node) {
         emitNodeHover(node, false);
       }
     }
     setHoveredNodeId(null);
     setFocusedPath(null);
-  }, [emitNodeHover, hoveredNodeId, positionedNodes, setFocusedPath, setHoveredNodeId]);
+  }, [emitNodeHover, positionedNodeMap, setFocusedPath, setHoveredNodeId]);
 
   const handlePathHover = useCallback(
     (nodeId: string, sourceIndex: number, pathKey?: string) => {
@@ -1128,7 +1163,8 @@ const GraphInner = (
 
   const handleEdgeHoverChange = useCallback(
     (edgeId: string, isHovered: boolean) => {
-      const edge = positionedEdges.find((entry) => entry.id === edgeId);
+      // FIX: use the pre-built Map for O(1) lookup instead of an O(n) Array.find.
+      const edge = positionedEdgeMap.get(edgeId);
       if (edge) {
         emitEdgeHover(edge, isHovered);
       }
@@ -1142,7 +1178,7 @@ const GraphInner = (
         setHoveredNodeId(null);
       }
     },
-    [cfg.hoverHighlight, emitEdgeHover, positionedEdges, setHoveredEdgeId, setHoveredNodeId]
+    [cfg.hoverHighlight, emitEdgeHover, positionedEdgeMap, setHoveredEdgeId, setHoveredNodeId]
   );
 
   const svgStyle = useMemo(

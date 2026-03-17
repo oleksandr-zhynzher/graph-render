@@ -44,12 +44,16 @@ export const radialTreeLayout = (
   const maxRadius = Math.max(0, Math.min(width, height) / 2 - pad - maxNodeSize / 2);
   const radiusStep = levels.length > 1 ? maxRadius / (levels.length - 1) : 0;
 
+  // FIX: pre-build an id→node map to avoid an O(n) Array.find inside the
+  // levels.flatMap loop, which was O(n²) overall.
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+
   return levels.flatMap((level, levelIndex) => {
     const radius =
       levelIndex === 0 ? 0 : Math.max(radiusStep * levelIndex, maxNodeSize + gap * 0.4);
 
     return level.map((nodeId, nodeIndex) => {
-      const node = nodes.find((entry) => entry.id === nodeId) as NodeData;
+      const node = nodeById.get(nodeId) as NodeData;
       const size = node.size ?? DEFAULT_NODE_SIZE;
       const angle =
         level.length === 1 ? -Math.PI / 2 : (2 * Math.PI * nodeIndex) / level.length - Math.PI / 2;

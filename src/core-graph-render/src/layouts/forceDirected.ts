@@ -107,7 +107,9 @@ export const forceDirectedLayout = (
   const area = Math.max((width - pad * 2) * (height - pad * 2), 1);
   const k = Math.sqrt(area / Math.max(nodes.length, 1));
   const positions = new Map<string, Point>();
-  const adjacency = new Map<string, string[]>();
+  // FIX: removed the `adjacency` Map that was built here but never read by the
+  // algorithm.  Repulsion iterates node pairs directly; attraction iterates the
+  // `edges` array directly.  Building the map was O(e) wasted work per layout call.
 
   nodes.forEach((node, index) => {
     const angle = (2 * Math.PI * index) / Math.max(nodes.length, 1);
@@ -118,11 +120,8 @@ export const forceDirectedLayout = (
     });
   });
 
-  edges.forEach((edge) => {
-    adjacency.set(edge.source, [...(adjacency.get(edge.source) ?? []), edge.target]);
-    adjacency.set(edge.target, [...(adjacency.get(edge.target) ?? []), edge.source]);
-  });
-
+  // FIX: removed the edges.forEach that populated `adjacency` (now deleted).
+  // The attraction-force loop below already iterates `edges` directly.
   for (let iteration = 0; iteration < 80; iteration += 1) {
     const displacement = new Map<string, Point>();
     nodes.forEach((node) => displacement.set(node.id, { x: 0, y: 0 }));

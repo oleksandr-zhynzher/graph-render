@@ -36,10 +36,12 @@ export const groupPositionedNodesByColumn = <TNode extends PositionedNode = Posi
     }
 
     current.nodes.push(node);
-    current.centerX =
-      current.nodes.reduce((sum, entry) => sum + getNodeCenterX(entry), 0) / current.nodes.length;
-    current.avgWidth =
-      current.nodes.reduce((sum, entry) => sum + getNodeWidth(entry), 0) / current.nodes.length;
+    // FIX: replaced O(k) reduce-based recompute with an O(1) incremental
+    // running average.  The previous approach re-summed the entire column on
+    // every push, making the full grouping O(n×k) for large graphs.
+    const newCount = current.nodes.length; // length after push
+    current.centerX = (current.centerX * (newCount - 1) + nodeCenterX) / newCount;
+    current.avgWidth = (current.avgWidth * (newCount - 1) + nodeWidth) / newCount;
   });
 
   return columns.map((column) => ({

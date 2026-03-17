@@ -174,7 +174,18 @@ export const useGraphModel = ({
   const positionedNodes: PositionedNode[] = useMemo(
     () => {
       if (!layoutNodesOverride) {
-        return layoutNodes(layoutOptions);
+        // FIX: wrap the default layoutNodes call so that a layout error (e.g.
+        // tree layout on a cyclic graph) is reported via onError instead of
+        // propagating as an uncaught exception that crashes the React tree.
+        try {
+          return layoutNodes(layoutOptions);
+        } catch (error) {
+          onError?.(error instanceof Error ? error : new Error(String(error)), {
+            graph,
+            phase: 'layout-override',
+          });
+          return [];
+        }
       }
 
       try {
@@ -184,7 +195,16 @@ export const useGraphModel = ({
           graph,
           phase: 'layout-override',
         });
-        return layoutNodes(layoutOptions);
+        // FIX: also guard the default-layout fallback after an override failure.
+        try {
+          return layoutNodes(layoutOptions);
+        } catch (fallbackError) {
+          onError?.(
+            fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)),
+            { graph, phase: 'layout-override' }
+          );
+          return [];
+        }
       }
     },
     [graph, layoutNodesOverride, layoutOptions, onError]
@@ -206,7 +226,18 @@ export const useGraphModel = ({
   const positionedEdges: PositionedEdge[] = useMemo(
     () => {
       if (!routeEdgesOverride) {
-        return routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions);
+        // FIX: wrap the default routeEdges call so that a routing error (e.g.
+        // an edge referencing an unknown node) is reported via onError instead
+        // of propagating as an uncaught exception that crashes the React tree.
+        try {
+          return routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions);
+        } catch (error) {
+          onError?.(error instanceof Error ? error : new Error(String(error)), {
+            graph,
+            phase: 'routing-override',
+          });
+          return [];
+        }
       }
 
       try {
@@ -216,7 +247,16 @@ export const useGraphModel = ({
           graph,
           phase: 'routing-override',
         });
-        return routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions);
+        // FIX: also guard the default-routing fallback after an override failure.
+        try {
+          return routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions);
+        } catch (fallbackError) {
+          onError?.(
+            fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)),
+            { graph, phase: 'routing-override' }
+          );
+          return [];
+        }
       }
     },
     [edgeRoutingOptions, graph, onError, positionedNodes, routeEdgesOverride, visibleEdges]

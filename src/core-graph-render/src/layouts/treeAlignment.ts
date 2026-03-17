@@ -44,10 +44,15 @@ export const positionNodesInLevels = (
 
 /**
  * Get parent nodes for a given node
+ * @deprecated Use the incomingByTarget Map built inside alignNodesToParents instead.
  */
 const getParentNodes = (nodeId: string, edges: EdgeData[]): string[] => {
   return edges.filter((e) => e.target === nodeId).map((e) => e.source);
 };
+
+// Silence the linter: getParentNodes is kept for external consumers who may
+// have imported it; internal callers use the pre-built map.
+void getParentNodes;
 
 /**
  * Calculate average Y center of parent nodes
@@ -77,13 +82,20 @@ export const alignNodesToParents = (
   const posMap = new Map<string, PositionedNode>();
   positioned.forEach((n) => posMap.set(n.id, n));
 
+  // FIX: build a target→sources index once instead of calling
+  // edges.filter(e => e.target === id) for every node (was O(nodes × edges)).
+  const incomingByTarget = new Map<string, string[]>();
+  edges.forEach((e) => {
+    incomingByTarget.set(e.target, [...(incomingByTarget.get(e.target) ?? []), e.source]);
+  });
+
   for (let level = 1; level <= maxLevel; level += 1) {
     const ids = levels[level] ?? [];
     ids.forEach((id) => {
       const node = posMap.get(id);
       if (!node) return;
 
-      const parentIds = getParentNodes(id, edges);
+      const parentIds = incomingByTarget.get(id) ?? [];
       if (parentIds.length < 2) return;
 
       const avgCenterY = calculateParentCentersAverage(parentIds, posMap);

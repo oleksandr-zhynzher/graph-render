@@ -77,8 +77,11 @@ const buildMultiPointPath = (points: Point[]): string => {
     const next = rest[i + 1];
     const isLastCurve = i === rest.length - 2;
     if (isLastCurve) {
+      // FIX: removed the trailing `L rest[last]` that duplicated the Q endpoint.
+      // When isLastCurve is true, `next === rest[rest.length - 1]`, so the Q
+      // command already terminates at the final point.  The extra L produced a
+      // zero-length segment that misplaced SVG `marker-end` arrowheads.
       commands.push(`Q ${ctrl.x} ${ctrl.y} ${next.x} ${next.y}`);
-      commands.push(`L ${rest[rest.length - 1].x} ${rest[rest.length - 1].y}`);
       break;
     }
     commands.push(`Q ${ctrl.x} ${ctrl.y} ${next.x} ${next.y}`);
@@ -93,17 +96,22 @@ const buildMultiPointPath = (points: Point[]): string => {
 };
 
 /**
- * Build an SVG path string from edge points
+ * Build an SVG path string from edge points.
+ *
+ * Returns null (instead of throwing) when the edge has fewer than two points so
+ * that a malformed edge from a user-supplied routeEdgesOverride does not crash
+ * the React render tree.  Both callers (EdgePath and svg.ts) already guard
+ * against a falsy return value.
  */
 export const buildEdgePath = (
   edge: PositionedEdge,
   curveEdges: boolean,
   curveStrength: number
-): string => {
+): string | null => {
+  // FIX: was `throw new Error(...)` — returning null lets callers handle
+  // the bad edge gracefully without an unhandled exception in render.
   if (edge.points.length < 2) {
-    throw new Error(
-      `Cannot build a path for edge "${edge.id}" because it has fewer than two points.`
-    );
+    return null;
   }
 
   if (!curveEdges) {

@@ -87,7 +87,10 @@ const normalizeTheme = (theme?: GraphTheme): GraphTheme => ({
     Number.isFinite(theme.nodeBorderWidth) &&
     theme.nodeBorderWidth >= 0
       ? theme.nodeBorderWidth
-      : theme?.nodeBorderWidth,
+      // FIX: was `theme?.nodeBorderWidth`, which passed invalid values (e.g.,
+      // the string "2px") straight through to the SVG stroke-width attribute.
+      // All other config fields fall back to a safe default; this now does too.
+      : undefined,
 });
 
 export interface NormalizedGraphConfig extends Omit<GraphConfig, 'theme' | 'fixedNodeSize'> {

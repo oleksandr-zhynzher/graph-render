@@ -92,7 +92,12 @@ export function GraphLabels({
 
   if (!orderedXs.length || !orderedLabels.length) return null;
 
-  const minY = Math.min(...positionedNodes.map((n) => n.position.y));
+  // FIX: avoid spreading a potentially large array into Math.min, which can
+  // throw a RangeError when the argument count exceeds the JS engine limit.
+  const minY = positionedNodes.reduce(
+    (min, n) => Math.min(min, n.position.y),
+    Number.POSITIVE_INFINITY
+  );
   const y = minY - labelOffset;
 
   return (
