@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { EdgeType, LayoutType, Point } from '@graph-render/types';
 import { fromTypedNxGraph, layoutNodes, routeEdges } from '@graph-render/core';
 import {
   EdgeData,
@@ -13,6 +14,130 @@ import {
 } from '@graph-render/types';
 import type { NormalizedGraphConfig } from '@graph-render/core';
 import { useGraphSearchState } from './useGraphSearchState';
+
+const isFinitePoint = (point: Point | undefined): point is Point => {
+  return Boolean(point && Number.isFinite(point.x) && Number.isFinite(point.y));
+};
+
+const validatePositionedNodes = (
+  nodes: PositionedNode[],
+  expectedNodes: NodeData[],
+  source: 'layout' | 'layout override'
+): void => {
+  const expectedIds = new Set(expectedNodes.map((node) => node.id));
+
+  if (nodes.length !== expectedNodes.length) {
+    throw new Error(
+      `${source} must return ${expectedNodes.length} nodes, received ${nodes.length}.`
+    );
+  }
+
+  const seenIds = new Set<string>();
+  nodes.forEach((node) => {
+    if (!expectedIds.has(node.id)) {
+      throw new Error(`${source} returned unknown node id "${node.id}".`);
+    }
+    if (seenIds.has(node.id)) {
+      throw new Error(`${source} returned duplicate node id "${node.id}".`);
+    }
+    if (!isFinitePoint(node.position)) {
+      throw new Error(`${source} returned a non-finite position for node "${node.id}".`);
+    }
+    seenIds.add(node.id);
+  });
+};
+
+const validatePositionedEdges = (
+  edges: PositionedEdge[],
+  nodeIds: Set<string>,
+  source: 'routing' | 'routing override'
+): void => {
+  const seenIds = new Set<string>();
+
+  edges.forEach((edge) => {
+    if (seenIds.has(edge.id)) {
+      throw new Error(`${source} returned duplicate edge id "${edge.id}".`);
+    }
+    if (!nodeIds.has(edge.source) || !nodeIds.has(edge.target)) {
+      throw new Error(
+        `${source} returned edge "${edge.id}" with unknown endpoint(s): ${edge.source} -> ${edge.target}.`
+      );
+    }
+    if (!Array.isArray(edge.points) || edge.points.length < 2) {
+      throw new Error(`${source} returned edge "${edge.id}" without a valid point path.`);
+    }
+    edge.points.forEach((point, index) => {
+      if (!isFinitePoint(point)) {
+        throw new Error(
+          `${source} returned a non-finite point at index ${index} for edge "${edge.id}".`
+        );
+      }
+    });
+    seenIds.add(edge.id);
+  });
+};
+
+const buildFallbackLayout = (layoutOptions: LayoutOptions): PositionedNode[] => {
+  return layoutNodes({
+    ...layoutOptions,
+    layout: LayoutType.Centered,
+  });
+};
+
+const buildFallbackEdges = (
+  positionedNodes: PositionedNode[],
+  edges: EdgeData[]
+): PositionedEdge[] => {
+  const nodeMap = new Map(positionedNodes.map((node) => [node.id, node]));
+
+  return edges.flatMap((edge) => {
+    const source = nodeMap.get(edge.source);
+    const target = nodeMap.get(edge.target);
+
+    if (!source || !target) {
+      return [];
+    }
+
+    const sourceWidth = source.size?.width ?? 0;
+    const sourceHeight = source.size?.height ?? 0;
+    const targetWidth = target.size?.width ?? 0;
+    const targetHeight = target.size?.height ?? 0;
+
+    if (source.id === target.id) {
+      const right = source.position.x + sourceWidth;
+      const top = source.position.y;
+      return [
+        {
+          ...edge,
+          type: edge.type ?? EdgeType.Directed,
+          points: [
+            { x: right - Math.min(sourceWidth * 0.25, 18), y: top + Math.min(sourceHeight * 0.35, 18) },
+            { x: right + 28, y: top - 20 },
+            { x: right + 36, y: top + sourceHeight / 2 },
+            { x: right - Math.min(sourceWidth * 0.25, 18), y: top + sourceHeight * 0.8 },
+          ],
+        },
+      ];
+    }
+
+    return [
+      {
+        ...edge,
+        type: edge.type ?? EdgeType.Directed,
+        points: [
+          {
+            x: source.position.x + sourceWidth / 2,
+            y: source.position.y + sourceHeight / 2,
+          },
+          {
+            x: target.position.x + targetWidth / 2,
+            y: target.position.y + targetHeight / 2,
+          },
+        ],
+      },
+    ];
+  });
+};
 
 interface UseGraphModelOptions {
   graph: NxGraphInput;
@@ -39,7 +164,14 @@ interface UseGraphModelOptions {
     edges: EdgeData[],
     options?: RouteEdgesOptions
   ) => PositionedEdge[];
-  onError?: (error: Error, context: { graph: NxGraphInput; phase: 'layout-override' | 'routing-override' }) => void;
+  /**
+   * Called whenever an internal layout or routing step throws.
+   * - `'layout'`          — the default `layoutNodes` threw
+   * - `'layout-override'` — a `layoutNodesOverride` threw (default was used as fallback)
+   * - `'routing'`         — the default `routeEdges` threw
+   * - `'routing-override'`— a `routeEdgesOverride` threw (default was used as fallback)
+   */
+  onError?: (error: Error, context: { graph: NxGraphInput; phase: 'layout' | 'layout-override' | 'routing' | 'routing-override' }) => void;
 }
 
 export interface GraphModelResult {
@@ -149,6 +281,8 @@ export const useGraphModel = ({
     }),
     [config, mergedTheme, visibleEdges, visibleNodes]
   );
+  const lastGoodPositionedNodesRef = useRef<PositionedNode[]>([]);
+  const lastGoodPositionedEdgesRef = useRef<PositionedEdge[]>([]);
 
   const handleNodeMeasure = useCallback(
     (nodeId: string, size: { width: number; height: number }) => {
@@ -173,41 +307,73 @@ export const useGraphModel = ({
 
   const positionedNodes: PositionedNode[] = useMemo(
     () => {
+      const rememberNodes = (nextNodes: PositionedNode[]) => {
+        lastGoodPositionedNodesRef.current = nextNodes;
+        return nextNodes;
+      };
+
       if (!layoutNodesOverride) {
-        // FIX: wrap the default layoutNodes call so that a layout error (e.g.
-        // tree layout on a cyclic graph) is reported via onError instead of
-        // propagating as an uncaught exception that crashes the React tree.
         try {
-          return layoutNodes(layoutOptions);
+          const laidOutNodes = layoutNodes(layoutOptions);
+          validatePositionedNodes(laidOutNodes, visibleNodes, 'layout');
+          return rememberNodes(laidOutNodes);
         } catch (error) {
           onError?.(error instanceof Error ? error : new Error(String(error)), {
             graph,
-            phase: 'layout-override',
+            phase: 'layout',
           });
-          return [];
+          try {
+            const fallbackNodes = buildFallbackLayout(layoutOptions);
+            validatePositionedNodes(fallbackNodes, visibleNodes, 'layout');
+            return rememberNodes(fallbackNodes);
+          } catch (fallbackError) {
+            onError?.(
+              fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)),
+              {
+                graph,
+                phase: 'layout',
+              }
+            );
+            return lastGoodPositionedNodesRef.current;
+          }
         }
       }
 
       try {
-        return layoutNodesOverride(layoutOptions);
+        const overrideNodes = layoutNodesOverride(layoutOptions);
+        validatePositionedNodes(overrideNodes, visibleNodes, 'layout override');
+        return rememberNodes(overrideNodes);
       } catch (error) {
         onError?.(error instanceof Error ? error : new Error(String(error)), {
           graph,
           phase: 'layout-override',
         });
-        // FIX: also guard the default-layout fallback after an override failure.
         try {
-          return layoutNodes(layoutOptions);
+          const fallbackNodes = layoutNodes(layoutOptions);
+          validatePositionedNodes(fallbackNodes, visibleNodes, 'layout');
+          return rememberNodes(fallbackNodes);
         } catch (fallbackError) {
           onError?.(
             fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)),
-            { graph, phase: 'layout-override' }
+            { graph, phase: 'layout' }
           );
-          return [];
+          try {
+            const finalFallbackNodes = buildFallbackLayout(layoutOptions);
+            validatePositionedNodes(finalFallbackNodes, visibleNodes, 'layout');
+            return rememberNodes(finalFallbackNodes);
+          } catch (finalFallbackError) {
+            onError?.(
+              finalFallbackError instanceof Error
+                ? finalFallbackError
+                : new Error(String(finalFallbackError)),
+              { graph, phase: 'layout' }
+            );
+            return lastGoodPositionedNodesRef.current;
+          }
         }
       }
     },
-    [graph, layoutNodesOverride, layoutOptions, onError]
+    [graph, layoutNodesOverride, layoutOptions, onError, visibleNodes]
   );
 
   const edgeRoutingOptions = useMemo(
@@ -225,41 +391,61 @@ export const useGraphModel = ({
 
   const positionedEdges: PositionedEdge[] = useMemo(
     () => {
+      const nodeIds = new Set(positionedNodes.map((node) => node.id));
+      const rememberEdges = (nextEdges: PositionedEdge[]) => {
+        lastGoodPositionedEdgesRef.current = nextEdges;
+        return nextEdges;
+      };
+
       if (!routeEdgesOverride) {
-        // FIX: wrap the default routeEdges call so that a routing error (e.g.
-        // an edge referencing an unknown node) is reported via onError instead
-        // of propagating as an uncaught exception that crashes the React tree.
         try {
-          return routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions);
+          const routedEdges = routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions);
+          validatePositionedEdges(routedEdges, nodeIds, 'routing');
+          return rememberEdges(routedEdges);
         } catch (error) {
           onError?.(error instanceof Error ? error : new Error(String(error)), {
             graph,
-            phase: 'routing-override',
+            phase: 'routing',
           });
-          return [];
+          const fallbackEdges = buildFallbackEdges(positionedNodes, visibleEdges);
+          return rememberEdges(fallbackEdges);
         }
       }
 
       try {
-        return routeEdgesOverride(positionedNodes, visibleEdges, edgeRoutingOptions);
+        const overrideEdges = routeEdgesOverride(positionedNodes, visibleEdges, edgeRoutingOptions);
+        validatePositionedEdges(overrideEdges, nodeIds, 'routing override');
+        return rememberEdges(overrideEdges);
       } catch (error) {
         onError?.(error instanceof Error ? error : new Error(String(error)), {
           graph,
           phase: 'routing-override',
         });
-        // FIX: also guard the default-routing fallback after an override failure.
         try {
-          return routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions);
+          const fallbackEdges = routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions);
+          validatePositionedEdges(fallbackEdges, nodeIds, 'routing');
+          return rememberEdges(fallbackEdges);
         } catch (fallbackError) {
           onError?.(
             fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError)),
-            { graph, phase: 'routing-override' }
+            { graph, phase: 'routing' }
           );
-          return [];
+          const finalFallbackEdges = buildFallbackEdges(positionedNodes, visibleEdges);
+          if (finalFallbackEdges.length) {
+            return rememberEdges(finalFallbackEdges);
+          }
+          return lastGoodPositionedEdgesRef.current;
         }
       }
     },
-    [edgeRoutingOptions, graph, onError, positionedNodes, routeEdgesOverride, visibleEdges]
+    [
+      edgeRoutingOptions,
+      graph,
+      onError,
+      positionedNodes,
+      routeEdgesOverride,
+      visibleEdges,
+    ]
   );
 
   return {
