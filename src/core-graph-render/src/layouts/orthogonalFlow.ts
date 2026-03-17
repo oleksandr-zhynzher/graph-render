@@ -24,7 +24,9 @@ export const orthogonalFlowLayout = (
   const buckets = new Map<number, NodeData[]>();
   nodes.forEach((node) => {
     const level = levels.get(node.id) ?? 0;
-    buckets.set(level, [...(buckets.get(level) ?? []), node]);
+    const bucket = buckets.get(level) ?? [];
+    bucket.push(node);
+    buckets.set(level, bucket);
   });
 
   const maxNodeWidth = getMaxNodeWidth(nodes);
