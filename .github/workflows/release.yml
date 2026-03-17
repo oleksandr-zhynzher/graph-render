@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    # Prevent running on the version-bump commit that semantic-release itself pushes
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history is required — semantic-release reads every commit since
+          # the last release tag to determine the next version.
+          fetch-depth: 0
+          # Use a PAT (GH_TOKEN) rather than GITHUB_TOKEN so the release commit
+          # can be pushed even when branch protection rules are enabled.
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build all packages
+        run: yarn build
+
+      - name: Release
+        env:
+          # GH_TOKEN: Personal Access Token with repo write + workflow scopes.
+          # Create at github.com → Settings → Developer Settings → Tokens,
+          # then add as a repository secret named GH_TOKEN.
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          # NPM_TOKEN: npm automation token.
+          # Create at npmjs.com → Access Tokens → Generate New Token (Automation),
+          # then add as a repository secret named NPM_TOKEN.
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx multi-semantic-release
