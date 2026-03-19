@@ -190,6 +190,10 @@ const buildNodeMap = <
   return nodeMap;
 };
 
+const hasExplicitNodeDefinitions = (graph: NxGraphInput): boolean => {
+  return Boolean(graph.nodes && Object.keys(graph.nodes).length > 0);
+};
+
 /**
  * Ensure a node exists in the map, creating it if necessary
  */
@@ -204,6 +208,26 @@ const ensureNodeExists = <TNodeData, TNodeMeta extends Record<string, unknown>, 
       TNodeMeta,
       TNodeLabel
     >);
+  }
+};
+
+const assertNodeExists = <TNodeData, TNodeMeta extends Record<string, unknown>, TNodeLabel>(
+  nodeMap: Map<string, NodeData<TNodeData, TNodeMeta, TNodeLabel>>,
+  nodeId: string,
+  graph: NxGraphInput,
+  kind: 'source' | 'target'
+): void => {
+  const sanitizedNodeId = sanitizeNodeId(nodeId, 'edge-endpoint');
+
+  if (!hasExplicitNodeDefinitions(graph)) {
+    ensureNodeExists(nodeMap, sanitizedNodeId);
+    return;
+  }
+
+  if (!nodeMap.has(sanitizedNodeId)) {
+    throw new TypeError(
+      `Graph edge ${kind} "${sanitizedNodeId}" must exist in graph.nodes when explicit node definitions are provided.`
+    );
   }
 };
 
@@ -305,6 +329,7 @@ const processNodeEdges = (
   source: string,
   neighbors: Record<string, NxEdgeAttrs | NxEdgeAttrs[]>,
   defaultEdgeType: 'directed' | 'undirected',
+  graph: NxGraphInput,
   nodeMap: Map<string, NodeData>,
   undirectedSeen: Set<string>,
   usedEdgeIds: Set<string>
@@ -313,7 +338,7 @@ const processNodeEdges = (
 
   for (const [target, rawAttrs] of Object.entries(neighbors)) {
     const sanitizedTarget = sanitizeNodeId(target, 'edge-endpoint');
-    ensureNodeExists(nodeMap, sanitizedTarget);
+    assertNodeExists(nodeMap, sanitizedTarget, graph, 'target');
 
     const attrsList = normalizeEdgeAttributes(rawAttrs);
 
@@ -350,6 +375,7 @@ const processTypedNodeEdges = <
     NxEdgeAttrs<TEdgeMeta, TEdgeLabel> | NxEdgeAttrs<TEdgeMeta, TEdgeLabel>[]
   >,
   defaultEdgeType: 'directed' | 'undirected',
+  graph: NxGraphInput<TNodeData, TNodeMeta, TNodeLabel, TEdgeMeta, TEdgeLabel>,
   nodeMap: Map<string, GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel>>,
   undirectedSeen: Set<string>,
   usedEdgeIds: Set<string>
@@ -358,7 +384,7 @@ const processTypedNodeEdges = <
 
   for (const [target, rawAttrs] of Object.entries(neighbors)) {
     const sanitizedTarget = sanitizeNodeId(target, 'edge-endpoint');
-    ensureNodeExists(nodeMap, sanitizedTarget);
+    assertNodeExists(nodeMap, sanitizedTarget, graph, 'target');
 
     const attrsList = normalizeEdgeAttributes<TEdgeMeta, TEdgeLabel>(rawAttrs);
 
@@ -398,12 +424,13 @@ export const fromNxGraph = (
 
   for (const [source, neighbors] of Object.entries(graph.adj)) {
     const sanitizedSource = sanitizeNodeId(source, 'edge-endpoint');
-    ensureNodeExists(nodeMap, sanitizedSource);
+    assertNodeExists(nodeMap, sanitizedSource, graph, 'source');
 
     const nodeEdges = processNodeEdges(
       sanitizedSource,
       neighbors,
       defaultEdgeType,
+      graph,
       nodeMap,
       undirectedSeen,
       usedEdgeIds
@@ -440,7 +467,7 @@ export const fromTypedNxGraph = <
 
   for (const [source, neighbors] of Object.entries(graph.adj)) {
     const sanitizedSource = sanitizeNodeId(source, 'edge-endpoint');
-    ensureNodeExists(nodeMap, sanitizedSource);
+    assertNodeExists(nodeMap, sanitizedSource, graph, 'source');
 
     const nodeEdges = processTypedNodeEdges<
       TNodeData,
@@ -448,7 +475,15 @@ export const fromTypedNxGraph = <
       TNodeLabel,
       TEdgeMeta,
       TEdgeLabel
-    >(sanitizedSource, neighbors, defaultEdgeType, nodeMap, undirectedSeen, usedEdgeIds);
+    >(
+      sanitizedSource,
+      neighbors,
+      defaultEdgeType,
+      graph,
+      nodeMap,
+      undirectedSeen,
+      usedEdgeIds
+    );
 
     edges.push(...nodeEdges);
   }
