@@ -1,6 +1,7 @@
 import type {
   GraphConfig,
   EdgeType,
+  GraphFailureBehavior,
   LayoutType,
   LayoutDirection,
   GraphTheme,
@@ -10,6 +11,7 @@ import type {
   EdgeRenderer,
   PositionedNode,
   PositionedEdge,
+  GraphInputValidationMode,
 } from './index';
 
 /**
@@ -46,6 +48,8 @@ export interface RenderConfig {
   height: number;
   padding: number | undefined;
   defaultEdgeType: EdgeType;
+  failureBehavior: GraphFailureBehavior;
+  inputValidationMode: GraphInputValidationMode;
   curveEdges: boolean;
   curveStrength: number;
   arrowPadding: number;

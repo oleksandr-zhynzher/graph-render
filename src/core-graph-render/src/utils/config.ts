@@ -1,7 +1,9 @@
 import {
   EdgeType,
   GraphConfig,
+  GraphFailureBehavior,
   GraphTheme,
+  GraphInputValidationMode,
   LayoutDirection,
   LayoutType,
 } from '@graph-render/types';
@@ -41,6 +43,20 @@ const getFiniteBounded = (value: unknown, min: number, max: number, fallback: nu
   return typeof value === 'number' && Number.isFinite(value)
     ? Math.min(Math.max(value, min), max)
     : fallback;
+};
+
+const getFailureBehavior = (
+  value: unknown,
+  fallback: GraphFailureBehavior
+): GraphFailureBehavior => {
+  return value === 'throw' || value === 'degrade' ? value : fallback;
+};
+
+const getInputValidationMode = (
+  value: unknown,
+  fallback: GraphInputValidationMode
+): GraphInputValidationMode => {
+  return value === 'auto' || value === 'strict' || value === 'implicit' ? value : fallback;
 };
 
 const sanitizeCssColor = (value: unknown, fallback: string): string => {
@@ -109,6 +125,8 @@ export interface NormalizedGraphConfig extends Omit<GraphConfig, 'theme' | 'fixe
   height: number;
   padding: number;
   defaultEdgeType: EdgeType;
+  failureBehavior: GraphFailureBehavior;
+  inputValidationMode: GraphInputValidationMode;
   showArrows: boolean;
   nodeSizing: NonNullable<GraphConfig['nodeSizing']>;
   fixedNodeSize: NonNullable<GraphConfig['fixedNodeSize']>;
@@ -145,6 +163,8 @@ export const normalizeGraphConfig = (config?: GraphConfig): NormalizedGraphConfi
     height: getFiniteBounded(config?.height, 1, MAX_DIMENSION, DEFAULT_HEIGHT),
     padding: getFiniteNonNegative(config?.padding, 24),
     defaultEdgeType: getEdgeType(config?.defaultEdgeType, EdgeType.Directed),
+    failureBehavior: getFailureBehavior(config?.failureBehavior, 'throw'),
+    inputValidationMode: getInputValidationMode(config?.inputValidationMode, 'auto'),
     showArrows: config?.showArrows ?? true,
     nodeSizing: getNodeSizing(config?.nodeSizing, 'fixed'),
     fixedNodeSize: normalizeFixedNodeSize(config?.fixedNodeSize),

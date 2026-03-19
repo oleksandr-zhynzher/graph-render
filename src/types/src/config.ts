@@ -1,4 +1,7 @@
 import { NodeSizingMode, Size } from './node';
+import { GraphInputValidationMode } from './graph';
+
+export type GraphFailureBehavior = 'throw' | 'degrade';
 
 export enum EdgeType {
   Directed = 'directed',
@@ -33,6 +36,8 @@ export interface GraphTheme {
 
 export interface GraphConfig {
   defaultEdgeType?: EdgeType;
+  failureBehavior?: GraphFailureBehavior;
+  inputValidationMode?: GraphInputValidationMode;
   showArrows?: boolean;
   width?: number;
   height?: number;

@@ -211,9 +211,14 @@ export const useGraphModel = ({
   >({});
 
   const { nodes: sourceNodes, edges: sourceEdges } = useMemo(
-    () => fromTypedNxGraph(graph, config.defaultEdgeType),
-    [config.defaultEdgeType, graph]
+    () =>
+      fromTypedNxGraph(graph, config.defaultEdgeType, {
+        inputValidationMode: config.inputValidationMode,
+      }),
+    [config.defaultEdgeType, config.inputValidationMode, graph]
   );
+
+  const allowDegradedGraph = config.failureBehavior === 'degrade';
 
   const nodesWithMeasuredSize = useMemo(
     () =>
@@ -320,6 +325,10 @@ export const useGraphModel = ({
             phase: 'layout',
           });
 
+          if (!allowDegradedGraph) {
+            throw toError(error);
+          }
+
           try {
             const fallbackNodes = buildFallbackLayout(layoutOptions);
             validatePositionedNodes(fallbackNodes, visibleNodes, 'layout');
@@ -344,6 +353,10 @@ export const useGraphModel = ({
           graph,
           phase: 'layout-override',
         });
+
+        if (!allowDegradedGraph) {
+          throw toError(error);
+        }
 
         try {
           const fallbackNodes = layoutNodes(layoutOptions);
@@ -394,6 +407,9 @@ export const useGraphModel = ({
             graph,
             phase: 'routing',
           });
+          if (!allowDegradedGraph) {
+            throw toError(error);
+          }
           const fallbackEdges = buildFallbackEdges(positionedNodes, visibleEdges);
           validatePositionedEdges(fallbackEdges, nodeIds, 'routing');
           return fallbackEdges;
@@ -409,6 +425,10 @@ export const useGraphModel = ({
           graph,
           phase: 'routing-override',
         });
+
+        if (!allowDegradedGraph) {
+          throw toError(error);
+        }
 
         try {
           const fallbackEdges = routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions);
@@ -426,6 +446,7 @@ export const useGraphModel = ({
       edgeRoutingOptions,
       graph,
       onError,
+      allowDegradedGraph,
       positionedNodes,
       routeEdgesOverride,
       visibleEdges,

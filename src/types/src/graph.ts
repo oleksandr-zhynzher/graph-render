@@ -1,6 +1,12 @@
 import { NodeId, NodeData } from './node';
 import { EdgeData } from './edge';
 
+export type GraphInputValidationMode = 'auto' | 'strict' | 'implicit';
+
+export interface GraphParserOptions {
+  inputValidationMode?: GraphInputValidationMode;
+}
+
 export type NxNodeAttrs<
   TData = unknown,
   TMeta extends object = Record<string, unknown>,

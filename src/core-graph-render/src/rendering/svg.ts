@@ -26,6 +26,10 @@ const isFinitePoint = (point: Point | undefined): point is Point => {
   return Boolean(point && Number.isFinite(point.x) && Number.isFinite(point.y));
 };
 
+const toError = (error: unknown): Error => {
+  return error instanceof Error ? error : new Error(String(error));
+};
+
 const buildFallbackPositionedEdges = (
   positionedNodes: PositionedNode[],
   edges: EdgeData[]
@@ -104,7 +108,11 @@ const getPositionedNodesWithFallback = (
       labelMeasurementCharWidth: config.labelMeasurementCharWidth,
       labelMeasurementLineHeight: config.labelMeasurementLineHeight,
     });
-  } catch {
+  } catch (error) {
+    if (config.failureBehavior !== 'degrade') {
+      throw toError(error);
+    }
+
     return layoutNodes({
       nodes: sourceNodes,
       edges: normalizedEdges,
@@ -143,7 +151,11 @@ const getPositionedEdgesWithFallback = (
     return routedEdges.filter(
       (edge) => edge.points.length >= 2 && edge.points.every((point) => isFinitePoint(point))
     );
-  } catch {
+  } catch (error) {
+    if (config.failureBehavior !== 'degrade') {
+      throw toError(error);
+    }
+
     return buildFallbackPositionedEdges(positionedNodes, normalizedEdges);
   }
 };
@@ -163,6 +175,8 @@ const extractRenderConfig = (options?: RenderGraphToSvgOptions): RenderConfig =>
     height: cfg.height,
     padding: cfg.padding,
     defaultEdgeType: cfg.defaultEdgeType,
+    failureBehavior: cfg.failureBehavior,
+    inputValidationMode: cfg.inputValidationMode,
     curveEdges: cfg.curveEdges,
     curveStrength: cfg.curveStrength,
     arrowPadding: cfg.arrowPadding,
@@ -299,7 +313,9 @@ export const renderGraphToSvg = (
   const config = extractRenderConfig(options);
 
   // Parse and normalize graph data
-  const { nodes: sourceNodes, edges: sourceEdges } = fromNxGraph(graph, config.defaultEdgeType);
+  const { nodes: sourceNodes, edges: sourceEdges } = fromNxGraph(graph, config.defaultEdgeType, {
+    inputValidationMode: config.inputValidationMode,
+  });
   const normalizedEdges = normalizeEdges(sourceEdges, config.defaultEdgeType);
 
   // Layout nodes and route edges

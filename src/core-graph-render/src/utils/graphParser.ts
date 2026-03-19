@@ -1,4 +1,12 @@
-import { NxGraphInput, NodeData, EdgeData, NxEdgeAttrs, EdgeType } from '@graph-render/types';
+import {
+  NxGraphInput,
+  NodeData,
+  EdgeData,
+  NxEdgeAttrs,
+  EdgeType,
+  GraphParserOptions,
+  GraphInputValidationMode,
+} from '@graph-render/types';
 
 type GraphNodeTuple<TNodeData, TNodeMeta extends Record<string, unknown>, TNodeLabel> = NodeData<
   TNodeData,
@@ -194,6 +202,21 @@ const hasExplicitNodeDefinitions = (graph: NxGraphInput): boolean => {
   return Boolean(graph.nodes && Object.keys(graph.nodes).length > 0);
 };
 
+const resolveInputValidationMode = (
+  graph: NxGraphInput,
+  options?: GraphParserOptions
+): GraphInputValidationMode => {
+  if (options?.inputValidationMode === 'strict') {
+    return 'strict';
+  }
+
+  if (options?.inputValidationMode === 'implicit') {
+    return 'implicit';
+  }
+
+  return hasExplicitNodeDefinitions(graph) ? 'strict' : 'implicit';
+};
+
 /**
  * Ensure a node exists in the map, creating it if necessary
  */
@@ -215,11 +238,12 @@ const assertNodeExists = <TNodeData, TNodeMeta extends Record<string, unknown>, 
   nodeMap: Map<string, NodeData<TNodeData, TNodeMeta, TNodeLabel>>,
   nodeId: string,
   graph: NxGraphInput,
-  kind: 'source' | 'target'
+  kind: 'source' | 'target',
+  inputValidationMode: GraphInputValidationMode
 ): void => {
   const sanitizedNodeId = sanitizeNodeId(nodeId, 'edge-endpoint');
 
-  if (!hasExplicitNodeDefinitions(graph)) {
+  if (inputValidationMode === 'implicit') {
     ensureNodeExists(nodeMap, sanitizedNodeId);
     return;
   }
@@ -330,6 +354,7 @@ const processNodeEdges = (
   neighbors: Record<string, NxEdgeAttrs | NxEdgeAttrs[]>,
   defaultEdgeType: 'directed' | 'undirected',
   graph: NxGraphInput,
+  inputValidationMode: GraphInputValidationMode,
   nodeMap: Map<string, NodeData>,
   undirectedSeen: Set<string>,
   usedEdgeIds: Set<string>
@@ -338,7 +363,7 @@ const processNodeEdges = (
 
   for (const [target, rawAttrs] of Object.entries(neighbors)) {
     const sanitizedTarget = sanitizeNodeId(target, 'edge-endpoint');
-    assertNodeExists(nodeMap, sanitizedTarget, graph, 'target');
+    assertNodeExists(nodeMap, sanitizedTarget, graph, 'target', inputValidationMode);
 
     const attrsList = normalizeEdgeAttributes(rawAttrs);
 
@@ -376,6 +401,7 @@ const processTypedNodeEdges = <
   >,
   defaultEdgeType: 'directed' | 'undirected',
   graph: NxGraphInput<TNodeData, TNodeMeta, TNodeLabel, TEdgeMeta, TEdgeLabel>,
+  inputValidationMode: GraphInputValidationMode,
   nodeMap: Map<string, GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel>>,
   undirectedSeen: Set<string>,
   usedEdgeIds: Set<string>
@@ -384,7 +410,7 @@ const processTypedNodeEdges = <
 
   for (const [target, rawAttrs] of Object.entries(neighbors)) {
     const sanitizedTarget = sanitizeNodeId(target, 'edge-endpoint');
-    assertNodeExists(nodeMap, sanitizedTarget, graph, 'target');
+    assertNodeExists(nodeMap, sanitizedTarget, graph, 'target', inputValidationMode);
 
     const attrsList = normalizeEdgeAttributes<TEdgeMeta, TEdgeLabel>(rawAttrs);
 
@@ -413,24 +439,27 @@ const processTypedNodeEdges = <
  */
 export const fromNxGraph = (
   graph: NxGraphInput,
-  defaultEdgeType: EdgeType = EdgeType.Undirected
+  defaultEdgeType: EdgeType = EdgeType.Undirected,
+  options?: GraphParserOptions
 ): { nodes: NodeData[]; edges: EdgeData[] } => {
   assertValidGraphInput(graph);
 
   const nodeMap = buildNodeMap(graph);
+  const inputValidationMode = resolveInputValidationMode(graph, options);
   const undirectedSeen = new Set<string>();
   const usedEdgeIds = new Set<string>();
   const edges: EdgeData[] = [];
 
   for (const [source, neighbors] of Object.entries(graph.adj)) {
     const sanitizedSource = sanitizeNodeId(source, 'edge-endpoint');
-    assertNodeExists(nodeMap, sanitizedSource, graph, 'source');
+    assertNodeExists(nodeMap, sanitizedSource, graph, 'source', inputValidationMode);
 
     const nodeEdges = processNodeEdges(
       sanitizedSource,
       neighbors,
       defaultEdgeType,
       graph,
+      inputValidationMode,
       nodeMap,
       undirectedSeen,
       usedEdgeIds
@@ -453,7 +482,8 @@ export const fromTypedNxGraph = <
   TEdgeLabel = unknown,
 >(
   graph: NxGraphInput<TNodeData, TNodeMeta, TNodeLabel, TEdgeMeta, TEdgeLabel>,
-  defaultEdgeType: EdgeType = EdgeType.Undirected
+  defaultEdgeType: EdgeType = EdgeType.Undirected,
+  options?: GraphParserOptions
 ): {
   nodes: GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel>[];
   edges: GraphEdgeTuple<TEdgeMeta, TEdgeLabel>[];
@@ -461,13 +491,14 @@ export const fromTypedNxGraph = <
   assertValidGraphInput(graph as NxGraphInput);
 
   const nodeMap = buildNodeMap<TNodeData, TNodeMeta, TNodeLabel, TEdgeMeta, TEdgeLabel>(graph);
+  const inputValidationMode = resolveInputValidationMode(graph as NxGraphInput, options);
   const undirectedSeen = new Set<string>();
   const usedEdgeIds = new Set<string>();
   const edges: GraphEdgeTuple<TEdgeMeta, TEdgeLabel>[] = [];
 
   for (const [source, neighbors] of Object.entries(graph.adj)) {
     const sanitizedSource = sanitizeNodeId(source, 'edge-endpoint');
-    assertNodeExists(nodeMap, sanitizedSource, graph, 'source');
+    assertNodeExists(nodeMap, sanitizedSource, graph, 'source', inputValidationMode);
 
     const nodeEdges = processTypedNodeEdges<
       TNodeData,
@@ -480,6 +511,7 @@ export const fromTypedNxGraph = <
       neighbors,
       defaultEdgeType,
       graph,
+      inputValidationMode,
       nodeMap,
       undirectedSeen,
       usedEdgeIds
