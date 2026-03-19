@@ -12,14 +12,16 @@ export const LABEL_PILL_HEIGHT = 20;
 export const LABEL_PILL_RADIUS = 8;
 const LABEL_PILL_PADDING_X = 12;
 const LABEL_PILL_CHAR_WIDTH = 7;
+const MAX_LABEL_PILL_CHARS = 48;
 
 const LABEL_PILL_FONT_SIZE = 12;
 const LABEL_PILL_FONT_WEIGHT = 700;
 
 export function getLabelPillWidth(label: string): number {
+  const charCount = Math.min(Array.from(label).length, MAX_LABEL_PILL_CHARS);
   return Math.max(
     LABEL_PILL_MIN_WIDTH,
-    label.length * LABEL_PILL_CHAR_WIDTH + LABEL_PILL_PADDING_X * 2
+    charCount * LABEL_PILL_CHAR_WIDTH + LABEL_PILL_PADDING_X * 2
   );
 }
 

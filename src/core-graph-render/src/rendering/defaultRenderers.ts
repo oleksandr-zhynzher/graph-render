@@ -11,6 +11,9 @@ import {
   DEFAULT_TEXT_SIZE,
 } from '../utils';
 
+const MAX_RENDER_LABEL_LENGTH = 2_000;
+const MAX_RENDER_LABEL_LINES = 8;
+
 /**
  * Extract label from node data
  */
@@ -19,6 +22,17 @@ const getNodeLabel = (node: PositionedNode): string => {
     return String(node.label);
   }
   return node.id;
+};
+
+const getRenderableLabelLines = (label: string): string[] => {
+  const truncated = label.slice(0, MAX_RENDER_LABEL_LENGTH);
+  const lines = truncated
+    .split(/\r?\n/)
+    .slice(0, MAX_RENDER_LABEL_LINES)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  return lines.length ? lines : [''];
 };
 
 /**
@@ -42,9 +56,18 @@ const createNodeRect = (width: number, height: number, radius: number): string =
  * Create SVG text element for node label
  */
 const createNodeText = (label: string, width: number, height: number): string => {
+  const lines = getRenderableLabelLines(label);
   const x = width / 2;
-  const y = height / 2 + 4; // Small offset for better vertical centering
-  return `<text x="${x}" y="${y}" fill="${DEFAULT_TEXT_FILL}" font-size="${DEFAULT_TEXT_SIZE}" font-weight="600" text-anchor="middle">${escapeXml(label)}</text>`;
+  const lineHeight = DEFAULT_TEXT_SIZE + 4;
+  const firstLineY = height / 2 - ((lines.length - 1) * lineHeight) / 2 + 4;
+  const tspans = lines
+    .map(
+      (line, index) =>
+        `<tspan x="${x}" y="${firstLineY + index * lineHeight}">${escapeXml(line)}</tspan>`
+    )
+    .join('');
+
+  return `<text x="${x}" fill="${DEFAULT_TEXT_FILL}" font-size="${DEFAULT_TEXT_SIZE}" font-weight="600" text-anchor="middle">${tspans}</text>`;
 };
 
 /**
