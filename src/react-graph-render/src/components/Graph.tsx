@@ -27,6 +27,7 @@ import {
 import { useGraphHover } from '../hooks/useGraphHover';
 import { useGraphCollapse } from '../hooks/useGraphCollapse';
 import { useGraphModel } from '../hooks/useGraphModel';
+import { useGraphViewState } from '../hooks/useGraphViewState';
 import { useStableConfig } from '../hooks/useStableConfig';
 import { groupPositionedNodesByColumn } from '../utils/columns';
 import {
@@ -74,16 +75,6 @@ type SelectionBox = {
   endX: number;
   endY: number;
 };
-
-const normalizeViewport = (
-  viewport: GraphViewport,
-  minZoom: number,
-  maxZoom: number
-): GraphViewport => ({
-  x: Number.isFinite(viewport.x) ? viewport.x : 0,
-  y: Number.isFinite(viewport.y) ? viewport.y : 0,
-  zoom: clampZoom(Number.isFinite(viewport.zoom) ? viewport.zoom : 1, minZoom, maxZoom),
-});
 
 const normalizeZoomRange = (
   minZoom: number,
@@ -407,16 +398,6 @@ const GraphInner = (
   // consumers do not cascade a full model recompute on every parent render.
   const stableConfig = useStableConfig(config);
   const markerPrefix = useId().replace(/:/g, '-');
-  const [internalViewport, setInternalViewport] = useState<GraphViewport>(() =>
-    normalizeViewport({ ...DEFAULT_VIEWPORT, ...(defaultViewport ?? {}) }, safeMinZoom, safeMaxZoom)
-  );
-  const [internalSelection, setInternalSelection] = useState<GraphSelection>({
-    nodeIds: defaultSelectedNodeIds ?? [],
-    edgeIds: defaultSelectedEdgeIds ?? [],
-  });
-  const [internalFocusedNodeId, setInternalFocusedNodeId] = useState<string | null>(
-    defaultFocusedNodeId
-  );
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<DragState>({
@@ -457,27 +438,30 @@ const GraphInner = (
   const hoverIncomingArrowMarkerId = `${markerPrefix}-arrow-hover-in`;
   const selectionArrowMarkerId = `${markerPrefix}-arrow-selected`;
 
-  const viewport = useMemo(
-    () => normalizeViewport(controlledViewport ?? internalViewport, safeMinZoom, safeMaxZoom),
-    [controlledViewport, internalViewport, safeMaxZoom, safeMinZoom]
-  );
-  // Always keep a ref in sync so gesture handlers can read the latest value
-  // without closing over the rendered snapshot (avoids dropped events on rapid input).
-  const viewportRef = useRef(viewport);
-  viewportRef.current = viewport;
-  const onViewportChangeRef = useRef(onViewportChange);
-  onViewportChangeRef.current = onViewportChange;
-  const selection = useMemo<GraphSelection>(
-    () => ({
-      nodeIds: selectedNodeIds ?? internalSelection.nodeIds,
-      edgeIds: selectedEdgeIds ?? internalSelection.edgeIds,
-    }),
-    [selectedNodeIds, selectedEdgeIds, internalSelection]
-  );
-  const selectionRef = useRef(selection);
-  selectionRef.current = selection;
-  const focusedNodeId =
-    controlledFocusedNodeId !== undefined ? controlledFocusedNodeId : internalFocusedNodeId;
+  const {
+    viewport,
+    viewportRef,
+    selection,
+    selectionRef,
+    focusedNodeId,
+    updateViewport,
+    updateSelection,
+    updateFocusedNode,
+  } = useGraphViewState({
+    controlledViewport,
+    defaultViewport,
+    safeMinZoom,
+    safeMaxZoom,
+    onViewportChange,
+    selectedNodeIds,
+    selectedEdgeIds,
+    defaultSelectedNodeIds,
+    defaultSelectedEdgeIds,
+    onSelectionChange,
+    controlledFocusedNodeId,
+    defaultFocusedNodeId,
+    onFocusedNodeChange,
+  });
   const {
     collapsedIds,
     collapsedNodeSet,
@@ -491,55 +475,6 @@ const GraphInner = (
   });
   const selectedNodeSet = useMemo(() => new Set(selection.nodeIds), [selection.nodeIds]);
   const selectedEdgeSet = useMemo(() => new Set(selection.edgeIds), [selection.edgeIds]);
-
-  const updateViewport = useCallback(
-    (
-      next:
-        | Partial<GraphViewport>
-        | ((current: GraphViewport) => Partial<GraphViewport> | GraphViewport)
-    ) => {
-      // Read the latest viewport from the ref so that rapid-fire events
-      // (wheel, pinch) always compute their delta from the current state
-      // rather than a stale closure snapshot.
-      const current = viewportRef.current;
-      const resolved = typeof next === 'function' ? next(current) : next;
-      const normalized = normalizeViewport({ ...current, ...resolved }, safeMinZoom, safeMaxZoom);
-
-      if (!controlledViewport) {
-        setInternalViewport(normalized);
-      }
-      onViewportChangeRef.current?.(normalized);
-      return normalized;
-    },
-    // viewport and onViewportChange are intentionally excluded: both are read
-    // via refs so the callback stays stable across renders.
-    [controlledViewport, safeMaxZoom, safeMinZoom]
-  );
-
-  const updateSelection = useCallback(
-    (next: GraphSelection | ((current: GraphSelection) => GraphSelection)) => {
-      const current = selectionRef.current;
-      const resolved = typeof next === 'function' ? next(current) : next;
-      if (selectedNodeIds == null || selectedEdgeIds == null) {
-        setInternalSelection((previous) => ({
-          nodeIds: selectedNodeIds == null ? resolved.nodeIds : previous.nodeIds,
-          edgeIds: selectedEdgeIds == null ? resolved.edgeIds : previous.edgeIds,
-        }));
-      }
-      onSelectionChange?.(resolved);
-    },
-    [onSelectionChange, selectedEdgeIds, selectedNodeIds]
-  );
-
-  const updateFocusedNode = useCallback(
-    (nodeId: string | null) => {
-      if (controlledFocusedNodeId === undefined) {
-        setInternalFocusedNodeId(nodeId);
-      }
-      onFocusedNodeChange?.(nodeId);
-    },
-    [controlledFocusedNodeId, onFocusedNodeChange]
-  );
 
   const {
     childNodeIdsByParent,
