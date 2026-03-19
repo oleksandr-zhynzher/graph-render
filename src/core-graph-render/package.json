@@ -1,8 +1,10 @@
 {
   "name": "@graph-render/core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
-  "publishConfig": { "access": "public" },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,7 +19,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@graph-render/types": "1.0.0"
+    "@graph-render/types": "1.0.1"
   },
   "devDependencies": {
     "@types/node": "^20.10.7",

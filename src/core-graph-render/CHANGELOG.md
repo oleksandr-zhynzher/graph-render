@@ -1,3 +1,17 @@
+## @graph-render/core [1.0.1](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/core@1.0.0...@graph-render/core@1.0.1) (2026-03-19)
+
+### 🐛 Bug Fixes
+
+* **core:** bound smart routing collision scans ([4987920](https://github.com/oleksandr-zhynzher/graph-render/commit/4987920aa46ca1535ca4b69f2f5d47eb4edbf244))
+* **core:** harden config normalization and stability ([983e372](https://github.com/oleksandr-zhynzher/graph-render/commit/983e372b767f20c12f220ca2206eac87ab31887c))
+* **core:** reject dangling endpoints with explicit node maps ([b64d493](https://github.com/oleksandr-zhynzher/graph-render/commit/b64d493ccaad520d558195861076e11a194228d7))
+* **labels:** cap label work and render multiline defaults ([395c444](https://github.com/oleksandr-zhynzher/graph-render/commit/395c44417df8d9476023090668596f3ec0e68fcc))
+
+
+### Dependencies
+
+* **@graph-render/types:** upgraded to 1.0.1
+
 ## @graph-render/core 1.0.0 (2026-03-17)
 
 ### 🚀 Features
