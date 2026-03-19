@@ -25,6 +25,7 @@ import {
   PositionedNode,
 } from '@graph-render/types';
 import { useGraphHover } from '../hooks/useGraphHover';
+import { useGraphCollapse } from '../hooks/useGraphCollapse';
 import { useGraphModel } from '../hooks/useGraphModel';
 import { useStableConfig } from '../hooks/useStableConfig';
 import { groupPositionedNodesByColumn } from '../utils/columns';
@@ -416,10 +417,6 @@ const GraphInner = (
   const [internalFocusedNodeId, setInternalFocusedNodeId] = useState<string | null>(
     defaultFocusedNodeId
   );
-  const [internalCollapsedNodeIds, setInternalCollapsedNodeIds] = useState<string[]>(
-    defaultCollapsedNodeIds ?? []
-  );
-  const [pendingExpansionNodeIds, setPendingExpansionNodeIds] = useState<string[]>([]);
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<DragState>({
@@ -481,9 +478,17 @@ const GraphInner = (
   selectionRef.current = selection;
   const focusedNodeId =
     controlledFocusedNodeId !== undefined ? controlledFocusedNodeId : internalFocusedNodeId;
-  const collapsedIds = collapsedNodeIds ?? internalCollapsedNodeIds;
-  const collapsedIdsRef = useRef(collapsedIds);
-  collapsedIdsRef.current = collapsedIds;
+  const {
+    collapsedIds,
+    collapsedNodeSet,
+    pendingExpansionNodeSet,
+    updateCollapsedNodeIds,
+    setPendingExpansionNodeIds,
+  } = useGraphCollapse({
+    collapsedNodeIds,
+    defaultCollapsedNodeIds,
+    onCollapsedNodeIdsChange,
+  });
   const selectedNodeSet = useMemo(() => new Set(selection.nodeIds), [selection.nodeIds]);
   const selectedEdgeSet = useMemo(() => new Set(selection.edgeIds), [selection.edgeIds]);
 
@@ -536,22 +541,6 @@ const GraphInner = (
     [controlledFocusedNodeId, onFocusedNodeChange]
   );
 
-  const updateCollapsedNodeIds = useCallback(
-    (next: string[] | ((current: string[]) => string[])) => {
-      const current = collapsedIdsRef.current;
-      const resolved = typeof next === 'function' ? next(current) : next;
-      if (collapsedNodeIds == null) {
-        setInternalCollapsedNodeIds(resolved);
-      }
-      onCollapsedNodeIdsChange?.(resolved);
-    },
-    [collapsedNodeIds, onCollapsedNodeIdsChange]
-  );
-  const collapsedNodeSet = useMemo(() => new Set(collapsedIds), [collapsedIds]);
-  const pendingExpansionNodeSet = useMemo(
-    () => new Set(pendingExpansionNodeIds),
-    [pendingExpansionNodeIds]
-  );
   const {
     childNodeIdsByParent,
     effectiveHighlightedEdgeSet,
@@ -578,6 +567,66 @@ const GraphInner = (
     routeEdgesOverride,
     onError,
   });
+
+  const handleNodeDoubleClick = useCallback(
+    (node: PositionedNode) => {
+      if (!toggleCollapseOnNodeDoubleClick) {
+        return;
+      }
+
+      const hasChildren = (childNodeIdsByParent.get(node.id) ?? []).length > 0;
+      if (!hasChildren || pendingExpansionNodeSet.has(node.id)) {
+        return;
+      }
+
+      if (collapsedNodeSet.has(node.id)) {
+        try {
+          const expandResult = onNodeExpand?.(node.id);
+          if (expandResult && typeof expandResult === 'object' && 'then' in expandResult) {
+            setPendingExpansionNodeIds((current) =>
+              current.includes(node.id) ? current : [...current, node.id]
+            );
+            void Promise.resolve(expandResult)
+              .then(() => {
+                updateCollapsedNodeIds((current) => current.filter((id) => id !== node.id));
+              })
+              .catch((error) => {
+                onError?.(toError(error), { graph, phase: 'interaction' });
+              })
+              .finally(() => {
+                setPendingExpansionNodeIds((current) =>
+                  current.filter((pendingNodeId) => pendingNodeId !== node.id)
+                );
+              });
+            return;
+          }
+
+          updateCollapsedNodeIds((current) => current.filter((id) => id !== node.id));
+        } catch (error) {
+          onError?.(toError(error), { graph, phase: 'interaction' });
+        }
+      } else {
+        updateCollapsedNodeIds((current) => [...current, node.id]);
+        try {
+          onNodeCollapse?.(node.id);
+        } catch (error) {
+          onError?.(toError(error), { graph, phase: 'interaction' });
+        }
+      }
+    },
+    [
+      childNodeIdsByParent,
+      collapsedNodeSet,
+      graph,
+      onError,
+      onNodeCollapse,
+      onNodeExpand,
+      pendingExpansionNodeSet,
+      setPendingExpansionNodeIds,
+      toggleCollapseOnNodeDoubleClick,
+      updateCollapsedNodeIds,
+    ]
+  );
 
   useEffect(() => {
     const visibleNodeIds = new Set(visibleNodesWithMeasuredSize.map((node) => node.id));
@@ -782,70 +831,6 @@ const GraphInner = (
       onNodeClick?.(node);
     },
     [nodeSelectionEnabled, onNodeClick, selectionMode, updateFocusedNode, updateSelection]
-  );
-
-  const handleNodeDoubleClick = useCallback(
-    (node: PositionedNode) => {
-      if (!toggleCollapseOnNodeDoubleClick) {
-        return;
-      }
-
-      const hasChildren = (childNodeIdsByParent.get(node.id) ?? []).length > 0;
-      if (!hasChildren) {
-        return;
-      }
-
-      if (pendingExpansionNodeSet.has(node.id)) {
-        return;
-      }
-
-      if (collapsedNodeSet.has(node.id)) {
-        try {
-          const expandResult = onNodeExpand?.(node.id);
-          if (expandResult && typeof expandResult === 'object' && 'then' in expandResult) {
-            setPendingExpansionNodeIds((current) =>
-              current.includes(node.id) ? current : [...current, node.id]
-            );
-            void Promise.resolve(expandResult)
-              .then(() => {
-                updateCollapsedNodeIds((current) => current.filter((id) => id !== node.id));
-              })
-              .catch((error) => {
-                onError?.(toError(error), { graph, phase: 'interaction' });
-              })
-              .finally(() => {
-                setPendingExpansionNodeIds((current) =>
-                  current.filter((pendingNodeId) => pendingNodeId !== node.id)
-                );
-              });
-            return;
-          }
-
-          updateCollapsedNodeIds((current) => current.filter((id) => id !== node.id));
-        } catch (error) {
-          onError?.(toError(error), { graph, phase: 'interaction' });
-        }
-      } else {
-        updateCollapsedNodeIds((current) => [...current, node.id]);
-        try {
-          onNodeCollapse?.(node.id);
-        } catch (error) {
-          onError?.(toError(error), { graph, phase: 'interaction' });
-        }
-      }
-    },
-    [
-      childNodeIdsByParent,
-      collapsedNodeSet,
-      graph,
-      onNodeCollapse,
-      onNodeExpand,
-      onError,
-      pendingExpansionNodeSet,
-      setPendingExpansionNodeIds,
-      toggleCollapseOnNodeDoubleClick,
-      updateCollapsedNodeIds,
-    ]
   );
 
   const handleEdgeSelection = useCallback(
