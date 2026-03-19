@@ -30,6 +30,7 @@ type ParallelEdgeMeta = {
 };
 
 const ORTHOGONAL_TERMINAL_SEGMENT = 20;
+const MAX_COLLISION_SCAN_WORK = 20_000;
 
 const getParallelGroupKey = (edge: EdgeData): string => {
   const pair = [edge.source, edge.target].sort().join('|');
@@ -203,6 +204,7 @@ const createRoutingContext = (
   sourceSize: Size,
   targetSize: Size,
   nodes: PositionedNode[],
+  useObstacleAvoidance: boolean,
   isUndirected: boolean,
   arrowPadding: number,
   straight: boolean,
@@ -225,14 +227,16 @@ const createRoutingContext = (
     routingStyle,
     edgeSeparation,
     selfLoopRadius,
-    otherRects: nodes
-      .filter((n) => n.id !== source.id && n.id !== target.id)
-      .map((n) => ({
-        x: n.position.x,
-        y: n.position.y,
-        w: n.size?.width ?? DEFAULT_NODE_SIZE.width,
-        h: n.size?.height ?? DEFAULT_NODE_SIZE.height,
-      })),
+    otherRects: useObstacleAvoidance
+      ? nodes
+          .filter((n) => n.id !== source.id && n.id !== target.id)
+          .map((n) => ({
+            x: n.position.x,
+            y: n.position.y,
+            w: n.size?.width ?? DEFAULT_NODE_SIZE.width,
+            h: n.size?.height ?? DEFAULT_NODE_SIZE.height,
+          }))
+      : [],
   };
 };
 
@@ -333,6 +337,7 @@ const routeSingleEdge = (
   edge: EdgeData,
   nodeMap: Map<string, PositionedNode>,
   nodes: PositionedNode[],
+  useObstacleAvoidance: boolean,
   arrowPadding: number,
   straight: boolean,
   forceRightToLeft: boolean,
@@ -372,6 +377,7 @@ const routeSingleEdge = (
     sourceSize,
     targetSize,
     nodes,
+    useObstacleAvoidance,
     isUndirected,
     arrowPadding,
     straight,
@@ -431,6 +437,7 @@ export const routeEdges = (
   const edgeSeparation = Math.max(6, opts?.edgeSeparation ?? 18);
   const selfLoopRadius = Math.max(12, opts?.selfLoopRadius ?? 32);
   const parallelIndex = buildParallelEdgeIndex(edges);
+  const useObstacleAvoidance = nodes.length * edges.length <= MAX_COLLISION_SCAN_WORK;
 
   return edges
     .map((edge) =>
@@ -438,6 +445,7 @@ export const routeEdges = (
         edge,
         nodeMap,
         nodes,
+        useObstacleAvoidance,
         arrowPadding,
         straight,
         forceRightToLeft,
