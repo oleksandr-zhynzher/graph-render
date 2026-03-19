@@ -1,3 +1,9 @@
+## @graph-render/types [1.0.1](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/types@1.0.0...@graph-render/types@1.0.1) (2026-03-19)
+
+### 🐛 Bug Fixes
+
+* **react:** handle async node expansion deterministically ([4c80feb](https://github.com/oleksandr-zhynzher/graph-render/commit/4c80febfb2032e17f304b7bf4fa8429976a057de))
+
 ## @graph-render/types 1.0.0 (2026-03-17)
 
 ### 🚀 Features
