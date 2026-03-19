@@ -101,18 +101,32 @@ export const GraphNode = React.memo<GraphNodeProps>(
         return;
       }
 
+      const reportFallbackSize = () => {
+        if (width > 0 && height > 0) {
+          onNodeMeasure(node.id, { width: Math.ceil(width), height: Math.ceil(height) });
+        }
+      };
+
       const frame = requestAnimationFrame(() => {
         try {
+          if (typeof groupRef.current?.getBBox !== 'function') {
+            reportFallbackSize();
+            return;
+          }
+
           const bounds = groupRef.current?.getBBox();
           if (bounds && bounds.width > 0 && bounds.height > 0) {
             onNodeMeasure(node.id, {
               width: Math.ceil(bounds.width),
               height: Math.ceil(bounds.height),
             });
+            return;
           }
         } catch {
-          // Ignore measurement failures in unsupported environments.
+          reportFallbackSize();
         }
+
+        reportFallbackSize();
       });
 
       return () => cancelAnimationFrame(frame);
