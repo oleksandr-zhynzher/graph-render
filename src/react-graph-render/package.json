@@ -1,6 +1,6 @@
 {
   "name": "@graph-render/react",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
   "publishConfig": {
     "access": "public"
@@ -25,8 +25,8 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@graph-render/core": "1.0.0",
-    "@graph-render/types": "1.0.0"
+    "@graph-render/core": "1.0.1",
+    "@graph-render/types": "1.0.1"
   },
   "peerDependencies": {
     "react": "^18.2.0",

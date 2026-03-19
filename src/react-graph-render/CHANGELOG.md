@@ -1,3 +1,23 @@
+## @graph-render/react [1.0.1](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/react@1.0.0...@graph-render/react@1.0.1) (2026-03-19)
+
+### 🐛 Bug Fixes
+
+* **core:** harden config normalization and stability ([983e372](https://github.com/oleksandr-zhynzher/graph-render/commit/983e372b767f20c12f220ca2206eac87ab31887c))
+* **labels:** cap label work and render multiline defaults ([395c444](https://github.com/oleksandr-zhynzher/graph-render/commit/395c44417df8d9476023090668596f3ec0e68fcc))
+* **react:** avoid rendering stale graph state after failures ([9953bf4](https://github.com/oleksandr-zhynzher/graph-render/commit/9953bf4a4c27066fc2c6a45be452d0b3081e34cb))
+* **react:** fall back when SVG node measurement is unavailable ([74a5921](https://github.com/oleksandr-zhynzher/graph-render/commit/74a59216ede3708870d407ecc17a1ea55997d507))
+* **react:** handle async node expansion deterministically ([4c80feb](https://github.com/oleksandr-zhynzher/graph-render/commit/4c80febfb2032e17f304b7bf4fa8429976a057de))
+
+### ♻️ Code Refactoring
+
+* **react:** isolate collapse state management ([276360a](https://github.com/oleksandr-zhynzher/graph-render/commit/276360a6e0f420fc6342b04e62c474f62e938ce1))
+
+
+### Dependencies
+
+* **@graph-render/core:** upgraded to 1.0.1
+* **@graph-render/types:** upgraded to 1.0.1
+
 ## @graph-render/react 1.0.0 (2026-03-17)
 
 ### 🚀 Features
