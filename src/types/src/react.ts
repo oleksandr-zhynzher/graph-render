@@ -94,7 +94,12 @@ export interface GraphSearchResults {
 
 // FIX: added 'layout' and 'routing' for errors thrown by the built-in
 // layout/routing functions (not just user-supplied overrides).
-export type GraphErrorPhase = 'layout' | 'layout-override' | 'routing' | 'routing-override';
+export type GraphErrorPhase =
+  | 'layout'
+  | 'layout-override'
+  | 'routing'
+  | 'routing-override'
+  | 'interaction';
 
 export interface GraphErrorContext<TGraph extends NxGraphInput = NxGraphInput> {
   graph: TGraph;

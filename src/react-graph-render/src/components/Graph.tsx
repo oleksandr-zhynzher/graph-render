@@ -96,6 +96,10 @@ const normalizeZoomRange = (
     : { minZoom: safeMaxZoom, maxZoom: safeMinZoom };
 };
 
+const toError = (error: unknown): Error => {
+  return error instanceof Error ? error : new Error(String(error));
+};
+
 const toggleId = (values: string[], id: string, selectionMode: 'single' | 'multiple'): string[] => {
   if (selectionMode === 'single') {
     return values.length === 1 && values[0] === id ? [] : [id];
@@ -415,6 +419,7 @@ const GraphInner = (
   const [internalCollapsedNodeIds, setInternalCollapsedNodeIds] = useState<string[]>(
     defaultCollapsedNodeIds ?? []
   );
+  const [pendingExpansionNodeIds, setPendingExpansionNodeIds] = useState<string[]>([]);
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<DragState>({
@@ -543,6 +548,10 @@ const GraphInner = (
     [collapsedNodeIds, onCollapsedNodeIdsChange]
   );
   const collapsedNodeSet = useMemo(() => new Set(collapsedIds), [collapsedIds]);
+  const pendingExpansionNodeSet = useMemo(
+    () => new Set(pendingExpansionNodeIds),
+    [pendingExpansionNodeIds]
+  );
   const {
     childNodeIdsByParent,
     effectiveHighlightedEdgeSet,
@@ -786,19 +795,54 @@ const GraphInner = (
         return;
       }
 
+      if (pendingExpansionNodeSet.has(node.id)) {
+        return;
+      }
+
       if (collapsedNodeSet.has(node.id)) {
-        updateCollapsedNodeIds((current) => current.filter((id) => id !== node.id));
-        onNodeExpand?.(node.id);
+        try {
+          const expandResult = onNodeExpand?.(node.id);
+          if (expandResult && typeof expandResult === 'object' && 'then' in expandResult) {
+            setPendingExpansionNodeIds((current) =>
+              current.includes(node.id) ? current : [...current, node.id]
+            );
+            void Promise.resolve(expandResult)
+              .then(() => {
+                updateCollapsedNodeIds((current) => current.filter((id) => id !== node.id));
+              })
+              .catch((error) => {
+                onError?.(toError(error), { graph, phase: 'interaction' });
+              })
+              .finally(() => {
+                setPendingExpansionNodeIds((current) =>
+                  current.filter((pendingNodeId) => pendingNodeId !== node.id)
+                );
+              });
+            return;
+          }
+
+          updateCollapsedNodeIds((current) => current.filter((id) => id !== node.id));
+        } catch (error) {
+          onError?.(toError(error), { graph, phase: 'interaction' });
+        }
       } else {
         updateCollapsedNodeIds((current) => [...current, node.id]);
-        onNodeCollapse?.(node.id);
+        try {
+          onNodeCollapse?.(node.id);
+        } catch (error) {
+          onError?.(toError(error), { graph, phase: 'interaction' });
+        }
       }
     },
     [
       childNodeIdsByParent,
       collapsedNodeSet,
+      graph,
       onNodeCollapse,
       onNodeExpand,
+      onError,
+      pendingExpansionNodeSet,
+      setPendingExpansionNodeIds,
       toggleCollapseOnNodeDoubleClick,
       updateCollapsedNodeIds,
     ]
