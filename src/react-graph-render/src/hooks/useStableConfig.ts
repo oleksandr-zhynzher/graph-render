@@ -1,5 +1,76 @@
 import { useRef } from 'react';
 
+const isPlainObject = (value: unknown): value is Record<string, unknown> => {
+  return Object.prototype.toString.call(value) === '[object Object]';
+};
+
+const areValuesEqual = (
+  left: unknown,
+  right: unknown,
+  seen: WeakMap<object, WeakSet<object>>
+): boolean => {
+  if (Object.is(left, right)) {
+    return true;
+  }
+
+  if (typeof left === 'function' || typeof right === 'function') {
+    return false;
+  }
+
+  if (!left || !right || typeof left !== 'object' || typeof right !== 'object') {
+    return false;
+  }
+
+  const existing = seen.get(left);
+  if (existing?.has(right)) {
+    return true;
+  }
+
+  if (Array.isArray(left) || Array.isArray(right)) {
+    if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
+      return false;
+    }
+
+    if (!existing) {
+      seen.set(left, new WeakSet([right]));
+    } else {
+      existing.add(right);
+    }
+
+    for (let index = 0; index < left.length; index += 1) {
+      if (!areValuesEqual(left[index], right[index], seen)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  if (!isPlainObject(left) || !isPlainObject(right)) {
+    return false;
+  }
+
+  if (!existing) {
+    seen.set(left, new WeakSet([right]));
+  } else {
+    existing.add(right);
+  }
+
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+  if (leftKeys.length !== rightKeys.length) {
+    return false;
+  }
+
+  for (const key of leftKeys) {
+    if (!(key in right) || !areValuesEqual(left[key], right[key], seen)) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 /**
  * Returns the same reference for a config-like object as long as its
  * serialized form has not changed.
@@ -24,23 +95,14 @@ import { useRef } from 'react';
  * object.
  */
 export function useStableConfig<T>(config: T): T {
-  const ref = useRef<{ value: T; serialized: string } | null>(null);
+  const ref = useRef<T | null>(null);
 
-  let serialized: string | null = null;
-
-  try {
-    serialized = JSON.stringify(config);
-  } catch {
-    ref.current = { value: config, serialized: '__unserializable__' };
-    return config;
-  }
-
-  if (ref.current === null || ref.current.serialized !== serialized) {
+  if (ref.current === null || !areValuesEqual(ref.current, config, new WeakMap())) {
     // Writing to a ref during render is safe when the write is idempotent
     // and deterministic for the same inputs (standard React ref-as-cache
     // pattern).
-    ref.current = { value: config, serialized };
+    ref.current = config;
   }
 
-  return ref.current.value;
+  return ref.current;
 }

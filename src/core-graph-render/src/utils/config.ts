@@ -23,6 +23,11 @@ const DEFAULT_HOVER_EDGE_COLOR = '#4da3ff';
 const DEFAULT_HOVER_NODE_IN_COLOR = '#2ecc71';
 const DEFAULT_HOVER_NODE_OUT_COLOR = '#ff5b5b';
 const DEFAULT_EDGE_LABEL_COLOR = '#334155';
+const DEFAULT_LABEL_PILL_BACKGROUND = '#eef1f6';
+const DEFAULT_LABEL_PILL_BORDER_COLOR = '#d7dbe3';
+const DEFAULT_LABEL_PILL_TEXT_COLOR = '#3f434b';
+const CSS_COLOR_PATTERN =
+  /^(#[0-9a-fA-F]{3,8}|(?:rgb|hsl)a?\([0-9\s.,%+-]+\)|[a-zA-Z][a-zA-Z0-9-]*|var\(--[a-zA-Z0-9-_]+\))$/;
 
 const getFinitePositive = (value: unknown, fallback: number): number => {
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : fallback;
@@ -36,6 +41,11 @@ const getFiniteBounded = (value: unknown, min: number, max: number, fallback: nu
   return typeof value === 'number' && Number.isFinite(value)
     ? Math.min(Math.max(value, min), max)
     : fallback;
+};
+
+const sanitizeCssColor = (value: unknown, fallback: string): string => {
+  const normalized = String(value ?? '').trim();
+  return CSS_COLOR_PATTERN.test(normalized) ? normalized : fallback;
 };
 
 const getEdgeType = (value: unknown, fallback: EdgeType): EdgeType => {
@@ -119,6 +129,9 @@ export interface NormalizedGraphConfig extends Omit<GraphConfig, 'theme' | 'fixe
   hoverNodeHighlight: boolean;
   autoLabels: boolean;
   labelOffset: number;
+  labelPillBackground: string;
+  labelPillBorderColor: string;
+  labelPillTextColor: string;
   labelMeasurementPaddingX: number;
   labelMeasurementPaddingY: number;
   labelMeasurementCharWidth: number;
@@ -171,6 +184,15 @@ export const normalizeGraphConfig = (config?: GraphConfig): NormalizedGraphConfi
     labels: config?.labels,
     autoLabels: config?.autoLabels ?? false,
     labelOffset: getFiniteNonNegative(config?.labelOffset, DEFAULT_LABEL_OFFSET),
+    labelPillBackground: sanitizeCssColor(
+      config?.labelPillBackground,
+      DEFAULT_LABEL_PILL_BACKGROUND
+    ),
+    labelPillBorderColor: sanitizeCssColor(
+      config?.labelPillBorderColor,
+      DEFAULT_LABEL_PILL_BORDER_COLOR
+    ),
+    labelPillTextColor: sanitizeCssColor(config?.labelPillTextColor, DEFAULT_LABEL_PILL_TEXT_COLOR),
     forceRightToLeft: config?.forceRightToLeft ?? false,
   };
 };
