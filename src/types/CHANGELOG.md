@@ -1,3 +1,9 @@
+## @graph-render/types [1.0.2](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/types@1.0.1...@graph-render/types@1.0.2) (2026-03-27)
+
+### 🐛 Bug Fixes
+
+* **core:** make failure and validation policies explicit ([9236ba2](https://github.com/oleksandr-zhynzher/graph-render/commit/9236ba2bd01d571e08ce2f80d941abdf3115f8b0))
+
 ## @graph-render/types [1.0.1](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/types@1.0.0...@graph-render/types@1.0.1) (2026-03-19)
 
 ### 🐛 Bug Fixes
