@@ -31,7 +31,11 @@ const getMeasuredLines = (label: string): string[] => {
   const rawLines = truncatedLabel.split(/\r?\n/);
   const measuredLines: string[] = [];
 
-  for (let index = 0; index < rawLines.length && measuredLines.length < MAX_MEASUREMENT_LINES; index += 1) {
+  for (
+    let index = 0;
+    index < rawLines.length && measuredLines.length < MAX_MEASUREMENT_LINES;
+    index += 1
+  ) {
     const codePoints = Array.from(rawLines[index]);
     if (!codePoints.length) {
       continue;

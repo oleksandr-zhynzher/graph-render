@@ -16,7 +16,9 @@ export const groupPositionedNodesByColumn = <TNode extends PositionedNode = Posi
   nodes: TNode[],
   tolerance: number = DEFAULT_COLUMN_TOLERANCE
 ): NodeColumn<TNode>[] => {
-  const sortedNodes = [...nodes].sort((left, right) => getNodeCenterX(left) - getNodeCenterX(right));
+  const sortedNodes = [...nodes].sort(
+    (left, right) => getNodeCenterX(left) - getNodeCenterX(right)
+  );
   const columns: Array<{ centerX: number; avgWidth: number; nodes: TNode[] }> = [];
 
   sortedNodes.forEach((node) => {

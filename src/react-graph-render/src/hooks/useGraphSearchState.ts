@@ -100,23 +100,21 @@ export const useGraphSearchState = <
       return { nodeIds: [], edgeIds: [] };
     }
 
-    return (
-      (() => {
-        try {
-          return (
-            highlightStrategy?.({
-              nodes,
-              edges,
-              query: searchQuery,
-              matchedNodeIds: searchMatchedNodeIds,
-              matchedEdgeIds: searchMatchedEdgeIds,
-            }) ?? { nodeIds: [], edgeIds: [] }
-          );
-        } catch {
-          return { nodeIds: [], edgeIds: [] };
-        }
-      })()
-    );
+    return (() => {
+      try {
+        return (
+          highlightStrategy?.({
+            nodes,
+            edges,
+            query: searchQuery,
+            matchedNodeIds: searchMatchedNodeIds,
+            matchedEdgeIds: searchMatchedEdgeIds,
+          }) ?? { nodeIds: [], edgeIds: [] }
+        );
+      } catch {
+        return { nodeIds: [], edgeIds: [] };
+      }
+    })();
   }, [edges, highlightStrategy, nodes, searchMatchedEdgeIds, searchMatchedNodeIds, searchQuery]);
 
   const effectiveHighlightedNodeSet = useMemo(

@@ -137,7 +137,12 @@ const iconSize = 18;
 const ZoomInIcon = () => (
   <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
-    <path d="M11 8.25v5.5M8.25 11h5.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    <path
+      d="M11 8.25v5.5M8.25 11h5.5"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+    />
     <path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
@@ -152,7 +157,13 @@ const ZoomOutIcon = () => (
 
 const FitViewIcon = () => (
   <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 20h-4v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 20h-4v-4"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
     <rect x="8" y="8" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="2" />
   </svg>
 );
@@ -160,7 +171,13 @@ const FitViewIcon = () => (
 const DownloadIcon = () => (
   <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M12 4v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <path d="m8 10 4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="m8 10 4 4 4-4"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
     <path d="M5 19h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
   </svg>
 );
@@ -169,22 +186,28 @@ const DarkModeIcon = ({ active }: { active: boolean }) => (
   <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
     {active ? (
       <>
-        <path d="M12 3v2M12 19v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M3 12h2M19 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <path
+          d="M12 3v2M12 19v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M3 12h2M19 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
         <circle cx="12" cy="12" r="4.5" stroke="currentColor" strokeWidth="2" />
       </>
     ) : (
-      <path d="M20 15.5A8.5 8.5 0 0 1 8.5 4a8.5 8.5 0 1 0 11.5 11.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+      <path
+        d="M20 15.5A8.5 8.5 0 0 1 8.5 4a8.5 8.5 0 1 0 11.5 11.5Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
     )}
   </svg>
 );
 
 const SettingsIcon = () => (
   <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path
-      d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"
-      stroke="currentColor"
-      strokeWidth="2"
-    />
+    <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" stroke="currentColor" strokeWidth="2" />
     <path
       d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 0 1 0 2.8 2 2 0 0 1-2.8 0l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.2a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a2 2 0 0 1-2.8 0 2 2 0 0 1 0-2.8l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.2a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 0 1 0-2.8 2 2 0 0 1 2.8 0l.1.1a1 1 0 0 0 1.1.2 1 1 0 0 0 .6-.9V4a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.2a1 1 0 0 0 .6.9 1 1 0 0 0 1.1-.2l.1-.1a2 2 0 0 1 2.8 0 2 2 0 0 1 0 2.8l-.1.1a1 1 0 0 0-.2 1.1 1 1 0 0 0 .9.6H20a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.2a1 1 0 0 0-.9.6Z"
       stroke="currentColor"
@@ -224,10 +247,7 @@ const areStringArraysEqual = (left: string[], right: string[]): boolean => {
   return left.every((value, index) => value === right[index]);
 };
 
-const areSearchResultsEqual = (
-  left: GraphSearchResults,
-  right: GraphSearchResults
-): boolean => {
+const areSearchResultsEqual = (left: GraphSearchResults, right: GraphSearchResults): boolean => {
   return (
     areStringArraysEqual(left.nodeIds, right.nodeIds) &&
     areStringArraysEqual(left.edgeIds, right.edgeIds)
@@ -238,7 +258,10 @@ const areViewportsEqual = (left: GraphViewport, right: GraphViewport): boolean =
   return left.x === right.x && left.y === right.y && left.zoom === right.zoom;
 };
 
-const getAncestryHighlight = (graph: NxGraphInput, results: GraphSearchResults): GraphSearchResults => {
+const getAncestryHighlight = (
+  graph: NxGraphInput,
+  results: GraphSearchResults
+): GraphSearchResults => {
   const reverse = new Map<string, Array<{ source: string; edgeId: string }>>();
   Object.entries(graph.adj).forEach(([source, targets]) => {
     Object.entries(targets).forEach(([target, rawAttrs]) => {
@@ -303,12 +326,22 @@ const serializeSvg = (container: HTMLDivElement | null): void => {
 };
 
 const mergeBounds = (
-  current:
-    | { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number }
-    | null,
-  next:
-    | { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number }
-    | null
+  current: {
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+    width: number;
+    height: number;
+  } | null,
+  next: {
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+    width: number;
+    height: number;
+  } | null
 ) => {
   if (!current) {
     return next;
@@ -440,7 +473,10 @@ const getFitViewportForStory = (
   const availableHeight = Math.max(height - FIT_PADDING.top - FIT_PADDING.bottom, 1);
   const zoom = Math.min(
     maxZoom,
-    Math.max(minZoom, Math.min(availableWidth / paddedBounds.width, availableHeight / paddedBounds.height))
+    Math.max(
+      minZoom,
+      Math.min(availableWidth / paddedBounds.width, availableHeight / paddedBounds.height)
+    )
   );
 
   return {
@@ -456,7 +492,11 @@ const getFitViewportForStory = (
   };
 };
 
-const getStageViewsForStory = (graph: NxGraphInput, config: GraphConfig, labels: string[]): StageView[] => {
+const getStageViewsForStory = (
+  graph: NxGraphInput,
+  config: GraphConfig,
+  labels: string[]
+): StageView[] => {
   const { nodes, edges } = fromNxGraph(graph, config.defaultEdgeType);
   const positionedNodes = layoutNodes({
     nodes,
@@ -488,8 +528,12 @@ const getStageViewsForStory = (graph: NxGraphInput, config: GraphConfig, labels:
     .map(([_, columnNodes], index) => {
       const minX = Math.min(...columnNodes.map((node) => node.position.x));
       const minY = Math.min(...columnNodes.map((node) => node.position.y));
-      const maxX = Math.max(...columnNodes.map((node) => node.position.x + (node.size?.width ?? 280)));
-      const maxY = Math.max(...columnNodes.map((node) => node.position.y + (node.size?.height ?? 112)));
+      const maxX = Math.max(
+        ...columnNodes.map((node) => node.position.x + (node.size?.width ?? 280))
+      );
+      const maxY = Math.max(
+        ...columnNodes.map((node) => node.position.y + (node.size?.height ?? 112))
+      );
 
       return {
         index,
@@ -512,8 +556,14 @@ const getStageViewportForStory = (
   height: number,
   verticalPosition: VerticalStagePosition = 'top'
 ): StageViewportResult => {
-  const targetWidth = Math.max(bounds.width + NAVIGATION_STAGE_PADDING_X * 2, NAVIGATION_STAGE_MIN_WIDTH);
-  const targetHeight = Math.max(bounds.height + NAVIGATION_STAGE_PADDING_Y * 2, NAVIGATION_STAGE_MIN_HEIGHT);
+  const targetWidth = Math.max(
+    bounds.width + NAVIGATION_STAGE_PADDING_X * 2,
+    NAVIGATION_STAGE_MIN_WIDTH
+  );
+  const targetHeight = Math.max(
+    bounds.height + NAVIGATION_STAGE_PADDING_Y * 2,
+    NAVIGATION_STAGE_MIN_HEIGHT
+  );
   const zoom = Math.min(
     NAVIGATION_MAX_ZOOM,
     Math.max(NAVIGATION_MIN_ZOOM, Math.min(width / targetWidth, height / targetHeight))
@@ -568,7 +618,9 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   const [hideUnmatchedSearch, setHideUnmatchedSearch] = useState(false);
   const [marqueeSelectionEnabled, setMarqueeSelectionEnabled] = useState(true);
   const [hoverHighlight, setHoverHighlight] = useState(false);
-  const [statusMessage, setStatusMessage] = useState('Double-click a match to collapse or expand its subtree.');
+  const [statusMessage, setStatusMessage] = useState(
+    'Double-click a match to collapse or expand its subtree.'
+  );
   const [activeStageIndex, setActiveStageIndex] = useState(0);
   const [verticalStagePosition, setVerticalStagePosition] = useState<VerticalStagePosition>('top');
   const [canPagePlayersVertically, setCanPagePlayersVertically] = useState(false);
@@ -608,12 +660,11 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   }, []);
 
   const vertexComponent = useMemo<VertexComponent>(
-    () =>
-      (props: VertexComponentProps) =>
-        React.createElement(SquashNode as React.ComponentType<any>, {
-          ...props,
-          renderMode,
-        }),
+    () => (props: VertexComponentProps) =>
+      React.createElement(SquashNode as React.ComponentType<any>, {
+        ...props,
+        renderMode,
+      }),
     [renderMode]
   );
 
@@ -647,9 +698,23 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
       labelPillBorderColor: 'transparent',
       labelPillTextColor: dark ? '#d8d2c7' : '#444b55',
     };
-  }, [canvasSize.height, canvasSize.width, curveEdges, hoverHighlight, isDarkMode, labels, layout, layoutDirection, nodeSizing, routingStyle]);
+  }, [
+    canvasSize.height,
+    canvasSize.width,
+    curveEdges,
+    hoverHighlight,
+    isDarkMode,
+    labels,
+    layout,
+    layoutDirection,
+    nodeSizing,
+    routingStyle,
+  ]);
 
-  const stageViews = useMemo(() => getStageViewsForStory(enrichedGraph, config, labels), [config, enrichedGraph, labels]);
+  const stageViews = useMemo(
+    () => getStageViewsForStory(enrichedGraph, config, labels),
+    [config, enrichedGraph, labels]
+  );
 
   const handleViewportChange = useCallback((nextViewport: GraphViewport) => {
     setViewport((current) => (areViewportsEqual(current, nextViewport) ? current : nextViewport));
@@ -720,7 +785,9 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     previousViewportRef.current = viewport;
     setVerticalStagePosition('top');
     setIsStageNavigationMode(true);
-    setStatusMessage('Stage navigation mode active. Use the arrows or stage chips to move between rounds.');
+    setStatusMessage(
+      'Stage navigation mode active. Use the arrows or stage chips to move between rounds.'
+    );
   }, [handleStoryFit, isStageNavigationMode, viewport]);
 
   useEffect(() => {
@@ -794,33 +861,22 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
           <section style={controlSectionStyle}>
             <span style={labelStyle}>Viewport</span>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-              <button
-                style={buttonStyle}
-                onClick={() => graphRef.current?.zoomOut?.()}
-              >
+              <button style={buttonStyle} onClick={() => graphRef.current?.zoomOut?.()}>
                 −
               </button>
-              <button
-                style={buttonStyle}
-                onClick={() => graphRef.current?.zoomIn?.()}
-              >
+              <button style={buttonStyle} onClick={() => graphRef.current?.zoomIn?.()}>
                 +
               </button>
-              <button
-                style={buttonStyle}
-                onClick={handleStoryFit}
-              >
+              <button style={buttonStyle} onClick={handleStoryFit}>
                 Fit
               </button>
-              <button
-                style={buttonStyle}
-                onClick={() => graphRef.current?.resetViewport?.()}
-              >
+              <button style={buttonStyle} onClick={() => graphRef.current?.resetViewport?.()}>
                 1:1
               </button>
             </div>
             <div style={{ fontSize: 13, color: isDarkMode ? '#cbd5e1' : '#334155' }}>
-              Zoom {viewport.zoom.toFixed(2)} · x {Math.round(viewport.x)} · y {Math.round(viewport.y)}
+              Zoom {viewport.zoom.toFixed(2)} · x {Math.round(viewport.x)} · y{' '}
+              {Math.round(viewport.y)}
             </div>
             <label style={toggleRowStyle}>
               <span>Built-in graph controls</span>
@@ -966,7 +1022,9 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                   if (nextFocusedNodeId) {
                     setFocusedNodeId(nextFocusedNodeId);
                     graphRef.current?.centerOnNode?.(nextFocusedNodeId);
-                    setStatusMessage(`Focused ${nextFocusedNodeId}. Use keyboard navigation to inspect neighbours.`);
+                    setStatusMessage(
+                      `Focused ${nextFocusedNodeId}. Use keyboard navigation to inspect neighbours.`
+                    );
                   }
                 }}
               >
@@ -1000,7 +1058,8 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
               Focused: {focusedNodeId ?? 'none'}
             </div>
             <div style={{ fontSize: 13, color: isDarkMode ? '#cbd5e1' : '#334155' }}>
-              Selected nodes: {selection.nodeIds.length} · Selected edges: {selection.edgeIds.length}
+              Selected nodes: {selection.nodeIds.length} · Selected edges:{' '}
+              {selection.edgeIds.length}
             </div>
           </section>
 
@@ -1049,11 +1108,16 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
 
           <section style={{ display: 'grid', gap: 6 }}>
             <span style={labelStyle}>Hints</span>
-            <div style={{ fontSize: 13, lineHeight: 1.5, color: isDarkMode ? '#cbd5e1' : '#334155' }}>
+            <div
+              style={{ fontSize: 13, lineHeight: 1.5, color: isDarkMode ? '#cbd5e1' : '#334155' }}
+            >
               {statusMessage}
             </div>
-            <div style={{ fontSize: 12, lineHeight: 1.5, color: isDarkMode ? '#94a3b8' : '#64748b' }}>
-              Shift + drag for marquee selection. Arrow keys pan or move focus. Enter toggles the focused node selection.
+            <div
+              style={{ fontSize: 12, lineHeight: 1.5, color: isDarkMode ? '#94a3b8' : '#64748b' }}
+            >
+              Shift + drag for marquee selection. Arrow keys pan or move focus. Enter toggles the
+              focused node selection.
             </div>
           </section>
         </aside>
@@ -1110,7 +1174,9 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
               onFocusedNodeChange={() => undefined}
               collapsedNodeIds={collapsedNodeIds}
               onCollapsedNodeIdsChange={setCollapsedNodeIds}
-              onNodeCollapse={(nodeId: string) => setStatusMessage(`Collapsed subtree for ${nodeId}.`)}
+              onNodeCollapse={(nodeId: string) =>
+                setStatusMessage(`Collapsed subtree for ${nodeId}.`)
+              }
               onNodeExpand={(nodeId: string) => setStatusMessage(`Expanded subtree for ${nodeId}.`)}
               searchQuery={searchQuery}
               hideUnmatchedSearch={hideUnmatchedSearch}
@@ -1168,9 +1234,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                   onClick={() => setIsToolbarExpanded((current) => !current)}
                   style={{
                     ...iconButtonBaseStyle,
-                    background: isDarkMode
-                      ? 'rgba(30, 41, 59, 0.96)'
-                      : 'rgba(255, 255, 255, 0.96)',
+                    background: isDarkMode ? 'rgba(30, 41, 59, 0.96)' : 'rgba(255, 255, 255, 0.96)',
                     color: isDarkMode ? '#e2e8f0' : '#0f172a',
                     borderColor: isDarkMode
                       ? 'rgba(148, 163, 184, 0.2)'
@@ -1181,14 +1245,20 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                 </button>
                 <button
                   type="button"
-                  aria-label={isStageNavigationMode ? 'Exit stage navigation mode' : 'Enter stage navigation mode'}
-                  title={isStageNavigationMode ? 'Exit stage navigation mode' : 'Enter stage navigation mode'}
+                  aria-label={
+                    isStageNavigationMode
+                      ? 'Exit stage navigation mode'
+                      : 'Enter stage navigation mode'
+                  }
+                  title={
+                    isStageNavigationMode
+                      ? 'Exit stage navigation mode'
+                      : 'Enter stage navigation mode'
+                  }
                   onClick={handleToggleStageNavigationMode}
                   style={{
                     ...iconButtonBaseStyle,
-                    background: isDarkMode
-                      ? 'rgba(30, 41, 59, 0.96)'
-                      : 'rgba(255, 255, 255, 0.96)',
+                    background: isDarkMode ? 'rgba(30, 41, 59, 0.96)' : 'rgba(255, 255, 255, 0.96)',
                     color: isStageNavigationMode
                       ? isDarkMode
                         ? '#cfe3c1'
@@ -1210,70 +1280,70 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                 </button>
                 {isToolbarExpanded
                   ? [
-                  {
-                    key: 'zoom-in',
-                    title: 'Zoom in',
-                    icon: <ZoomInIcon />,
-                    onClick: () => graphRef.current?.zoomIn?.(),
-                  },
-                  {
-                    key: 'zoom-out',
-                    title: 'Zoom out',
-                    icon: <ZoomOutIcon />,
-                    onClick: () => graphRef.current?.zoomOut?.(),
-                  },
-                  {
-                    key: 'fit-view',
-                    title: 'Fit view',
-                    icon: <FitViewIcon />,
-                    onClick: handleStoryFit,
-                  },
-                  {
-                    key: 'export-svg',
-                    title: 'Download SVG',
-                    icon: <DownloadIcon />,
-                    onClick: () => serializeSvg(containerRef.current),
-                  },
-                  {
-                    key: 'toggle-dark-mode',
-                    title: isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
-                    icon: <DarkModeIcon active={isDarkMode} />,
-                    onClick: () => setIsDarkMode((current) => !current),
-                  },
-                  ].map((control) => (
-                    <button
-                      key={control.key}
-                      type="button"
-                      aria-label={control.title}
-                      title={control.title}
-                      onClick={control.onClick}
-                      style={{
-                        ...iconButtonBaseStyle,
-                        background: isDarkMode
-                          ? 'rgba(30, 41, 59, 0.96)'
-                          : 'rgba(255, 255, 255, 0.96)',
-                        color:
-                          control.key === 'stage-navigation' && isStageNavigationMode
-                            ? isDarkMode
-                              ? '#cfe3c1'
-                              : '#516347'
-                            : isDarkMode
-                              ? '#e2e8f0'
-                              : '#0f172a',
-                        borderColor: isDarkMode
-                          ? 'rgba(148, 163, 184, 0.2)'
-                          : 'rgba(148, 163, 184, 0.22)',
-                        boxShadow:
-                          control.key === 'stage-navigation' && isStageNavigationMode
-                            ? isDarkMode
-                              ? '0 10px 24px rgba(124, 144, 112, 0.28)'
-                              : '0 10px 24px rgba(124, 144, 112, 0.2)'
-                            : iconButtonBaseStyle.boxShadow,
-                      }}
-                    >
-                      {control.icon}
-                    </button>
-                  ))
+                      {
+                        key: 'zoom-in',
+                        title: 'Zoom in',
+                        icon: <ZoomInIcon />,
+                        onClick: () => graphRef.current?.zoomIn?.(),
+                      },
+                      {
+                        key: 'zoom-out',
+                        title: 'Zoom out',
+                        icon: <ZoomOutIcon />,
+                        onClick: () => graphRef.current?.zoomOut?.(),
+                      },
+                      {
+                        key: 'fit-view',
+                        title: 'Fit view',
+                        icon: <FitViewIcon />,
+                        onClick: handleStoryFit,
+                      },
+                      {
+                        key: 'export-svg',
+                        title: 'Download SVG',
+                        icon: <DownloadIcon />,
+                        onClick: () => serializeSvg(containerRef.current),
+                      },
+                      {
+                        key: 'toggle-dark-mode',
+                        title: isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
+                        icon: <DarkModeIcon active={isDarkMode} />,
+                        onClick: () => setIsDarkMode((current) => !current),
+                      },
+                    ].map((control) => (
+                      <button
+                        key={control.key}
+                        type="button"
+                        aria-label={control.title}
+                        title={control.title}
+                        onClick={control.onClick}
+                        style={{
+                          ...iconButtonBaseStyle,
+                          background: isDarkMode
+                            ? 'rgba(30, 41, 59, 0.96)'
+                            : 'rgba(255, 255, 255, 0.96)',
+                          color:
+                            control.key === 'stage-navigation' && isStageNavigationMode
+                              ? isDarkMode
+                                ? '#cfe3c1'
+                                : '#516347'
+                              : isDarkMode
+                                ? '#e2e8f0'
+                                : '#0f172a',
+                          borderColor: isDarkMode
+                            ? 'rgba(148, 163, 184, 0.2)'
+                            : 'rgba(148, 163, 184, 0.22)',
+                          boxShadow:
+                            control.key === 'stage-navigation' && isStageNavigationMode
+                              ? isDarkMode
+                                ? '0 10px 24px rgba(124, 144, 112, 0.28)'
+                                : '0 10px 24px rgba(124, 144, 112, 0.2)'
+                              : iconButtonBaseStyle.boxShadow,
+                        }}
+                      >
+                        {control.icon}
+                      </button>
+                    ))
                   : null}
               </div>
             ) : null}
@@ -1339,7 +1409,9 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                       disabled={verticalStagePosition === 'top'}
                       style={{
                         ...iconButtonBaseStyle,
-                        background: isDarkMode ? 'rgba(30, 41, 59, 0.96)' : 'rgba(255, 255, 255, 0.96)',
+                        background: isDarkMode
+                          ? 'rgba(30, 41, 59, 0.96)'
+                          : 'rgba(255, 255, 255, 0.96)',
                         color: isDarkMode ? '#e2e8f0' : '#0f172a',
                         opacity: verticalStagePosition === 'top' ? 0.45 : 1,
                         cursor: verticalStagePosition === 'top' ? 'default' : 'pointer',
@@ -1354,7 +1426,9 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                       disabled={verticalStagePosition === 'bottom'}
                       style={{
                         ...iconButtonBaseStyle,
-                        background: isDarkMode ? 'rgba(30, 41, 59, 0.96)' : 'rgba(255, 255, 255, 0.96)',
+                        background: isDarkMode
+                          ? 'rgba(30, 41, 59, 0.96)'
+                          : 'rgba(255, 255, 255, 0.96)',
                         color: isDarkMode ? '#e2e8f0' : '#0f172a',
                         opacity: verticalStagePosition === 'bottom' ? 0.45 : 1,
                         cursor: verticalStagePosition === 'bottom' ? 'default' : 'pointer',
@@ -1379,7 +1453,9 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                     border: `1px solid ${isDarkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(148, 163, 184, 0.22)'}`,
                     background: isDarkMode ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.94)',
                     backdropFilter: 'blur(16px)',
-                    boxShadow: isDarkMode ? '0 16px 40px rgba(2, 6, 23, 0.45)' : '0 16px 40px rgba(15, 23, 42, 0.14)',
+                    boxShadow: isDarkMode
+                      ? '0 16px 40px rgba(2, 6, 23, 0.45)'
+                      : '0 16px 40px rgba(15, 23, 42, 0.14)',
                     overflowX: 'auto',
                     zIndex: 2,
                   }}

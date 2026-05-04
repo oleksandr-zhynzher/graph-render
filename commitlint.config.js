@@ -11,17 +11,17 @@ module.exports = {
       2,
       'always',
       [
-        'feat',     // new feature          → minor bump (or major if breaking)
-        'fix',      // bug fix              → patch bump
-        'perf',     // performance          → patch bump
-        'revert',   // revert a commit      → patch bump
+        'feat', // new feature          → minor bump (or major if breaking)
+        'fix', // bug fix              → patch bump
+        'perf', // performance          → patch bump
+        'revert', // revert a commit      → patch bump
         'refactor', // code change, no fix  → no bump
-        'docs',     // documentation only   → no bump
-        'style',    // formatting only      → no bump
-        'test',     // test changes         → no bump
-        'chore',    // maintenance          → no bump
-        'build',    // build system changes → no bump
-        'ci',       // CI config changes    → no bump
+        'docs', // documentation only   → no bump
+        'style', // formatting only      → no bump
+        'test', // test changes         → no bump
+        'chore', // maintenance          → no bump
+        'build', // build system changes → no bump
+        'ci', // CI config changes    → no bump
       ],
     ],
     // Scope is optional but when provided must match a known package or area

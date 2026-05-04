@@ -58,7 +58,10 @@ const buildFallbackPositionedEdges = (
           ...edge,
           type: edge.type ?? EdgeType.Directed,
           points: [
-            { x: right - Math.min(sourceWidth * 0.25, 18), y: top + Math.min(sourceHeight * 0.35, 18) },
+            {
+              x: right - Math.min(sourceWidth * 0.25, 18),
+              y: top + Math.min(sourceHeight * 0.35, 18),
+            },
             { x: right + 28, y: top - 20 },
             { x: right + 36, y: top + sourceHeight / 2 },
             { x: right - Math.min(sourceWidth * 0.25, 18), y: top + sourceHeight * 0.8 },

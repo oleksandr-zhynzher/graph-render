@@ -439,21 +439,20 @@ export const routeEdges = (
   const parallelIndex = buildParallelEdgeIndex(edges);
   const useObstacleAvoidance = nodes.length * edges.length <= MAX_COLLISION_SCAN_WORK;
 
-  return edges
-    .map((edge) =>
-      routeSingleEdge(
-        edge,
-        nodeMap,
-        nodes,
-        useObstacleAvoidance,
-        arrowPadding,
-        straight,
-        forceRightToLeft,
-        layoutDirection,
-        routingStyle,
-        edgeSeparation,
-        selfLoopRadius,
-        parallelIndex.get(edge.id) ?? { index: 0, total: 1, centeredOffset: 0 }
-      )
-    );
+  return edges.map((edge) =>
+    routeSingleEdge(
+      edge,
+      nodeMap,
+      nodes,
+      useObstacleAvoidance,
+      arrowPadding,
+      straight,
+      forceRightToLeft,
+      layoutDirection,
+      routingStyle,
+      edgeSeparation,
+      selfLoopRadius,
+      parallelIndex.get(edge.id) ?? { index: 0, total: 1, centeredOffset: 0 }
+    )
+  );
 };

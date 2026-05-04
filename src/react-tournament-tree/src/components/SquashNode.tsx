@@ -48,10 +48,7 @@ const normalizePlayer = (value: unknown, label: string): SquashPlayer => {
     throw new TypeError(`Invalid squash match payload: ${label}.seed must be a finite number.`);
   }
 
-  if (
-    player.country != null &&
-    (typeof player.country !== 'string' || !player.country.trim())
-  ) {
+  if (player.country != null && (typeof player.country !== 'string' || !player.country.trim())) {
     throw new TypeError(
       `Invalid squash match payload: ${label}.country must be a non-empty string when provided.`
     );
@@ -161,12 +158,12 @@ const normalizeMatchMeta = (meta: unknown): Required<SquashMatchMeta> => {
       rawMeta?.currentSet == null
         ? 0
         : typeof rawMeta.currentSet === 'number' && Number.isFinite(rawMeta.currentSet)
-        ? Math.max(0, Math.min(Math.floor(rawMeta.currentSet), Math.max(sets.length - 1, 0)))
-        : (() => {
-            throw new TypeError(
-              'Invalid squash match payload: currentSet must be a finite number when provided.'
-            );
-          })(),
+          ? Math.max(0, Math.min(Math.floor(rawMeta.currentSet), Math.max(sets.length - 1, 0)))
+          : (() => {
+              throw new TypeError(
+                'Invalid squash match payload: currentSet must be a finite number when provided.'
+              );
+            })(),
   };
 };
 
@@ -319,8 +316,23 @@ const renderInvalidSquashNode = (
   if (isSvgCompatibleRenderMode(renderMode)) {
     return (
       <g>
-        <rect width={width} height={height} rx={16} ry={16} fill="#fff7ed" stroke="#f97316" strokeWidth={2} />
-        <text x={16} y={34} fontSize={13} fontWeight={700} fill="#9a3412" fontFamily={BODY_FONT_FAMILY}>
+        <rect
+          width={width}
+          height={height}
+          rx={16}
+          ry={16}
+          fill="#fff7ed"
+          stroke="#f97316"
+          strokeWidth={2}
+        />
+        <text
+          x={16}
+          y={34}
+          fontSize={13}
+          fontWeight={700}
+          fill="#9a3412"
+          fontFamily={BODY_FONT_FAMILY}
+        >
           Invalid match data
         </text>
         <text x={16} y={56} fontSize={11} fill="#c2410c" fontFamily={BODY_FONT_FAMILY}>
@@ -349,7 +361,9 @@ const renderInvalidSquashNode = (
         }}
       >
         <div style={{ fontSize: 13, fontWeight: 700 }}>Invalid match data</div>
-        <div style={{ marginTop: 6, fontSize: 11, color: '#c2410c' }}>{truncateText(nodeId, 28)}</div>
+        <div style={{ marginTop: 6, fontSize: 11, color: '#c2410c' }}>
+          {truncateText(nodeId, 28)}
+        </div>
       </div>
     </foreignObject>
   );
