@@ -27,7 +27,14 @@ const runSelectedLayout = (options: LayoutOptions, sizedNodes: NodeData[]): Posi
 
   switch (resolvedLayout) {
     case LayoutType.Tree:
-      return treeLayout(sizedNodes, edges, pad, gap, layoutDirection ?? LayoutDirection.LTR, height);
+      return treeLayout(
+        sizedNodes,
+        edges,
+        pad,
+        gap,
+        layoutDirection ?? LayoutDirection.LTR,
+        height
+      );
     case LayoutType.Radial:
       return radialTreeLayout(sizedNodes, edges, pad, width, height, gap);
     case LayoutType.Centered:

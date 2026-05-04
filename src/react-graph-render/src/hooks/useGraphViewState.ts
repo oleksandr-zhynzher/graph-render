@@ -67,11 +67,7 @@ export const useGraphViewState = ({
   onFocusedNodeChange,
 }: UseGraphViewStateOptions): UseGraphViewStateResult => {
   const [internalViewport, setInternalViewport] = useState<GraphViewport>(() =>
-    normalizeViewport(
-      { ...DEFAULT_VIEWPORT, ...(defaultViewport ?? {}) },
-      safeMinZoom,
-      safeMaxZoom
-    )
+    normalizeViewport({ ...DEFAULT_VIEWPORT, ...(defaultViewport ?? {}) }, safeMinZoom, safeMaxZoom)
   );
   const [internalSelection, setInternalSelection] = useState<GraphSelection>({
     nodeIds: defaultSelectedNodeIds ?? [],
