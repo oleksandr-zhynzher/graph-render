@@ -1,5 +1,7 @@
 # Graph Render Monorepo
 
+[![Release](https://github.com/oleksandr-zhynzher/graph-render/actions/workflows/release.yml/badge.svg)](https://github.com/oleksandr-zhynzher/graph-render/actions/workflows/release.yml)
+
 A TypeScript monorepo for graph rendering and tournament bracket visualization, built with React and Vite.
 
 ## 📦 Packages
