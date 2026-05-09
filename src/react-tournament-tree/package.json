@@ -25,8 +25,8 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@graph-render/react": "workspace:*",
-    "@graph-render/types": "workspace:*"
+    "@graph-render/react": "*",
+    "@graph-render/types": "*"
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",

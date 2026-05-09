@@ -19,7 +19,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@graph-render/types": "workspace:*"
+    "@graph-render/types": "*"
   },
   "devDependencies": {
     "@types/node": "^20.10.7",
