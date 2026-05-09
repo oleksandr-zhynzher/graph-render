@@ -1,3 +1,10 @@
+## @graph-render/tournament-tree [1.0.3](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.0.2...@graph-render/tournament-tree@1.0.3) (2026-05-09)
+
+
+### Dependencies
+
+* **@graph-render/react:** upgraded to 1.0.3
+
 ## @graph-render/tournament-tree [1.0.2](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.0.1...@graph-render/tournament-tree@1.0.2) (2026-03-27)
 
 ### Dependencies
