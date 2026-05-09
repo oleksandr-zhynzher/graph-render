@@ -1,3 +1,9 @@
+## @graph-render/core [1.1.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/core@1.0.2...@graph-render/core@1.1.0) (2026-05-09)
+
+### 🚀 Features
+
+* **core:** add package documentation ([c478bcb](https://github.com/oleksandr-zhynzher/graph-render/commit/c478bcbc26969ff4b55188bc5a9e53fc697f5350))
+
 ## @graph-render/core [1.0.2](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/core@1.0.1...@graph-render/core@1.0.2) (2026-03-27)
 
 ### 🐛 Bug Fixes
