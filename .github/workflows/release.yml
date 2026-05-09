@@ -37,9 +37,6 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies
-        # HUSKY=0 prevents husky from installing git hooks in CI.
-        # No --frozen-lockfile: semantic-release updates package.json versions,
-        # which can cause lockfile mismatches if the lockfile is held frozen.
         run: HUSKY=0 yarn install
 
       - name: Build all packages
@@ -47,11 +44,7 @@ jobs:
 
       - name: Release
         env:
-          # Prefer a PAT (GH_TOKEN) so semantic-release can push tags and the
-          # version-bump commit even when branch protection rules are enabled.
-          # Falls back to the built-in GITHUB_TOKEN when GH_TOKEN is not set.
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          # Disable husky so the machine-generated release commit is not linted.
           HUSKY: '0'
         run: npx multi-semantic-release
