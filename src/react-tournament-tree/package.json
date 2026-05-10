@@ -1,6 +1,6 @@
 {
   "name": "@graph-render/tournament-tree",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "private": false,
   "publishConfig": {
     "access": "public"
@@ -25,7 +25,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@graph-render/react": "1.1.0",
+    "@graph-render/react": "1.2.0",
     "@graph-render/types": "1.0.2"
   },
   "peerDependencies": {

@@ -1,3 +1,14 @@
+## @graph-render/tournament-tree [1.1.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.0.4...@graph-render/tournament-tree@1.1.0) (2026-05-10)
+
+### 🚀 Features
+
+* detect dark theme ([#8](https://github.com/oleksandr-zhynzher/graph-render/issues/8)) ([f882cc0](https://github.com/oleksandr-zhynzher/graph-render/commit/f882cc071a5f24804c4fc06f2b5ab7c948f06ef4))
+
+
+### Dependencies
+
+* **@graph-render/react:** upgraded to 1.2.0
+
 ## @graph-render/tournament-tree [1.0.4](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.0.3...@graph-render/tournament-tree@1.0.4) (2026-05-09)
 
 ### 🐛 Bug Fixes
