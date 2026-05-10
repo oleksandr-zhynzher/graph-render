@@ -28,21 +28,12 @@ function MyGraph() {
   const graph = {
     nodes: [
       { id: '1', label: 'Node 1' },
-      { id: '2', label: 'Node 2' }
+      { id: '2', label: 'Node 2' },
     ],
-    edges: [
-      { source: '1', target: '2' }
-    ]
+    edges: [{ source: '1', target: '2' }],
   };
 
-  return (
-    <Graph
-      graph={graph}
-      layout="dag"
-      width={800}
-      height={600}
-    />
-  );
+  return <Graph graph={graph} layout="dag" width={800} height={600} />;
 }
 ```
 
@@ -53,6 +44,7 @@ function MyGraph() {
 Main component for rendering graphs.
 
 **Props:**
+
 - `graph` - Graph data structure
 - `layout` - Layout algorithm ('dag', 'tree', 'force', 'radial', 'grid')
 - `width` - Canvas width
