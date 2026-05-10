@@ -2,17 +2,16 @@
 
 ### 🚀 Features
 
-* **react:** add comprehensive package documentation ([853d7dd](https://github.com/oleksandr-zhynzher/graph-render/commit/853d7dd4e9045c9e7bf4f4ad34bac137fe451fd0))
+- **react:** add comprehensive package documentation ([853d7dd](https://github.com/oleksandr-zhynzher/graph-render/commit/853d7dd4e9045c9e7bf4f4ad34bac137fe451fd0))
 
 ### 🐛 Bug Fixes
 
-* **deps:** use wildcard version for Yarn 1 compatibility ([56bcdf4](https://github.com/oleksandr-zhynzher/graph-render/commit/56bcdf4a2eb2e906f4724ed03ac90114661d2cb6))
-* **deps:** use workspace protocol for internal dependencies ([189789b](https://github.com/oleksandr-zhynzher/graph-render/commit/189789bfbbf790de62f715fa59a0a54b773cd118))
-
+- **deps:** use wildcard version for Yarn 1 compatibility ([56bcdf4](https://github.com/oleksandr-zhynzher/graph-render/commit/56bcdf4a2eb2e906f4724ed03ac90114661d2cb6))
+- **deps:** use workspace protocol for internal dependencies ([189789b](https://github.com/oleksandr-zhynzher/graph-render/commit/189789bfbbf790de62f715fa59a0a54b773cd118))
 
 ### Dependencies
 
-* **@graph-render/core:** upgraded to 1.1.1
+- **@graph-render/core:** upgraded to 1.1.1
 
 ## @graph-render/react [1.0.2](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/react@1.0.1...@graph-render/react@1.0.2) (2026-03-27)
 

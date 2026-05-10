@@ -2,20 +2,18 @@
 
 ### 🐛 Bug Fixes
 
-* **deps:** use wildcard version for Yarn 1 compatibility ([56bcdf4](https://github.com/oleksandr-zhynzher/graph-render/commit/56bcdf4a2eb2e906f4724ed03ac90114661d2cb6))
-* **deps:** use workspace protocol for internal dependencies ([189789b](https://github.com/oleksandr-zhynzher/graph-render/commit/189789bfbbf790de62f715fa59a0a54b773cd118))
-
+- **deps:** use wildcard version for Yarn 1 compatibility ([56bcdf4](https://github.com/oleksandr-zhynzher/graph-render/commit/56bcdf4a2eb2e906f4724ed03ac90114661d2cb6))
+- **deps:** use workspace protocol for internal dependencies ([189789b](https://github.com/oleksandr-zhynzher/graph-render/commit/189789bfbbf790de62f715fa59a0a54b773cd118))
 
 ### Dependencies
 
-* **@graph-render/react:** upgraded to 1.1.0
+- **@graph-render/react:** upgraded to 1.1.0
 
 ## @graph-render/tournament-tree [1.0.3](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.0.2...@graph-render/tournament-tree@1.0.3) (2026-05-09)
 
-
 ### Dependencies
 
-* **@graph-render/react:** upgraded to 1.0.3
+- **@graph-render/react:** upgraded to 1.0.3
 
 ## @graph-render/tournament-tree [1.0.2](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.0.1...@graph-render/tournament-tree@1.0.2) (2026-03-27)
 

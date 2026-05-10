@@ -186,6 +186,18 @@ function getStageViewport(
   };
 }
 
+function detectDocumentDarkMode(): boolean {
+  if (typeof document === 'undefined') {
+    return false;
+  }
+  const root = document.documentElement;
+  const body = document.body;
+  if (root?.classList.contains('dark') || body?.classList.contains('dark')) {
+    return true;
+  }
+  return false;
+}
+
 function GraphStageSync({ context, labels, labelOffset, onStagesChange }: StageSyncProps) {
   const stages = useMemo(
     () => buildStageViews(context.nodes, labels, labelOffset),
@@ -673,18 +685,24 @@ function BracketFrame({
 export const TournamentBracket = React.memo<TournamentBracketProps>(function TournamentBracket({
   graph,
   config,
+  defaultViewport,
   vertexComponent,
   nodeRenderMode = 'export',
   title = 'Tournament Bracket',
   badgeText,
   showToolbar = true,
+  showViewportControls = false,
+  defaultNavigationMode = false,
+  panEnabled,
+  zoomEnabled,
+  pinchZoomEnabled,
   onInvalidNode,
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<GraphHandle>(null);
   const contentViewportRef = useRef<HTMLDivElement>(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isNavigationMode, setIsNavigationMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(detectDocumentDarkMode);
+  const [isNavigationMode, setIsNavigationMode] = useState(defaultNavigationMode);
   const [activeStageIndex, setActiveStageIndex] = useState(0);
   const [stageViews, setStageViews] = useState<StageView[]>([]);
   const [verticalStagePosition, setVerticalStagePosition] = useState<VerticalStagePosition>('top');
@@ -751,6 +769,24 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
 
   const handleToggleDarkMode = useCallback(() => {
     setIsDarkMode((prev) => !prev);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined' || typeof MutationObserver === 'undefined') {
+      return;
+    }
+    const sync = () => setIsDarkMode(detectDocumentDarkMode());
+    const observer = new MutationObserver(sync);
+    const root = document.documentElement;
+    const body = document.body;
+    if (root) {
+      observer.observe(root, { attributes: true, attributeFilter: ['class', 'style'] });
+    }
+    if (body) {
+      observer.observe(body, { attributes: true, attributeFilter: ['class'] });
+    }
+    sync();
+    return () => observer.disconnect();
   }, []);
 
   const handleStagesChange = useCallback((nextStages: StageView[]) => {
@@ -971,9 +1007,11 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
             graph={enrichedGraph}
             vertexComponent={resolvedVertexComponent}
             config={mergedConfig}
-            panEnabled={!isNavigationMode}
-            zoomEnabled={!isNavigationMode}
-            pinchZoomEnabled={!isNavigationMode}
+            defaultViewport={defaultViewport}
+            panEnabled={panEnabled ?? !isNavigationMode}
+            zoomEnabled={zoomEnabled ?? !isNavigationMode}
+            pinchZoomEnabled={pinchZoomEnabled ?? !isNavigationMode}
+            showControls={showViewportControls}
             renderOverlay={(context) => (
               <GraphStageSync
                 context={context}
