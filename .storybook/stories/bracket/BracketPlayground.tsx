@@ -604,6 +604,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GraphSearchResults>(EMPTY_SELECTION);
   const [hoverState, setHoverState] = useState<HoverState>(null);
+  const [clickedNode, setClickedNode] = useState<PositionedNode | null>(null);
   const [layout, setLayout] = useState<GraphConfig['layout']>(LayoutType.Tree);
   const [layoutDirection, setLayoutDirection] = useState<GraphConfig['layoutDirection']>(
     LayoutDirection.LTR
@@ -724,6 +725,14 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     setSearchResults((current) =>
       areSearchResultsEqual(current, nextResults) ? current : nextResults
     );
+  }, []);
+
+  const handleNodeClick = useCallback((node: PositionedNode) => {
+    setClickedNode(node);
+    setFocusedNodeId(node.id);
+    setSelection({ nodeIds: [node.id], edgeIds: [] });
+    setStatusMessage(`Clicked match ${node.id}. Node info is shown in the output panel.`);
+    console.log('[BracketPlayground] Node clicked:', node);
   }, []);
 
   const handleStoryFit = useCallback(() => {
@@ -1107,6 +1116,34 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
           </section>
 
           <section style={{ display: 'grid', gap: 6 }}>
+            <span style={labelStyle}>Output</span>
+            <div
+              style={{ fontSize: 13, lineHeight: 1.5, color: isDarkMode ? '#cbd5e1' : '#334155' }}
+            >
+              Click a squash match to emit its node data.
+            </div>
+            <pre
+              style={{
+                margin: 0,
+                maxHeight: 220,
+                overflow: 'auto',
+                padding: 12,
+                borderRadius: 10,
+                background: isDarkMode ? '#020617' : '#f8fafc',
+                border: `1px solid ${
+                  isDarkMode ? 'rgba(148,163,184,0.18)' : 'rgba(15,23,42,0.08)'
+                }`,
+                color: isDarkMode ? '#d8d2c7' : '#334155',
+                fontSize: 11,
+                lineHeight: 1.45,
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {clickedNode ? JSON.stringify(clickedNode, null, 2) : 'No match clicked yet.'}
+            </pre>
+          </section>
+
+          <section style={{ display: 'grid', gap: 6 }}>
             <span style={labelStyle}>Hints</span>
             <div
               style={{ fontSize: 13, lineHeight: 1.5, color: isDarkMode ? '#cbd5e1' : '#334155' }}
@@ -1197,6 +1234,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                   : undefined
               }
               onSearchResultsChange={handleSearchResultsChange}
+              onNodeClick={handleNodeClick}
               onNodeHoverChange={(node: PositionedNode, hovered: boolean) => {
                 setHoverState(hovered ? { kind: 'node', id: node.id } : null);
               }}

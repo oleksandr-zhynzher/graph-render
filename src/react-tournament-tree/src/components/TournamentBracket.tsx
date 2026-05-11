@@ -10,7 +10,7 @@ import type {
   PositionedNode,
   VertexComponentProps,
 } from '@graph-render/types';
-import type { TournamentBracketProps } from '../types';
+import type { SquashPositionedNode, TournamentBracketProps } from '../types';
 import { DARK_TOURNAMENT_CONFIG, DEFAULT_TOURNAMENT_CONFIG, NODE_DIMENSIONS } from '../constants';
 import { SquashNode } from './SquashNode';
 import { BracketToolbar } from './BracketToolbar';
@@ -262,7 +262,7 @@ function BracketFrame({
   activeStageIndex: number;
   verticalStagePosition: VerticalStagePosition;
   canPagePlayersVertically: boolean;
-  contentViewportRef: React.RefObject<HTMLDivElement | null>;
+  contentViewportRef: React.RefObject<HTMLDivElement>;
   showToolbar: boolean;
   onToggleNavigationMode: () => void;
   onSelectStage: (index: number) => void;
@@ -696,6 +696,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   panEnabled,
   zoomEnabled,
   pinchZoomEnabled,
+  onMatchClick,
   onInvalidNode,
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -788,6 +789,12 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
     sync();
     return () => observer.disconnect();
   }, []);
+  const handleMatchClick = useCallback(
+    (node: PositionedNode) => {
+      onMatchClick?.(node as SquashPositionedNode);
+    },
+    [onMatchClick]
+  );
 
   const handleStagesChange = useCallback((nextStages: StageView[]) => {
     setStageViews((prevStages) => {
@@ -1012,6 +1019,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
             zoomEnabled={zoomEnabled ?? !isNavigationMode}
             pinchZoomEnabled={pinchZoomEnabled ?? !isNavigationMode}
             showControls={showViewportControls}
+            onNodeClick={handleMatchClick}
             renderOverlay={(context) => (
               <GraphStageSync
                 context={context}

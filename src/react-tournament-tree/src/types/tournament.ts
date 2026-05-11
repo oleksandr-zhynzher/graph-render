@@ -4,6 +4,7 @@ import type {
   VertexComponent,
   NxGraphInput,
 } from '@graph-render/types';
+import type { SquashPositionedNode } from './squash';
 
 export type SquashNodeRenderMode = 'svg' | 'html' | 'export' | 'server';
 
@@ -21,5 +22,6 @@ export interface TournamentBracketProps {
   panEnabled?: boolean;
   zoomEnabled?: boolean;
   pinchZoomEnabled?: boolean;
+  onMatchClick?: (node: SquashPositionedNode) => void;
   onInvalidNode?: (nodeId: string, error: Error) => void;
 }

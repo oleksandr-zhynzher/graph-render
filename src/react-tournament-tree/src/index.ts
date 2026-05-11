@@ -9,4 +9,12 @@ export {
 } from './utils/roundLabels';
 export { BracketThemeProvider, useBracketTheme } from './contexts/BracketThemeContext';
 export type { ThemeMode } from './contexts/BracketThemeContext';
-export type { SquashNodeRenderMode, TournamentBracketProps } from './types';
+export type {
+  MatchStatus,
+  SquashMatchMeta,
+  SquashNodeData,
+  SquashNodeRenderMode,
+  SquashPlayer,
+  SquashPositionedNode,
+  TournamentBracketProps,
+} from './types';
