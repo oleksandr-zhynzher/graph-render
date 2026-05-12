@@ -635,7 +635,18 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   const [canPagePlayersVertically, setCanPagePlayersVertically] = useState(false);
   const previousViewportRef = useRef<GraphViewport | null>(null);
 
-  const enrichedGraph = useMemo(() => injectTournamentPathKeys(graph), [graph]);
+  const enrichedGraph = useMemo(() => {
+    const withPaths = injectTournamentPathKeys(graph);
+    const targetSize = isCompact
+      ? { width: NODE_DIMENSIONS_COMPACT.WIDTH, height: NODE_DIMENSIONS_COMPACT.HEIGHT }
+      : { width: NODE_DIMENSIONS.WIDTH, height: NODE_DIMENSIONS.HEIGHT };
+    return {
+      ...withPaths,
+      nodes: Object.fromEntries(
+        Object.entries(withPaths.nodes ?? {}).map(([id, attrs]) => [id, { ...attrs, size: targetSize }])
+      ),
+    };
+  }, [graph, isCompact]);
   const labels = useMemo(() => roundLabelsForGraph(graph), [graph]);
 
   useEffect(() => {

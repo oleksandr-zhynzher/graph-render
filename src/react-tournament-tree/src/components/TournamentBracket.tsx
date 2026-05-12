@@ -760,14 +760,8 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
       acc[nodeId] = {
         ...attrs,
         size: {
-          width: Math.max(
-            size?.width ?? 0,
-            compact ? NODE_DIMENSIONS_COMPACT.WIDTH : NODE_DIMENSIONS.WIDTH
-          ),
-          height: Math.max(
-            size?.height ?? 0,
-            compact ? NODE_DIMENSIONS_COMPACT.HEIGHT : NODE_DIMENSIONS.HEIGHT
-          ),
+          width: compact ? NODE_DIMENSIONS_COMPACT.WIDTH : NODE_DIMENSIONS.WIDTH,
+          height: compact ? NODE_DIMENSIONS_COMPACT.HEIGHT : NODE_DIMENSIONS.HEIGHT,
         },
       };
 
