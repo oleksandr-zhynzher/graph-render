@@ -705,7 +705,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   panEnabled,
   zoomEnabled,
   pinchZoomEnabled,
-  compact = false,
+  compact = true,
   onMatchClick,
   onInvalidNode,
 }) {

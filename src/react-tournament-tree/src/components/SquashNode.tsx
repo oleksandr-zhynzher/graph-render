@@ -378,7 +378,7 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
   onPathHover,
   onPathLeave,
   renderMode = 'export',
-  compact = false,
+  compact = true,
   onRenderError: _onRenderError,
 }) {
   const [hoveredPlayerIndex, setHoveredPlayerIndex] = useState<number | null>(null);
@@ -807,7 +807,7 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
 export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
   node,
   renderMode = 'export',
-  compact = false,
+  compact = true,
   onRenderError,
   ...props
 }) {

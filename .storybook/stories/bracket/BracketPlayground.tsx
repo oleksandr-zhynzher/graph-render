@@ -615,7 +615,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   const [nodeSizing, setNodeSizing] = useState<GraphConfig['nodeSizing']>('fixed');
   const [selectionMode, setSelectionMode] = useState<'single' | 'multiple'>('multiple');
   const [renderMode, setRenderMode] = useState<SquashNodeRenderMode>('export');
-  const [isCompact, setIsCompact] = useState(false);
+  const [isCompact, setIsCompact] = useState(true);
   const [highlightMode, setHighlightMode] = useState<HighlightMode>('ancestry');
   const [showViewportControls, setShowViewportControls] = useState(true);
   const [curveEdges, setCurveEdges] = useState(true);
