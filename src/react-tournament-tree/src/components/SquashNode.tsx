@@ -6,6 +6,7 @@ import { useBracketTheme } from '../contexts/BracketThemeContext';
 
 interface SquashNodeProps extends VertexComponentProps {
   renderMode?: SquashNodeRenderMode;
+  compact?: boolean;
   onRenderError?: (nodeId: string, error: Error) => void;
 }
 
@@ -377,6 +378,7 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
   onPathHover,
   onPathLeave,
   renderMode = 'export',
+  compact = false,
   onRenderError: _onRenderError,
 }) {
   const [hoveredPlayerIndex, setHoveredPlayerIndex] = useState<number | null>(null);
@@ -676,10 +678,10 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                 key={`${node.id}-p-${idx}`}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: `28px minmax(0, 1fr) ${scoreGroupWidth}px 24px`,
+                  gridTemplateColumns: `${compact ? 22 : 28}px minmax(0, 1fr) ${scoreGroupWidth}px ${compact ? 18 : 24}px`,
                   alignItems: 'center',
-                  gap: 8,
-                  padding: '14px 12px',
+                  gap: compact ? 6 : 8,
+                  padding: compact ? '8px 8px' : '14px 12px',
                   minHeight: nodeHeight / 2,
                   background: rowBackground,
                   opacity: playerOpacity,
@@ -702,15 +704,15 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
               >
                 <div
                   style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 7,
+                    width: compact ? 22 : 28,
+                    height: compact ? 22 : 28,
+                    borderRadius: compact ? 5 : 7,
                     background: badgeBackground,
                     display: 'grid',
                     placeItems: 'center',
                     fontWeight: 700,
                     color: badgeColor,
-                    fontSize: 12,
+                    fontSize: compact ? 10 : 12,
                     flexShrink: 0,
                     fontFamily: BODY_FONT_FAMILY,
                   }}
@@ -727,7 +729,7 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                 >
                   <span
                     style={{
-                      fontSize: 13,
+                      fontSize: compact ? 11 : 13,
                       fontWeight: isWinner ? 600 : 500,
                       color: rowTextColor,
                       overflow: 'hidden',
@@ -784,11 +786,11 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                     justifyContent: 'center',
                     minHeight: 20,
                     borderLeft: `1px solid ${THEME_COLORS.DARK_BORDER}`,
-                    fontSize: 18,
+                    fontSize: compact ? 14 : 18,
                     fontWeight: 700,
                     color: rowTextColor,
                     fontFamily: BODY_FONT_FAMILY,
-                    paddingLeft: 8,
+                    paddingLeft: compact ? 5 : 8,
                   }}
                 >
                   {setCount}
@@ -805,6 +807,7 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
 export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
   node,
   renderMode = 'export',
+  compact = false,
   onRenderError,
   ...props
 }) {
@@ -819,7 +822,7 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
       height={height}
       onRenderError={onRenderError}
     >
-      <SquashNodeContent {...props} node={node} renderMode={renderMode} />
+      <SquashNodeContent {...props} node={node} renderMode={renderMode} compact={compact} />
     </SquashNodeErrorBoundary>
   );
 });

@@ -1,6 +1,6 @@
 import type { GraphConfig } from '@graph-render/types';
 import { LayoutType, LayoutDirection, EdgeType } from '@graph-render/types';
-import { NODE_DIMENSIONS } from './node';
+import { NODE_DIMENSIONS, NODE_DIMENSIONS_COMPACT } from './node';
 
 export const DEFAULT_TOURNAMENT_CONFIG: Readonly<GraphConfig> = {
   layout: LayoutType.Tree,
@@ -50,5 +50,31 @@ export const DARK_TOURNAMENT_CONFIG: Readonly<GraphConfig> = {
     edgeWidth: 2,
     nodeGap: 72,
     fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
+  },
+} as const;
+
+export const COMPACT_TOURNAMENT_CONFIG: Readonly<GraphConfig> = {
+  ...DEFAULT_TOURNAMENT_CONFIG,
+  padding: 28,
+  fixedNodeSize: {
+    width: NODE_DIMENSIONS_COMPACT.WIDTH,
+    height: NODE_DIMENSIONS_COMPACT.HEIGHT,
+  },
+  theme: {
+    ...DEFAULT_TOURNAMENT_CONFIG.theme,
+    nodeGap: 36,
+  },
+} as const;
+
+export const DARK_COMPACT_TOURNAMENT_CONFIG: Readonly<GraphConfig> = {
+  ...DARK_TOURNAMENT_CONFIG,
+  padding: 28,
+  fixedNodeSize: {
+    width: NODE_DIMENSIONS_COMPACT.WIDTH,
+    height: NODE_DIMENSIONS_COMPACT.HEIGHT,
+  },
+  theme: {
+    ...DARK_TOURNAMENT_CONFIG.theme,
+    nodeGap: 36,
   },
 } as const;

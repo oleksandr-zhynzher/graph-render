@@ -11,7 +11,14 @@ import type {
   VertexComponentProps,
 } from '@graph-render/types';
 import type { SquashPositionedNode, TournamentBracketProps } from '../types';
-import { DARK_TOURNAMENT_CONFIG, DEFAULT_TOURNAMENT_CONFIG, NODE_DIMENSIONS } from '../constants';
+import {
+  DARK_TOURNAMENT_CONFIG,
+  DEFAULT_TOURNAMENT_CONFIG,
+  COMPACT_TOURNAMENT_CONFIG,
+  DARK_COMPACT_TOURNAMENT_CONFIG,
+  NODE_DIMENSIONS,
+  NODE_DIMENSIONS_COMPACT,
+} from '../constants';
 import { SquashNode } from './SquashNode';
 import { BracketToolbar } from './BracketToolbar';
 import { BracketThemeProvider, useBracketTheme } from '../contexts/BracketThemeContext';
@@ -243,6 +250,7 @@ function BracketFrame({
   canPagePlayersVertically,
   contentViewportRef,
   showToolbar,
+  compact,
   onToggleNavigationMode,
   onSelectStage,
   onPreviousStage,
@@ -264,6 +272,7 @@ function BracketFrame({
   canPagePlayersVertically: boolean;
   contentViewportRef: React.RefObject<HTMLDivElement | null>;
   showToolbar: boolean;
+  compact: boolean;
   onToggleNavigationMode: () => void;
   onSelectStage: (index: number) => void;
   onPreviousStage: () => void;
@@ -297,7 +306,7 @@ function BracketFrame({
         width: '100%',
         maxWidth: 1180,
         background: colors.SURFACE_BG,
-        borderRadius: 24,
+        borderRadius: compact ? 16 : 24,
         boxShadow: colors.SHADOW,
         overflow: 'hidden',
       }}
@@ -307,17 +316,17 @@ function BracketFrame({
           display: 'flex',
           alignItems: 'center',
           gap: 14,
-          minHeight: 72,
-          padding: '0 32px',
+          minHeight: compact ? 52 : 72,
+          padding: compact ? '0 16px' : '0 32px',
           background: colors.HEADER_BG,
           borderBottom: `1px solid ${colors.HEADER_BORDER}`,
         }}
       >
         <div
           style={{
-            width: 30,
-            height: 30,
-            borderRadius: 8,
+            width: compact ? 24 : 30,
+            height: compact ? 24 : 30,
+            borderRadius: compact ? 6 : 8,
             display: 'grid',
             placeItems: 'center',
             background: colors.ICON_BG,
@@ -330,7 +339,7 @@ function BracketFrame({
         <div
           style={{
             fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
-            fontSize: 18,
+            fontSize: compact ? 15 : 18,
             fontWeight: 600,
             color: colors.HEADER_TITLE,
           }}
@@ -343,13 +352,13 @@ function BracketFrame({
             display: 'flex',
             alignItems: 'center',
             gap: 6,
-            minHeight: 28,
-            padding: '0 14px',
+            minHeight: compact ? 22 : 28,
+            padding: compact ? '0 10px' : '0 14px',
             borderRadius: 999,
             background: colors.BADGE_BG,
             color: colors.BADGE_TEXT,
             fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
-            fontSize: 11,
+            fontSize: compact ? 10 : 11,
             fontWeight: 600,
             letterSpacing: '0.02em',
             whiteSpace: 'nowrap',
@@ -380,7 +389,7 @@ function BracketFrame({
       {stageLabels.length ? (
         <div
           style={{
-            padding: '14px 32px 12px',
+            padding: compact ? '8px 16px 8px' : '14px 32px 12px',
             background: isDarkMode ? '#20262d' : '#fbfaf7',
             borderBottom: `1px solid ${colors.HEADER_BORDER}`,
           }}
@@ -389,7 +398,7 @@ function BracketFrame({
             style={{
               display: 'grid',
               gridTemplateColumns: `repeat(${stageLabels.length}, minmax(0, 1fr))`,
-              gap: 24,
+              gap: compact ? 12 : 24,
               alignItems: 'center',
             }}
           >
@@ -458,7 +467,7 @@ function BracketFrame({
         ref={contentViewportRef}
         style={{
           position: 'relative',
-          padding: '12px 24px 24px',
+          padding: compact ? '8px 12px 16px' : '12px 24px 24px',
           overflowX: isNavigationMode ? 'hidden' : 'auto',
           overflowY: 'hidden',
           background: isDarkMode
@@ -696,6 +705,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   panEnabled,
   zoomEnabled,
   pinchZoomEnabled,
+  compact = false,
   onMatchClick,
   onInvalidNode,
 }) {
@@ -717,7 +727,13 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
 
   const mergedConfig = useMemo(() => {
     const { theme: themeOverride, ...restConfig } = config ?? {};
-    const baseConfig = isDarkMode ? DARK_TOURNAMENT_CONFIG : DEFAULT_TOURNAMENT_CONFIG;
+    const baseConfig = isDarkMode
+      ? compact
+        ? DARK_COMPACT_TOURNAMENT_CONFIG
+        : DARK_TOURNAMENT_CONFIG
+      : compact
+        ? COMPACT_TOURNAMENT_CONFIG
+        : DEFAULT_TOURNAMENT_CONFIG;
     const baseTheme = baseConfig.theme ?? {};
 
     return {
@@ -727,7 +743,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
       autoLabels: false,
       theme: { ...baseTheme, ...(themeOverride ?? {}) },
     } satisfies GraphConfig;
-  }, [config, labels, isDarkMode]);
+  }, [config, labels, isDarkMode, compact]);
 
   const enrichedGraph = useMemo(() => {
     const graphWithPaths = injectTournamentPathKeys(graph);
@@ -744,8 +760,14 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
       acc[nodeId] = {
         ...attrs,
         size: {
-          width: Math.max(size?.width ?? 0, NODE_DIMENSIONS.WIDTH),
-          height: Math.max(size?.height ?? 0, NODE_DIMENSIONS.HEIGHT),
+          width: Math.max(
+            size?.width ?? 0,
+            compact ? NODE_DIMENSIONS_COMPACT.WIDTH : NODE_DIMENSIONS.WIDTH
+          ),
+          height: Math.max(
+            size?.height ?? 0,
+            compact ? NODE_DIMENSIONS_COMPACT.HEIGHT : NODE_DIMENSIONS.HEIGHT
+          ),
         },
       };
 
@@ -756,7 +778,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
       ...graphWithPaths,
       nodes: sizedNodes,
     };
-  }, [graph, vertexComponent]);
+  }, [graph, vertexComponent, compact]);
 
   const resolvedBadgeText = useMemo(() => {
     if (badgeText) {
@@ -980,9 +1002,14 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
     () =>
       vertexComponent ??
       ((props: VertexComponentProps) => (
-        <SquashNode {...props} renderMode={nodeRenderMode} onRenderError={onInvalidNode} />
+        <SquashNode
+          {...props}
+          renderMode={nodeRenderMode}
+          compact={compact}
+          onRenderError={onInvalidNode}
+        />
       )),
-    [nodeRenderMode, onInvalidNode, vertexComponent]
+    [nodeRenderMode, onInvalidNode, vertexComponent, compact]
   );
 
   return (
@@ -999,6 +1026,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
         canPagePlayersVertically={canPagePlayersVertically}
         contentViewportRef={contentViewportRef}
         showToolbar={showToolbar}
+        compact={compact}
         onToggleNavigationMode={handleToggleNavigationMode}
         onSelectStage={handleSelectStage}
         onPreviousStage={handlePreviousStage}

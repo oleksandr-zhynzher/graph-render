@@ -22,6 +22,7 @@ export interface TournamentBracketProps {
   panEnabled?: boolean;
   zoomEnabled?: boolean;
   pinchZoomEnabled?: boolean;
+  compact?: boolean;
   onMatchClick?: (node: SquashPositionedNode) => void;
   onInvalidNode?: (nodeId: string, error: Error) => void;
 }
