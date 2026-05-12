@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import type { VertexComponentProps } from '@graph-render/types';
 import type { MatchStatus, SquashMatchMeta, SquashNodeRenderMode, SquashPlayer } from '../types';
-import { NODE_DIMENSIONS, DEFAULT_PLAYERS } from '../constants';
+import { NODE_DIMENSIONS, NODE_DIMENSIONS_COMPACT, DEFAULT_PLAYERS } from '../constants';
 import { useBracketTheme } from '../contexts/BracketThemeContext';
 
 interface SquashNodeProps extends VertexComponentProps {
@@ -397,8 +397,10 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
   const tiebreaks = meta.tiebreaks ?? [];
   const status = meta.status ?? 'completed';
   const currentSet = meta.currentSet ?? 0;
-  const nodeWidth = node.size?.width ?? NODE_DIMENSIONS.WIDTH;
-  const nodeHeight = node.size?.height ?? NODE_DIMENSIONS.HEIGHT;
+  const nodeWidth =
+    node.size?.width ?? (compact ? NODE_DIMENSIONS_COMPACT.WIDTH : NODE_DIMENSIONS.WIDTH);
+  const nodeHeight =
+    node.size?.height ?? (compact ? NODE_DIMENSIONS_COMPACT.HEIGHT : NODE_DIMENSIONS.HEIGHT);
 
   // Check if match is TBD (both players or either player is TBD)
   const isTBD = p1.name === 'TBD' || p2.name === 'TBD';
@@ -811,8 +813,10 @@ export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
   onRenderError,
   ...props
 }) {
-  const width = node.size?.width ?? NODE_DIMENSIONS.WIDTH;
-  const height = node.size?.height ?? NODE_DIMENSIONS.HEIGHT;
+  const width =
+    node.size?.width ?? (compact ? NODE_DIMENSIONS_COMPACT.WIDTH : NODE_DIMENSIONS.WIDTH);
+  const height =
+    node.size?.height ?? (compact ? NODE_DIMENSIONS_COMPACT.HEIGHT : NODE_DIMENSIONS.HEIGHT);
 
   return (
     <SquashNodeErrorBoundary

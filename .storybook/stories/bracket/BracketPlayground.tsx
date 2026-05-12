@@ -434,8 +434,8 @@ const getFitViewportForStory = (
   });
 
   const nodeBounds = positionedNodes.reduce<ReturnType<typeof mergeBounds>>((bounds, node) => {
-    const nodeWidth = node.size?.width ?? 180;
-    const nodeHeight = node.size?.height ?? 72;
+    const nodeWidth = node.size?.width ?? (config.fixedNodeSize?.width ?? NODE_DIMENSIONS.WIDTH);
+    const nodeHeight = node.size?.height ?? (config.fixedNodeSize?.height ?? NODE_DIMENSIONS.HEIGHT);
 
     return mergeBounds(bounds, {
       minX: node.position.x,
@@ -531,10 +531,15 @@ const getStageViewsForStory = (
       const minX = Math.min(...columnNodes.map((node) => node.position.x));
       const minY = Math.min(...columnNodes.map((node) => node.position.y));
       const maxX = Math.max(
-        ...columnNodes.map((node) => node.position.x + (node.size?.width ?? 280))
+        ...columnNodes.map(
+          (node) => node.position.x + (node.size?.width ?? (config.fixedNodeSize?.width ?? NODE_DIMENSIONS.WIDTH))
+        )
       );
       const maxY = Math.max(
-        ...columnNodes.map((node) => node.position.y + (node.size?.height ?? 112))
+        ...columnNodes.map(
+          (node) =>
+            node.position.y + (node.size?.height ?? (config.fixedNodeSize?.height ?? NODE_DIMENSIONS.HEIGHT))
+        )
       );
 
       return {
