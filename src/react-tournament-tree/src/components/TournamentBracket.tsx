@@ -262,7 +262,7 @@ function BracketFrame({
   activeStageIndex: number;
   verticalStagePosition: VerticalStagePosition;
   canPagePlayersVertically: boolean;
-  contentViewportRef: React.RefObject<HTMLDivElement>;
+  contentViewportRef: React.RefObject<HTMLDivElement | null>;
   showToolbar: boolean;
   onToggleNavigationMode: () => void;
   onSelectStage: (index: number) => void;
