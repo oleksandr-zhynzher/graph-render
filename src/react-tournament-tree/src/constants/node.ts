@@ -6,8 +6,8 @@ export const NODE_DIMENSIONS = {
 } as const;
 
 export const NODE_DIMENSIONS_COMPACT = {
-  WIDTH: 220,
-  HEIGHT: 88,
+  WIDTH: 160,
+  HEIGHT: 56,
 } as const;
 
 export const THEME_COLORS_LIGHT = {

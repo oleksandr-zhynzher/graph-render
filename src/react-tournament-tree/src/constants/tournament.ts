@@ -55,26 +55,26 @@ export const DARK_TOURNAMENT_CONFIG: Readonly<GraphConfig> = {
 
 export const COMPACT_TOURNAMENT_CONFIG: Readonly<GraphConfig> = {
   ...DEFAULT_TOURNAMENT_CONFIG,
-  padding: 28,
+  padding: 16,
   fixedNodeSize: {
     width: NODE_DIMENSIONS_COMPACT.WIDTH,
     height: NODE_DIMENSIONS_COMPACT.HEIGHT,
   },
   theme: {
     ...DEFAULT_TOURNAMENT_CONFIG.theme,
-    nodeGap: 36,
+    nodeGap: 16,
   },
 } as const;
 
 export const DARK_COMPACT_TOURNAMENT_CONFIG: Readonly<GraphConfig> = {
   ...DARK_TOURNAMENT_CONFIG,
-  padding: 28,
+  padding: 16,
   fixedNodeSize: {
     width: NODE_DIMENSIONS_COMPACT.WIDTH,
     height: NODE_DIMENSIONS_COMPACT.HEIGHT,
   },
   theme: {
     ...DARK_TOURNAMENT_CONFIG.theme,
-    nodeGap: 36,
+    nodeGap: 16,
   },
 } as const;

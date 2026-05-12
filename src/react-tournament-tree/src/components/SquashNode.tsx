@@ -678,10 +678,10 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                 key={`${node.id}-p-${idx}`}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: `${compact ? 22 : 28}px minmax(0, 1fr) ${scoreGroupWidth}px ${compact ? 18 : 24}px`,
+                  gridTemplateColumns: `${compact ? 16 : 28}px minmax(0, 1fr) ${scoreGroupWidth}px ${compact ? 12 : 24}px`,
                   alignItems: 'center',
-                  gap: compact ? 6 : 8,
-                  padding: compact ? '8px 8px' : '14px 12px',
+                  gap: compact ? 4 : 8,
+                  padding: compact ? '4px 6px' : '14px 12px',
                   minHeight: nodeHeight / 2,
                   background: rowBackground,
                   opacity: playerOpacity,
@@ -704,15 +704,15 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
               >
                 <div
                   style={{
-                    width: compact ? 22 : 28,
-                    height: compact ? 22 : 28,
-                    borderRadius: compact ? 5 : 7,
+                    width: compact ? 16 : 28,
+                    height: compact ? 16 : 28,
+                    borderRadius: compact ? 3 : 7,
                     background: badgeBackground,
                     display: 'grid',
                     placeItems: 'center',
                     fontWeight: 700,
                     color: badgeColor,
-                    fontSize: compact ? 10 : 12,
+                    fontSize: compact ? 8 : 12,
                     flexShrink: 0,
                     fontFamily: BODY_FONT_FAMILY,
                   }}
@@ -729,7 +729,7 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                 >
                   <span
                     style={{
-                      fontSize: compact ? 11 : 13,
+                      fontSize: compact ? 9 : 13,
                       fontWeight: isWinner ? 600 : 500,
                       color: rowTextColor,
                       overflow: 'hidden',
@@ -786,11 +786,11 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                     justifyContent: 'center',
                     minHeight: 20,
                     borderLeft: `1px solid ${THEME_COLORS.DARK_BORDER}`,
-                    fontSize: compact ? 14 : 18,
+                    fontSize: compact ? 11 : 18,
                     fontWeight: 700,
                     color: rowTextColor,
                     fontFamily: BODY_FONT_FAMILY,
-                    paddingLeft: compact ? 5 : 8,
+                    paddingLeft: compact ? 3 : 8,
                   }}
                 >
                   {setCount}

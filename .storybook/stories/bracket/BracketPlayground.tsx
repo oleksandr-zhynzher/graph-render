@@ -680,7 +680,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
       layoutDirection,
       width: canvasSize.width,
       height: canvasSize.height,
-      padding: 24,
+      padding: isCompact ? 8 : 24,
       defaultEdgeType: EdgeType.Undirected,
       curveEdges,
       curveStrength: 0.2,
@@ -691,12 +691,12 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
       hoverNodeOutColor: dark ? '#9ab08d' : '#7c9070',
       hoverNodeBothColor: dark ? '#9ab08d' : '#7c9070',
       theme: dark
-        ? { ...DARK_THEME, nodeGap: isCompact ? 36 : DARK_THEME.nodeGap }
-        : { ...LIGHT_THEME, nodeGap: isCompact ? 36 : LIGHT_THEME.nodeGap },
+        ? { ...DARK_THEME, nodeGap: isCompact ? 16 : DARK_THEME.nodeGap }
+        : { ...LIGHT_THEME, nodeGap: isCompact ? 16 : LIGHT_THEME.nodeGap },
       labelOffset: 40,
       labels,
       routingStyle,
-      edgeSeparation: isCompact ? 14 : 20,
+      edgeSeparation: isCompact ? 8 : 20,
       selfLoopRadius: 34,
       nodeSizing,
       fixedNodeSize: isCompact

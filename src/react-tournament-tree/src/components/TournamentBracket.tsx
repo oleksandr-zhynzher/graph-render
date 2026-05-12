@@ -306,7 +306,7 @@ function BracketFrame({
         width: '100%',
         maxWidth: 1180,
         background: colors.SURFACE_BG,
-        borderRadius: compact ? 16 : 24,
+        borderRadius: compact ? 10 : 24,
         boxShadow: colors.SHADOW,
         overflow: 'hidden',
       }}
@@ -316,17 +316,17 @@ function BracketFrame({
           display: 'flex',
           alignItems: 'center',
           gap: 14,
-          minHeight: compact ? 52 : 72,
-          padding: compact ? '0 16px' : '0 32px',
+          minHeight: compact ? 40 : 72,
+          padding: compact ? '0 12px' : '0 32px',
           background: colors.HEADER_BG,
           borderBottom: `1px solid ${colors.HEADER_BORDER}`,
         }}
       >
         <div
           style={{
-            width: compact ? 24 : 30,
-            height: compact ? 24 : 30,
-            borderRadius: compact ? 6 : 8,
+            width: compact ? 18 : 30,
+            height: compact ? 18 : 30,
+            borderRadius: compact ? 4 : 8,
             display: 'grid',
             placeItems: 'center',
             background: colors.ICON_BG,
@@ -339,7 +339,7 @@ function BracketFrame({
         <div
           style={{
             fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
-            fontSize: compact ? 15 : 18,
+            fontSize: compact ? 13 : 18,
             fontWeight: 600,
             color: colors.HEADER_TITLE,
           }}
@@ -352,13 +352,13 @@ function BracketFrame({
             display: 'flex',
             alignItems: 'center',
             gap: 6,
-            minHeight: compact ? 22 : 28,
-            padding: compact ? '0 10px' : '0 14px',
+            minHeight: compact ? 18 : 28,
+            padding: compact ? '0 7px' : '0 14px',
             borderRadius: 999,
             background: colors.BADGE_BG,
             color: colors.BADGE_TEXT,
             fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
-            fontSize: compact ? 10 : 11,
+            fontSize: compact ? 9 : 11,
             fontWeight: 600,
             letterSpacing: '0.02em',
             whiteSpace: 'nowrap',
@@ -389,7 +389,7 @@ function BracketFrame({
       {stageLabels.length ? (
         <div
           style={{
-            padding: compact ? '8px 16px 8px' : '14px 32px 12px',
+            padding: compact ? '5px 12px 5px' : '14px 32px 12px',
             background: isDarkMode ? '#20262d' : '#fbfaf7',
             borderBottom: `1px solid ${colors.HEADER_BORDER}`,
           }}
@@ -398,7 +398,7 @@ function BracketFrame({
             style={{
               display: 'grid',
               gridTemplateColumns: `repeat(${stageLabels.length}, minmax(0, 1fr))`,
-              gap: compact ? 12 : 24,
+              gap: compact ? 8 : 24,
               alignItems: 'center',
             }}
           >
@@ -467,7 +467,7 @@ function BracketFrame({
         ref={contentViewportRef}
         style={{
           position: 'relative',
-          padding: compact ? '8px 12px 16px' : '12px 24px 24px',
+          padding: compact ? '4px 8px 8px' : '12px 24px 24px',
           overflowX: isNavigationMode ? 'hidden' : 'auto',
           overflowY: 'hidden',
           background: isDarkMode
