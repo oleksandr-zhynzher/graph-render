@@ -2,12 +2,11 @@
 
 ### 🚀 Features
 
-* detect dark theme ([#8](https://github.com/oleksandr-zhynzher/graph-render/issues/8)) ([f882cc0](https://github.com/oleksandr-zhynzher/graph-render/commit/f882cc071a5f24804c4fc06f2b5ab7c948f06ef4))
-
+- detect dark theme ([#8](https://github.com/oleksandr-zhynzher/graph-render/issues/8)) ([f882cc0](https://github.com/oleksandr-zhynzher/graph-render/commit/f882cc071a5f24804c4fc06f2b5ab7c948f06ef4))
 
 ### Dependencies
 
-* **@graph-render/core:** upgraded to 1.2.0
+- **@graph-render/core:** upgraded to 1.2.0
 
 ## @graph-render/react [1.1.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/react@1.0.2...@graph-render/react@1.1.0) (2026-05-09)
 
