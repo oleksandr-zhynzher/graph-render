@@ -21,6 +21,8 @@ import {
   injectTournamentPathKeys,
   SquashNode,
   roundLabelsForGraph,
+  NODE_DIMENSIONS,
+  NODE_DIMENSIONS_COMPACT,
 } from '@graph-render/tournament-tree';
 
 export interface BracketPlaygroundProps {
@@ -613,6 +615,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   const [nodeSizing, setNodeSizing] = useState<GraphConfig['nodeSizing']>('fixed');
   const [selectionMode, setSelectionMode] = useState<'single' | 'multiple'>('multiple');
   const [renderMode, setRenderMode] = useState<SquashNodeRenderMode>('export');
+  const [isCompact, setIsCompact] = useState(false);
   const [highlightMode, setHighlightMode] = useState<HighlightMode>('ancestry');
   const [showViewportControls, setShowViewportControls] = useState(true);
   const [curveEdges, setCurveEdges] = useState(true);
@@ -665,8 +668,9 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
       React.createElement(SquashNode as React.ComponentType<any>, {
         ...props,
         renderMode,
+        compact: isCompact,
       }),
-    [renderMode]
+    [renderMode, isCompact]
   );
 
   const config = useMemo<GraphConfig>(() => {
@@ -686,14 +690,18 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
       hoverNodeInColor: dark ? '#9ab08d' : '#7c9070',
       hoverNodeOutColor: dark ? '#9ab08d' : '#7c9070',
       hoverNodeBothColor: dark ? '#9ab08d' : '#7c9070',
-      theme: dark ? DARK_THEME : LIGHT_THEME,
+      theme: dark
+        ? { ...DARK_THEME, nodeGap: isCompact ? 36 : DARK_THEME.nodeGap }
+        : { ...LIGHT_THEME, nodeGap: isCompact ? 36 : LIGHT_THEME.nodeGap },
       labelOffset: 40,
       labels,
       routingStyle,
-      edgeSeparation: 20,
+      edgeSeparation: isCompact ? 14 : 20,
       selfLoopRadius: 34,
       nodeSizing,
-      fixedNodeSize: { width: 280, height: 112 },
+      fixedNodeSize: isCompact
+        ? { width: NODE_DIMENSIONS_COMPACT.WIDTH, height: NODE_DIMENSIONS_COMPACT.HEIGHT }
+        : { width: NODE_DIMENSIONS.WIDTH, height: NODE_DIMENSIONS.HEIGHT },
       edgeLabelColor: dark ? '#e2e8f0' : '#334155',
       labelPillBackground: 'transparent',
       labelPillBorderColor: 'transparent',
@@ -705,6 +713,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     curveEdges,
     hoverHighlight,
     isDarkMode,
+    isCompact,
     labels,
     layout,
     layoutDirection,
@@ -986,6 +995,14 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                 type="checkbox"
                 checked={isDarkMode}
                 onChange={(event) => setIsDarkMode(event.target.checked)}
+              />
+            </label>
+            <label style={toggleRowStyle}>
+              <span>Compact mode</span>
+              <input
+                type="checkbox"
+                checked={isCompact}
+                onChange={(event) => setIsCompact(event.target.checked)}
               />
             </label>
             <button style={buttonStyle} onClick={() => serializeSvg(containerRef.current)}>
