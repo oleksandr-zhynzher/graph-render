@@ -1,3 +1,9 @@
+## @graph-render/tournament-tree [1.2.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.1.0...@graph-render/tournament-tree@1.2.0) (2026-05-12)
+
+### 🚀 Features
+
+* **tournament-tree:** add onMatchClick event and storybook output panel ([7dec469](https://github.com/oleksandr-zhynzher/graph-render/commit/7dec469fc71dc77dd0943bd3b70781bf23f4459c))
+
 ## @graph-render/tournament-tree [1.1.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.0.4...@graph-render/tournament-tree@1.1.0) (2026-05-10)
 
 ### 🚀 Features
