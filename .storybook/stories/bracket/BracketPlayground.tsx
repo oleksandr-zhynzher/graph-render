@@ -952,6 +952,53 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     };
   }, [handleNextStage, handlePreviousStage, isStageNavigationMode]);
 
+  // ── Mouse drag: vertical drag to scroll in slide mode ────────────────────
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !isStageNavigationMode) return;
+
+    let isDragging = false;
+    let lastMouseY = 0;
+
+    const onMouseDown = (e: MouseEvent) => {
+      // Only primary button; ignore clicks on buttons/inputs
+      if (e.button !== 0) return;
+      if ((e.target as HTMLElement).closest('button, input, select, a')) return;
+      isDragging = true;
+      lastMouseY = e.clientY;
+      container.style.cursor = 'grabbing';
+      e.preventDefault();
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      const dy = e.clientY - lastMouseY;
+      lastMouseY = e.clientY;
+      const cur = liveViewportRef.current;
+      const next = { ...cur, y: cur.y + dy };
+      liveViewportRef.current = next;
+      graphRef.current?.setViewport?.(next);
+    };
+
+    const onMouseUp = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      container.style.cursor = 'grab';
+    };
+
+    container.style.cursor = 'grab';
+    container.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+
+    return () => {
+      container.style.cursor = '';
+      container.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+  }, [isStageNavigationMode]);
+
   return (
     <BracketThemeProvider mode={isDarkMode ? 'dark' : 'light'}>
       <div
