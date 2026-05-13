@@ -21,7 +21,7 @@ export const DEFAULT_TOURNAMENT_CONFIG: Readonly<GraphConfig> = {
   theme: {
     background: '#f7f6f3',
     edgeColor: '#d9d6cf',
-    edgeWidth: 2,
+    edgeWidth: 1,
     nodeGap: 72,
     fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
   },
@@ -47,7 +47,7 @@ export const DARK_TOURNAMENT_CONFIG: Readonly<GraphConfig> = {
   theme: {
     background: '#191e24',
     edgeColor: '#5d6470',
-    edgeWidth: 2,
+    edgeWidth: 1,
     nodeGap: 72,
     fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
   },
