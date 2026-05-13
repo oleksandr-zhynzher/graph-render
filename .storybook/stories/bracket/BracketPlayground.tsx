@@ -69,6 +69,34 @@ const FIT_PADDING = {
   left: 24,
 };
 
+function routeBracketEdges(nodes: PositionedNode[], edges: any[]): any[] {
+  const nodeMap = new Map(nodes.map((n) => [n.id, n]));
+  return edges.map((edge) => {
+    const source = nodeMap.get(edge.source);
+    const target = nodeMap.get(edge.target);
+    if (!source || !target) {
+      return { ...edge, points: [] };
+    }
+    const srcW = source.size?.width ?? 0;
+    const srcH = source.size?.height ?? 0;
+    const tgtH = target.size?.height ?? 0;
+    const srcRight = source.position.x + srcW;
+    const tgtLeft = target.position.x;
+    const srcMidY = source.position.y + srcH / 2;
+    const tgtMidY = target.position.y + tgtH / 2;
+    const midX = (srcRight + tgtLeft) / 2;
+    return {
+      ...edge,
+      points: [
+        { x: srcRight, y: srcMidY },
+        { x: midX, y: srcMidY },
+        { x: midX, y: tgtMidY },
+        { x: tgtLeft, y: tgtMidY },
+      ],
+    };
+  });
+}
+
 const controlSectionStyle: React.CSSProperties = {
   display: 'grid',
   gap: 10,
@@ -1268,6 +1296,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
               }
               onSearchResultsChange={handleSearchResultsChange}
               onNodeClick={handleNodeClick}
+              routeEdgesOverride={routeBracketEdges}
               onNodeHoverChange={(node: PositionedNode, hovered: boolean) => {
                 setHoverState(hovered ? { kind: 'node', id: node.id } : null);
               }}

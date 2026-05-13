@@ -3,10 +3,12 @@ import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { Graph, groupPositionedNodesByColumn } from '@graph-render/react';
 import type {
+  EdgeData,
   GraphConfig,
   GraphHandle,
   GraphRenderContext,
   GraphViewport,
+  PositionedEdge,
   PositionedNode,
   VertexComponentProps,
 } from '@graph-render/types';
@@ -32,6 +34,35 @@ const NAVIGATION_STAGE_MIN_WIDTH = 420;
 const NAVIGATION_STAGE_MIN_HEIGHT = 250;
 const NAVIGATION_MIN_ZOOM = 0.45;
 const NAVIGATION_MAX_ZOOM = 2.1;
+
+/** Generates clean 4-point bracket-style edge paths, bypassing the orthogonal stub routing. */
+function routeBracketEdges(nodes: PositionedNode[], edges: EdgeData[]): PositionedEdge[] {
+  const nodeMap = new Map(nodes.map((n) => [n.id, n]));
+  return edges.map((edge) => {
+    const source = nodeMap.get(edge.source);
+    const target = nodeMap.get(edge.target);
+    if (!source || !target) {
+      return { ...edge, points: [] };
+    }
+    const srcW = source.size?.width ?? 0;
+    const srcH = source.size?.height ?? 0;
+    const tgtH = target.size?.height ?? 0;
+    const srcRight = source.position.x + srcW;
+    const tgtLeft = target.position.x;
+    const srcMidY = source.position.y + srcH / 2;
+    const tgtMidY = target.position.y + tgtH / 2;
+    const midX = (srcRight + tgtLeft) / 2;
+    return {
+      ...edge,
+      points: [
+        { x: srcRight, y: srcMidY },
+        { x: midX, y: srcMidY },
+        { x: midX, y: tgtMidY },
+        { x: tgtLeft, y: tgtMidY },
+      ],
+    };
+  });
+}
 
 type StageBounds = {
   minX: number;
@@ -973,6 +1004,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
               graph={enrichedGraph}
               vertexComponent={exportVertexComponent}
               config={mergedConfig}
+              routeEdgesOverride={routeBracketEdges}
             />
           </BracketThemeProvider>
         );
@@ -1042,6 +1074,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
             pinchZoomEnabled={pinchZoomEnabled ?? !isNavigationMode}
             showControls={showViewportControls}
             onNodeClick={handleMatchClick}
+            routeEdgesOverride={routeBracketEdges}
             renderOverlay={(context) => (
               <GraphStageSync
                 context={context}
