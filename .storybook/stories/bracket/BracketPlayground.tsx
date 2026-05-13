@@ -261,7 +261,7 @@ type StageView = {
   bounds: { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number };
 };
 
-type VerticalStagePosition = 'top' | 'bottom';
+type VerticalStagePosition = 'top' | 'bottom' | 'center';
 
 type StageViewportResult = {
   viewport: GraphViewport;
@@ -601,11 +601,12 @@ const getStageViewportForStory = (
   const maxTop = bounds.maxY + NAVIGATION_STAGE_PADDING_Y - visibleWorldHeight;
   const canPageVertically = maxTop > minTop + 1;
   const centeredTop = bounds.minY + bounds.height / 2 - visibleWorldHeight / 2;
-  const topWorld = canPageVertically
-    ? verticalPosition === 'bottom'
-      ? maxTop
-      : minTop
-    : centeredTop;
+  const topWorld =
+    !canPageVertically || verticalPosition === 'center'
+      ? centeredTop
+      : verticalPosition === 'bottom'
+        ? maxTop
+        : minTop;
 
   return {
     canPageVertically,
@@ -651,7 +652,8 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     'Double-click a match to collapse or expand its subtree.'
   );
   const [activeStageIndex, setActiveStageIndex] = useState(0);
-  const [verticalStagePosition, setVerticalStagePosition] = useState<VerticalStagePosition>('top');
+  const [verticalStagePosition, setVerticalStagePosition] =
+    useState<VerticalStagePosition>('center');
   const [canPagePlayersVertically, setCanPagePlayersVertically] = useState(false);
   const previousViewportRef = useRef<GraphViewport | null>(null);
   /** Always-up-to-date viewport for use in event handlers (avoids stale closures). */
@@ -842,7 +844,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     }
 
     previousViewportRef.current = viewport;
-    setVerticalStagePosition('top');
+    setVerticalStagePosition('center');
     setActiveStageIndex(0);
     setIsStageNavigationMode(true);
     setStatusMessage(
@@ -863,12 +865,12 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   }, [activeStageIndex, focusStage, isStageNavigationMode, stageViews.length]);
 
   const handlePreviousStage = useCallback(() => {
-    setVerticalStagePosition('top');
+    setVerticalStagePosition('center');
     setActiveStageIndex((current) => Math.max(current - 1, 0));
   }, []);
 
   const handleNextStage = useCallback(() => {
-    setVerticalStagePosition('top');
+    setVerticalStagePosition('center');
     setActiveStageIndex((current) => Math.min(current + 1, stageViews.length - 1));
   }, [stageViews.length]);
 
