@@ -526,8 +526,9 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                 />
                 <text
                   x={insetX + badgeSize / 2}
-                  y={rowHeight / 2 + 4}
+                  y={rowHeight / 2}
                   textAnchor="middle"
+                  dy="0.35em"
                   fontSize={compact ? 8 : 12}
                   fontWeight={700}
                   fill={badgeTextColor}
@@ -537,7 +538,8 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                 </text>
                 <text
                   x={playerTextX}
-                  y={rowHeight / 2 + 4}
+                  y={rowHeight / 2}
+                  dy="0.35em"
                   fontSize={compact ? 10 : 13}
                   fontWeight={isWinner ? 600 : 500}
                   fill={textColor}
@@ -562,9 +564,9 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                     <g key={`${node.id}-svg-score-${idx}-${segmentIndex}`}>
                       <text
                         x={segmentX}
-                        y={rowHeight / 2 + 1}
+                        y={rowHeight / 2}
                         textAnchor="middle"
-                        dominantBaseline="middle"
+                        dy="0.35em"
                         fontSize={compact ? 8.5 : 10.5}
                         fontWeight={400}
                         fill={textColor}
@@ -587,9 +589,9 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                 })}
                 <text
                   x={matchCountX}
-                  y={rowHeight / 2 + 1}
+                  y={rowHeight / 2}
                   textAnchor="middle"
-                  dominantBaseline="middle"
+                  dy="0.35em"
                   fontSize={compact ? 14 : 18}
                   fontWeight={700}
                   fill={textColor}
@@ -721,11 +723,13 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                     height: compact ? 16 : 28,
                     borderRadius: compact ? 3 : 7,
                     background: badgeBackground,
-                    display: 'grid',
-                    placeItems: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     fontWeight: 700,
                     color: badgeColor,
                     fontSize: compact ? 8 : 12,
+                    lineHeight: 1,
                     flexShrink: 0,
                     fontFamily: BODY_FONT_FAMILY,
                   }}

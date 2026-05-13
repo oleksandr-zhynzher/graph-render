@@ -15,12 +15,10 @@ const config: StorybookConfig = {
     config.resolve = config.resolve || {};
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
-      'core-graph-render': path.resolve(__dirname, '../core-graph-render/src'),
-      'core-graph-render/*': path.resolve(__dirname, '../core-graph-render/src/*'),
-      'react-graph-render': path.resolve(__dirname, '../react-graph-render/src'),
-      'react-graph-render/*': path.resolve(__dirname, '../react-graph-render/src/*'),
-      'react-tournament-tree': path.resolve(__dirname, '../react-tournament-tree/src'),
-      'react-tournament-tree/*': path.resolve(__dirname, '../react-tournament-tree/src/*'),
+      '@graph-render/types': path.resolve(__dirname, '../src/types/src'),
+      '@graph-render/core': path.resolve(__dirname, '../src/core-graph-render/src'),
+      '@graph-render/react': path.resolve(__dirname, '../src/react-graph-render/src'),
+      '@graph-render/tournament-tree': path.resolve(__dirname, '../src/react-tournament-tree/src'),
     };
     return config;
   },
