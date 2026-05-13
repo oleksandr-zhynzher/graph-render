@@ -662,6 +662,8 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   const [verticalStagePosition, setVerticalStagePosition] = useState<VerticalStagePosition>('top');
   const [canPagePlayersVertically, setCanPagePlayersVertically] = useState(false);
   const previousViewportRef = useRef<GraphViewport | null>(null);
+  /** Always-up-to-date viewport for use in event handlers (avoids stale closures). */
+  const liveViewportRef = useRef<GraphViewport>(INITIAL_VIEWPORT);
 
   const enrichedGraph = useMemo(() => {
     const withPaths = injectTournamentPathKeys(graph);
@@ -771,6 +773,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   );
 
   const handleViewportChange = useCallback((nextViewport: GraphViewport) => {
+    liveViewportRef.current = nextViewport;
     setViewport((current) => (areViewportsEqual(current, nextViewport) ? current : nextViewport));
   }, []);
 
@@ -825,6 +828,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
 
       setCanPagePlayersVertically(nextStageViewport.canPageVertically);
       graphRef.current?.setViewport?.(nextStageViewport.viewport);
+      liveViewportRef.current = nextStageViewport.viewport;
       setViewport(nextStageViewport.viewport);
     },
     [stageViews, verticalStagePosition]
@@ -835,6 +839,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
       const previousViewport = previousViewportRef.current;
       if (previousViewport) {
         graphRef.current?.setViewport?.(previousViewport);
+        liveViewportRef.current = previousViewport;
         setViewport(previousViewport);
       } else {
         handleStoryFit();
@@ -887,6 +892,78 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   const handlePagePlayersDown = useCallback(() => {
     setVerticalStagePosition('bottom');
   }, []);
+
+  // ── Vertical scroll (mouse wheel) in slide mode ────────────────────────────
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !isStageNavigationMode) return;
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaMode === 1 ? e.deltaY * 20 : e.deltaY;
+      const cur = liveViewportRef.current;
+      const next = { ...cur, y: cur.y - delta };
+      liveViewportRef.current = next;
+      graphRef.current?.setViewport?.(next);
+    };
+
+    container.addEventListener('wheel', onWheel, { passive: false });
+    return () => container.removeEventListener('wheel', onWheel);
+  }, [isStageNavigationMode]);
+
+  // ── Touch: vertical drag to scroll, horizontal swipe to change stage ───────
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !isStageNavigationMode) return;
+
+    let startX = 0;
+    let startY = 0;
+    let lastY = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      lastY = startY;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      const dx = Math.abs(e.touches[0].clientX - startX);
+      const dy = Math.abs(e.touches[0].clientY - startY);
+      // Only prevent default for vertical scroll (not horizontal swipe)
+      if (dy > dx) {
+        e.preventDefault();
+        const moveY = e.touches[0].clientY - lastY;
+        lastY = e.touches[0].clientY;
+        const cur = liveViewportRef.current;
+        const next = { ...cur, y: cur.y + moveY };
+        liveViewportRef.current = next;
+        graphRef.current?.setViewport?.(next);
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const dx = endX - startX;
+      const dy = endY - startY;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        if (dx < 0) handleNextStage();
+        else handlePreviousStage();
+      }
+    };
+
+    container.addEventListener('touchstart', onTouchStart, { passive: true });
+    container.addEventListener('touchmove', onTouchMove, { passive: false });
+    container.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener('touchstart', onTouchStart);
+      container.removeEventListener('touchmove', onTouchMove);
+      container.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [handleNextStage, handlePreviousStage, isStageNavigationMode]);
 
   return (
     <BracketThemeProvider mode={isDarkMode ? 'dark' : 'light'}>
