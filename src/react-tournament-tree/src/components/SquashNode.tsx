@@ -450,14 +450,14 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
       <g>
         <defs>
           <clipPath id={filterId}>
-            <rect width={nodeWidth} height={nodeHeight} rx={16} ry={16} />
+            <rect width={nodeWidth} height={nodeHeight} rx={compact ? 8 : 16} ry={compact ? 8 : 16} />
           </clipPath>
         </defs>
         <rect
           width={nodeWidth}
           height={nodeHeight}
-          rx={16}
-          ry={16}
+          rx={compact ? 8 : 16}
+          ry={compact ? 8 : 16}
           fill={isHovered ? THEME_COLORS.HOVER_BG : THEME_COLORS.BASE_BG}
           stroke={THEME_COLORS.CARD_BORDER}
           strokeWidth={NODE_BORDER_WIDTH}
@@ -620,7 +620,7 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
           boxSizing: 'border-box',
           width: '100%',
           height: '100%',
-          borderRadius: 16,
+          borderRadius: compact ? 8 : 16,
           background: isHovered ? THEME_COLORS.HOVER_BG : THEME_COLORS.BASE_BG,
           border: visibleBorder,
           color: THEME_COLORS.FOREGROUND,
