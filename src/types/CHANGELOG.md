@@ -1,3 +1,9 @@
+## @graph-render/types [1.1.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/types@1.0.2...@graph-render/types@1.1.0) (2026-05-13)
+
+### 🚀 Features
+
+* constrain viewport pan to bracket bounds (translateExtent) ([e007635](https://github.com/oleksandr-zhynzher/graph-render/commit/e0076352658d23a86cf010f5f5595f86edabb4dd))
+
 ## @graph-render/types [1.0.2](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/types@1.0.1...@graph-render/types@1.0.2) (2026-03-27)
 
 ### 🐛 Bug Fixes
