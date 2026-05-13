@@ -33,6 +33,7 @@ import { groupPositionedNodesByColumn } from '../utils/columns';
 import {
   GraphBounds,
   centerViewportOnNode,
+  clampViewportTranslation,
   clampZoom,
   getFitViewport,
   getGraphBounds,
@@ -344,6 +345,7 @@ const GraphInner = (
     minZoom = DEFAULT_MIN_ZOOM,
     maxZoom = DEFAULT_MAX_ZOOM,
     zoomStep = DEFAULT_ZOOM_STEP,
+    translateExtent,
     panEnabled = true,
     zoomEnabled = true,
     pinchZoomEnabled = true,
@@ -860,11 +862,16 @@ const GraphInner = (
             safeMaxZoom
           );
 
-          updateViewport({
+          let nextViewport: GraphViewport = {
             zoom: nextZoom,
             x: midpoint.x - pinchRef.current.worldX * nextZoom,
             y: midpoint.y - pinchRef.current.worldY * nextZoom,
-          });
+          };
+          if (translateExtent) {
+            const { width, height } = getViewportDimensions();
+            nextViewport = clampViewportTranslation(nextViewport, translateExtent, width, height);
+          }
+          updateViewport(nextViewport);
           return;
         }
       }
@@ -886,12 +893,26 @@ const GraphInner = (
         return;
       }
 
-      updateViewport({
-        x: dragRef.current.originX + (relativePoint.x - dragRef.current.startX),
-        y: dragRef.current.originY + (relativePoint.y - dragRef.current.startY),
+      updateViewport((current) => {
+        const next: GraphViewport = {
+          ...current,
+          x: dragRef.current.originX + (relativePoint.x - dragRef.current.startX),
+          y: dragRef.current.originY + (relativePoint.y - dragRef.current.startY),
+        };
+        if (!translateExtent) return next;
+        const { width, height } = getViewportDimensions();
+        return clampViewportTranslation(next, translateExtent, width, height);
       });
     },
-    [panEnabled, safeMaxZoom, safeMinZoom, selectionBox, updateViewport]
+    [
+      getViewportDimensions,
+      panEnabled,
+      safeMaxZoom,
+      safeMinZoom,
+      selectionBox,
+      translateExtent,
+      updateViewport,
+    ]
   );
 
   const handlePointerUp = useCallback(
@@ -975,13 +996,26 @@ const GraphInner = (
         safeMaxZoom
       );
 
-      updateViewport({
+      let next: GraphViewport = {
         zoom: nextZoom,
         x: pointer.x - worldX * nextZoom,
         y: pointer.y - worldY * nextZoom,
-      });
+      };
+      if (translateExtent) {
+        const { width, height } = getViewportDimensions();
+        next = clampViewportTranslation(next, translateExtent, width, height);
+      }
+      updateViewport(next);
     },
-    [safeMaxZoom, safeMinZoom, updateViewport, zoomEnabled, zoomStep]
+    [
+      getViewportDimensions,
+      safeMaxZoom,
+      safeMinZoom,
+      translateExtent,
+      updateViewport,
+      zoomEnabled,
+      zoomStep,
+    ]
   );
 
   const handleKeyDown = useCallback(

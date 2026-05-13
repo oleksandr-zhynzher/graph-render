@@ -16,6 +16,38 @@ export const clampZoom = (zoom: number, minZoom: number, maxZoom: number): numbe
   return Math.min(Math.max(zoom, minZoom), maxZoom);
 };
 
+/**
+ * Clamps viewport x/y so the user cannot pan outside the given world-space extent.
+ * When the content fits entirely in the container, it is centered instead.
+ */
+export const clampViewportTranslation = (
+  viewport: GraphViewport,
+  translateExtent: [[number, number], [number, number]],
+  containerWidth: number,
+  containerHeight: number
+): GraphViewport => {
+  const [[xMin, yMin], [xMax, yMax]] = translateExtent;
+  const { zoom } = viewport;
+  const worldW = xMax - xMin;
+  const worldH = yMax - yMin;
+
+  let x: number;
+  if (worldW * zoom <= containerWidth) {
+    x = containerWidth / 2 - (xMin + worldW / 2) * zoom;
+  } else {
+    x = Math.min(Math.max(viewport.x, containerWidth - xMax * zoom), -xMin * zoom);
+  }
+
+  let y: number;
+  if (worldH * zoom <= containerHeight) {
+    y = containerHeight / 2 - (yMin + worldH / 2) * zoom;
+  } else {
+    y = Math.min(Math.max(viewport.y, containerHeight - yMax * zoom), -yMin * zoom);
+  }
+
+  return { zoom, x, y };
+};
+
 export const getGraphBounds = (nodes: PositionedNode[]): GraphBounds | null => {
   if (!nodes.length) {
     return null;

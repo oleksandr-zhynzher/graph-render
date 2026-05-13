@@ -840,6 +840,19 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
     return nodeCount > 0 ? `${finalLabel} · ${nodeCount} MATCHES` : finalLabel;
   }, [badgeText, enrichedGraph.nodes, labels]);
 
+  const translateExtent = useMemo((): [[number, number], [number, number]] | undefined => {
+    if (!stageViews.length) return undefined;
+    const padding = 64;
+    const minX = Math.min(...stageViews.map((s) => s.bounds.minX)) - padding;
+    const minY = Math.min(...stageViews.map((s) => s.bounds.minY)) - padding;
+    const maxX = Math.max(...stageViews.map((s) => s.bounds.maxX)) + padding;
+    const maxY = Math.max(...stageViews.map((s) => s.bounds.maxY)) + padding;
+    return [
+      [minX, minY],
+      [maxX, maxY],
+    ];
+  }, [stageViews]);
+
   const handleToggleDarkMode = useCallback(() => {
     setIsDarkMode((prev) => !prev);
   }, []);
@@ -1097,6 +1110,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
             panEnabled={panEnabled ?? !isNavigationMode}
             zoomEnabled={zoomEnabled ?? !isNavigationMode}
             pinchZoomEnabled={pinchZoomEnabled ?? !isNavigationMode}
+            translateExtent={isNavigationMode ? undefined : translateExtent}
             showControls={showViewportControls}
             onNodeClick={handleMatchClick}
             routeEdgesOverride={routeBracketEdges}

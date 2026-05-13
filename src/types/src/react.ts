@@ -151,6 +151,8 @@ export interface GraphProps<
   minZoom?: number;
   maxZoom?: number;
   zoomStep?: number;
+  /** World-space bounding box `[[minX, minY], [maxX, maxY]]` the user cannot pan outside of. */
+  translateExtent?: [[number, number], [number, number]];
   panEnabled?: boolean;
   zoomEnabled?: boolean;
   pinchZoomEnabled?: boolean;
