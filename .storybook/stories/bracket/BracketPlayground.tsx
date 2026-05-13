@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   EdgeType,
   fromNxGraph,
@@ -780,24 +780,41 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
 
   const computedMinZoom = useMemo(() => {
     if (!stageViews.length || !canvasSize.width || !canvasSize.height) return 0.05;
-    const pad = 64;
-    const worldW =
-      Math.max(...stageViews.map((s) => s.bounds.maxX)) +
-      pad -
-      (Math.min(...stageViews.map((s) => s.bounds.minX)) - pad);
-    const worldH =
-      Math.max(...stageViews.map((s) => s.bounds.maxY)) +
-      pad -
-      (Math.min(...stageViews.map((s) => s.bounds.minY)) - pad);
-    const fitZoom = Math.min(canvasSize.width / worldW, canvasSize.height / worldH);
-    return Math.max(0.05, fitZoom);
-  }, [stageViews, canvasSize]);
+    // Use the same computation as getFitViewportForStory so minZoom == fit zoom.
+    // This prevents normalizeViewport from clamping the fit viewport's zoom.
+    const fitViewport = getFitViewportForStory(
+      enrichedGraph,
+      config,
+      labels,
+      canvasSize.width,
+      canvasSize.height,
+      0.05,
+      3
+    );
+    return Math.max(0.05, fitViewport.zoom);
+  }, [canvasSize, config, enrichedGraph, labels, stageViews]);
 
-  const hasFitOnMountRef = useRef(false);
+  // Sync canvasSize to the actual container before the first browser paint.
+  useLayoutEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+    const w = Math.max(720, Math.floor(element.clientWidth));
+    const h = Math.max(560, Math.floor(element.clientHeight));
+    setCanvasSize((prev) => (prev.width === w && prev.height === h ? prev : { width: w, height: h }));
+  }, []);
 
-  useEffect(() => {
-    hasFitOnMountRef.current = false;
-  }, [enrichedGraph]);
+  // Apply fit viewport as soon as canvasSize matches the real container dims.
+  // Runs synchronously before the first paint so there is no visible flash.
+  useLayoutEffect(() => {
+    const element = containerRef.current;
+    if (!element || !graphRef.current) return;
+    const realW = Math.max(720, Math.floor(element.clientWidth));
+    const realH = Math.max(560, Math.floor(element.clientHeight));
+    // Guard: skip until the first useLayoutEffect has flushed the correct canvasSize.
+    if (canvasSize.width !== realW || canvasSize.height !== realH) return;
+    const fitViewport = getFitViewportForStory(enrichedGraph, config, labels, realW, realH, 0.05, 3);
+    graphRef.current.setViewport(fitViewport);
+  }, [canvasSize, config, enrichedGraph, labels]);
 
   const handleViewportChange = useCallback((nextViewport: GraphViewport) => {
     liveViewportRef.current = nextViewport;
@@ -837,12 +854,6 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     graphRef.current?.setViewport?.(nextViewport);
     setViewport(nextViewport);
   }, [config, enrichedGraph, labels]);
-
-  useEffect(() => {
-    if (hasFitOnMountRef.current) return;
-    hasFitOnMountRef.current = true;
-    handleStoryFit();
-  }, [handleStoryFit]);
 
   const focusStage = useCallback(
     (stageIndex: number) => {
