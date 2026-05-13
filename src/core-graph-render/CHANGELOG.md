@@ -1,9 +1,8 @@
 ## @graph-render/core [1.2.1](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/core@1.2.0...@graph-render/core@1.2.1) (2026-05-13)
 
-
 ### Dependencies
 
-* **@graph-render/types:** upgraded to 1.1.0
+- **@graph-render/types:** upgraded to 1.1.0
 
 ## @graph-render/core [1.2.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/core@1.1.1...@graph-render/core@1.2.0) (2026-05-10)
 
