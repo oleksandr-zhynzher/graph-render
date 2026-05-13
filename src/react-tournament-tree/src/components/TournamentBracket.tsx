@@ -432,7 +432,7 @@ function BracketFrame({
           }}
         >
           {isNavigationMode ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               <button
                 type="button"
                 onClick={onPreviousStage}
@@ -455,41 +455,34 @@ function BracketFrame({
                 <ChevronLeftIcon color={navButtonTextColor} />
               </button>
 
-              <div
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  gap: 6,
-                  overflowX: 'auto',
-                  scrollbarWidth: 'none',
-                }}
-              >
-                {stageLabels.map((label, index) => {
-                  const isActive = index === activeStageIndex;
-                  return (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={() => onSelectStage(index)}
-                      style={{
-                        padding: compact ? '4px 10px' : '6px 14px',
-                        borderRadius: 999,
-                        border: `1px solid ${isActive ? colors.ICON_BG : navButtonBorder}`,
-                        background: isActive ? colors.ICON_BG : 'transparent',
-                        color: isActive ? colors.ICON_FG : colors.BADGE_TEXT,
-                        fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
-                        fontSize: compact ? 10 : 11,
-                        fontWeight: 700,
-                        letterSpacing: '0.04em',
-                        whiteSpace: 'nowrap',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  style={{
+                    padding: compact ? '4px 12px' : '5px 16px',
+                    borderRadius: 999,
+                    background: colors.ICON_BG,
+                    color: colors.ICON_FG,
+                    fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
+                    fontSize: compact ? 10 : 11,
+                    fontWeight: 800,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase' as const,
+                    whiteSpace: 'nowrap' as const,
+                  }}
+                >
+                  {stageLabels[activeStageIndex] ?? ''}
+                </span>
+                <span
+                  style={{
+                    fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
+                    fontSize: compact ? 10 : 12,
+                    fontWeight: 500,
+                    color: isDarkMode ? 'rgba(216, 210, 199, 0.6)' : 'rgba(68, 75, 85, 0.55)',
+                    whiteSpace: 'nowrap' as const,
+                  }}
+                >
+                  {activeStageIndex + 1}/{stageLabels.length}
+                </span>
               </div>
 
               <button
@@ -757,7 +750,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   badgeText,
   showToolbar = true,
   showViewportControls = false,
-  defaultNavigationMode = false,
+  defaultNavigationMode = true,
   panEnabled,
   zoomEnabled,
   pinchZoomEnabled,
