@@ -1,0 +1,8 @@
+exclude:
+  - AGENTS.md
+  - '*.ts'
+  - '*.tsx'
+  - '*.js'
+  - '*.json'
+  - node_modules/
+  - src/
