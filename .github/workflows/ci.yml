@@ -2,8 +2,6 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
@@ -25,10 +23,10 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Lint
+      - name: ESLint
         run: yarn lint
 
-      - name: Check formatting
+      - name: Prettier
         run: yarn format:check
 
   tests:
