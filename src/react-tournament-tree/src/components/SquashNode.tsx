@@ -424,18 +424,26 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
   const visibleBorder = `${NODE_BORDER_WIDTH}px solid ${THEME_COLORS.CARD_BORDER}`;
 
   if (isSvgCompatibleRenderMode(renderMode)) {
-    const insetX = 14;
+    const insetX = compact ? 6 : 14;
     const rowHeight = nodeHeight / 2;
     const dividerY = rowHeight;
-    const badgeSize = 28;
-    const scoreSectionWidth = getScoreGroupWidth(Math.max(sets.length, 1));
-    const matchCountWidth = 22;
-    const internalDividerX = nodeWidth - insetX - matchCountWidth - 10;
-    const scoreGroupRightX = internalDividerX - 6;
+    const badgeSize = compact ? 16 : 28;
+    const badgePad = compact ? 4 : 10;
+    const scoreSegW = compact ? 12 : SCORE_SEGMENT_WIDTH;
+    const scoreSegG = compact ? 3 : SCORE_SEGMENT_GAP;
+    const getScoreWidth = (n: number) => (n <= 1 ? scoreSegW : n * scoreSegW + (n - 1) * scoreSegG);
+    const scoreSectionWidth = getScoreWidth(Math.max(sets.length, 1));
+    const matchCountWidth = compact ? 14 : 22;
+    const matchCountPad = compact ? 6 : 10;
+    const internalDividerX = nodeWidth - insetX - matchCountWidth - matchCountPad;
+    const scoreGroupRightX = internalDividerX - 4;
     const matchCountX = nodeWidth - insetX - matchCountWidth / 2;
-    const playerTextX = insetX + badgeSize + 10;
-    const maxNameWidth = Math.max(56, internalDividerX - playerTextX - scoreSectionWidth - 10);
-    const maxNameLength = Math.max(10, Math.floor(maxNameWidth / 7));
+    const playerTextX = insetX + badgeSize + badgePad;
+    const maxNameWidth = Math.max(
+      compact ? 28 : 56,
+      scoreGroupRightX - scoreSectionWidth - playerTextX - 4
+    );
+    const maxNameLength = Math.max(compact ? 6 : 10, Math.floor(maxNameWidth / (compact ? 6 : 7)));
     const filterId = `ds-${node.id.replace(/[^a-z0-9]/gi, '')}`;
 
     return (
@@ -465,7 +473,7 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
           {[p1, p2].map((player, idx) => {
             const rowY = idx * rowHeight;
             const scoreSegments = getScoreSegments(sets, tiebreaks, idx);
-            const scoreGroupWidth = getScoreGroupWidth(scoreSegments.length);
+            const scoreGroupWidth = getScoreWidth(scoreSegments.length);
             const scoreGroupLeftX = scoreGroupRightX - scoreGroupWidth;
             const setCount = idx === 0 ? setWins.p1 : setWins.p2;
             const isWinner = winnerIndex === idx;
@@ -507,15 +515,15 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                   y={(rowHeight - badgeSize) / 2}
                   width={badgeSize}
                   height={badgeSize}
-                  rx={7}
-                  ry={7}
+                  rx={compact ? 4 : 7}
+                  ry={compact ? 4 : 7}
                   fill={badgeFill}
                 />
                 <text
                   x={insetX + badgeSize / 2}
                   y={rowHeight / 2 + 4}
                   textAnchor="middle"
-                  fontSize={12}
+                  fontSize={compact ? 8 : 12}
                   fontWeight={700}
                   fill={badgeTextColor}
                   fontFamily={BODY_FONT_FAMILY}
@@ -525,7 +533,7 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                 <text
                   x={playerTextX}
                   y={rowHeight / 2 + 4}
-                  fontSize={13}
+                  fontSize={compact ? 10 : 13}
                   fontWeight={isWinner ? 600 : 500}
                   fill={textColor}
                   fontFamily={BODY_FONT_FAMILY}
@@ -542,10 +550,8 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                 />
                 {scoreSegments.map((segment, segmentIndex) => {
                   const segmentX =
-                    scoreGroupLeftX +
-                    SCORE_SEGMENT_WIDTH / 2 +
-                    segmentIndex * (SCORE_SEGMENT_WIDTH + SCORE_SEGMENT_GAP);
-                  const dividerX = segmentX + SCORE_SEGMENT_WIDTH / 2 + SCORE_SEGMENT_GAP / 2;
+                    scoreGroupLeftX + scoreSegW / 2 + segmentIndex * (scoreSegW + scoreSegG);
+                  const dividerX = segmentX + scoreSegW / 2 + scoreSegG / 2;
 
                   return (
                     <g key={`${node.id}-svg-score-${idx}-${segmentIndex}`}>
@@ -554,7 +560,7 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                         y={rowHeight / 2 + 1}
                         textAnchor="middle"
                         dominantBaseline="middle"
-                        fontSize={10.5}
+                        fontSize={compact ? 8.5 : 10.5}
                         fontWeight={400}
                         fill={textColor}
                         fontFamily={SCORE_FONT_FAMILY}
@@ -579,7 +585,7 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
                   y={rowHeight / 2 + 1}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  fontSize={18}
+                  fontSize={compact ? 14 : 18}
                   fontWeight={700}
                   fill={textColor}
                   fontFamily={BODY_FONT_FAMILY}
