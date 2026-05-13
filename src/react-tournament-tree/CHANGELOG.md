@@ -1,3 +1,31 @@
+## @graph-render/tournament-tree [1.3.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.2.0...@graph-render/tournament-tree@1.3.0) (2026-05-13)
+
+### 🚀 Features
+
+* add slide mode with top carousel navigation ([d92aad3](https://github.com/oleksandr-zhynzher/graph-render/commit/d92aad360e286f1cf98a209d0fe4e56e9cf4c667))
+* **bracket:** add compact mode for mobile/small screen brackets ([82fa212](https://github.com/oleksandr-zhynzher/graph-render/commit/82fa212df6b3f392c2920fec4486fb291cefe479))
+* **bracket:** drastically reduce compact mode dimensions ([154ab9f](https://github.com/oleksandr-zhynzher/graph-render/commit/154ab9f80ddab06a211ae753c9bbd6af809d5909))
+* **bracket:** make compact mode the default ([4a3c9a1](https://github.com/oleksandr-zhynzher/graph-render/commit/4a3c9a14fff27762766ec53ccbac0fdbd9c4e9c9))
+* constrain viewport pan to bracket bounds (translateExtent) ([e007635](https://github.com/oleksandr-zhynzher/graph-render/commit/e0076352658d23a86cf010f5f5595f86edabb4dd))
+* navigation mode on by default with compact stage pill nav ([7956bf8](https://github.com/oleksandr-zhynzher/graph-render/commit/7956bf89dd03de0f6725f7ab6a3298cc273c46b0))
+* swipe navigation + hide stage labels in navigation mode ([a064025](https://github.com/oleksandr-zhynzher/graph-render/commit/a064025bdb803ba3aa71fc848f121a6817ab52d5))
+
+### 🐛 Bug Fixes
+
+* **bracket:** fix edge routing mismatch in compact mode ([1b8db77](https://github.com/oleksandr-zhynzher/graph-render/commit/1b8db77a7c6d14131ee2bf710726d55045af9121))
+* **bracket:** fix SVG compact layout — badge, scores, and fonts no longer overlap player names ([b55d76b](https://github.com/oleksandr-zhynzher/graph-render/commit/b55d76be3aff5477c56c18a169a5e0cf38ea0ce6))
+* **bracket:** force compact node sizes, fixing edge routing mismatch ([b0a304d](https://github.com/oleksandr-zhynzher/graph-render/commit/b0a304dfb28cae166aba8fe5201b3c3c4b4a07c6))
+* reduce edge stroke width from 2 to 1 ([669f501](https://github.com/oleksandr-zhynzher/graph-render/commit/669f5013cd916d2dd2048487b837716c6988dbd1))
+* reduce node card border radius to 8px in compact mode ([70fc92f](https://github.com/oleksandr-zhynzher/graph-render/commit/70fc92f37d14a3c199b30d8bfe97f4a57c941a4a))
+* svg text alignment, nodeGap, and storybook aliases ([e1c4c58](https://github.com/oleksandr-zhynzher/graph-render/commit/e1c4c5802f9c90ee0c3f07d23a3aad680dc14cb3))
+* use bracket-style edge routing to fix broken edges in compact mode ([2e196e4](https://github.com/oleksandr-zhynzher/graph-render/commit/2e196e4cc6718ce5d1a31d3b84943b1baed1179e))
+
+
+### Dependencies
+
+* **@graph-render/react:** upgraded to 1.3.0
+* **@graph-render/types:** upgraded to 1.1.0
+
 ## @graph-render/tournament-tree [1.2.1](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.2.0...@graph-render/tournament-tree@1.2.1) (2026-05-13)
 
 ### 🐛 Bug Fixes
