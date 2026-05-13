@@ -846,6 +846,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
 
     previousViewportRef.current = viewport;
     setVerticalStagePosition('top');
+    setActiveStageIndex(0);
     setIsStageNavigationMode(true);
     setStatusMessage(
       'Stage navigation mode active. Use the arrows or stage chips to move between rounds.'
@@ -1448,48 +1449,162 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
               </div>
             ) : null}
 
-            {isStageNavigationMode && stageViews.length > 1 ? (
+            {isStageNavigationMode && stageViews.length > 0 ? (
               <>
-                <button
-                  type="button"
-                  aria-label="Previous stage"
-                  onClick={handlePreviousStage}
-                  disabled={activeStageIndex === 0}
+                {/* Top stage carousel */}
+                <div
                   style={{
                     position: 'absolute',
-                    left: 14,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    ...iconButtonBaseStyle,
-                    background: isDarkMode ? 'rgba(30, 41, 59, 0.96)' : 'rgba(255, 255, 255, 0.96)',
-                    color: isDarkMode ? '#e2e8f0' : '#0f172a',
-                    opacity: activeStageIndex === 0 ? 0.45 : 1,
-                    cursor: activeStageIndex === 0 ? 'default' : 'pointer',
-                    zIndex: 2,
+                    top: 12,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    display: 'flex',
+                    gap: 6,
+                    alignItems: 'center',
+                    maxWidth: 'calc(100% - 100px)',
+                    padding: '6px 8px',
+                    borderRadius: 999,
+                    border: `1px solid ${isDarkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(148, 163, 184, 0.22)'}`,
+                    background: isDarkMode ? 'rgba(15, 23, 42, 0.92)' : 'rgba(255, 255, 255, 0.96)',
+                    backdropFilter: 'blur(16px)',
+                    boxShadow: isDarkMode
+                      ? '0 10px 30px rgba(2, 6, 23, 0.45)'
+                      : '0 10px 30px rgba(15, 23, 42, 0.12)',
+                    zIndex: 3,
                   }}
                 >
-                  ←
-                </button>
-                <button
-                  type="button"
-                  aria-label="Next stage"
-                  onClick={handleNextStage}
-                  disabled={activeStageIndex >= stageViews.length - 1}
-                  style={{
-                    position: 'absolute',
-                    right: 14,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    ...iconButtonBaseStyle,
-                    background: isDarkMode ? 'rgba(30, 41, 59, 0.96)' : 'rgba(255, 255, 255, 0.96)',
-                    color: isDarkMode ? '#e2e8f0' : '#0f172a',
-                    opacity: activeStageIndex >= stageViews.length - 1 ? 0.45 : 1,
-                    cursor: activeStageIndex >= stageViews.length - 1 ? 'default' : 'pointer',
-                    zIndex: 2,
-                  }}
-                >
-                  →
-                </button>
+                  <button
+                    type="button"
+                    aria-label="Previous stage"
+                    onClick={handlePreviousStage}
+                    disabled={activeStageIndex === 0}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 999,
+                      border: `1px solid ${isDarkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(148, 163, 184, 0.22)'}`,
+                      background: 'transparent',
+                      color: isDarkMode ? '#e2e8f0' : '#0f172a',
+                      display: 'grid',
+                      placeItems: 'center',
+                      cursor: activeStageIndex === 0 ? 'default' : 'pointer',
+                      opacity: activeStageIndex === 0 ? 0.35 : 1,
+                      flexShrink: 0,
+                      fontSize: 16,
+                    }}
+                  >
+                    ‹
+                  </button>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 4,
+                      overflowX: 'auto',
+                      scrollbarWidth: 'none',
+                    }}
+                  >
+                    {stageViews.map((stage, index) => {
+                      const isActive = index === activeStageIndex;
+                      return (
+                        <button
+                          key={stage.label}
+                          type="button"
+                          onClick={() => handleSelectStage(index)}
+                          style={{
+                            padding: '5px 12px',
+                            borderRadius: 999,
+                            border: `1px solid ${isActive ? '#7c9070' : 'transparent'}`,
+                            background: isActive ? '#7c9070' : 'transparent',
+                            color: isActive ? '#ffffff' : isDarkMode ? '#cbd5e1' : '#334155',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            letterSpacing: '0.04em',
+                            whiteSpace: 'nowrap',
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {stage.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="button"
+                    aria-label="Next stage"
+                    onClick={handleNextStage}
+                    disabled={activeStageIndex >= stageViews.length - 1}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 999,
+                      border: `1px solid ${isDarkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(148, 163, 184, 0.22)'}`,
+                      background: 'transparent',
+                      color: isDarkMode ? '#e2e8f0' : '#0f172a',
+                      display: 'grid',
+                      placeItems: 'center',
+                      cursor: activeStageIndex >= stageViews.length - 1 ? 'default' : 'pointer',
+                      opacity: activeStageIndex >= stageViews.length - 1 ? 0.35 : 1,
+                      flexShrink: 0,
+                      fontSize: 16,
+                    }}
+                  >
+                    ›
+                  </button>
+                </div>
+
+                {/* Side arrows for stage navigation */}
+                {stageViews.length > 1 ? (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Previous stage"
+                      onClick={handlePreviousStage}
+                      disabled={activeStageIndex === 0}
+                      style={{
+                        position: 'absolute',
+                        left: 14,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        ...iconButtonBaseStyle,
+                        background: isDarkMode
+                          ? 'rgba(30, 41, 59, 0.96)'
+                          : 'rgba(255, 255, 255, 0.96)',
+                        color: isDarkMode ? '#e2e8f0' : '#0f172a',
+                        opacity: activeStageIndex === 0 ? 0.45 : 1,
+                        cursor: activeStageIndex === 0 ? 'default' : 'pointer',
+                        zIndex: 2,
+                      }}
+                    >
+                      ←
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Next stage"
+                      onClick={handleNextStage}
+                      disabled={activeStageIndex >= stageViews.length - 1}
+                      style={{
+                        position: 'absolute',
+                        right: 14,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        ...iconButtonBaseStyle,
+                        background: isDarkMode
+                          ? 'rgba(30, 41, 59, 0.96)'
+                          : 'rgba(255, 255, 255, 0.96)',
+                        color: isDarkMode ? '#e2e8f0' : '#0f172a',
+                        opacity: activeStageIndex >= stageViews.length - 1 ? 0.45 : 1,
+                        cursor: activeStageIndex >= stageViews.length - 1 ? 'default' : 'pointer',
+                        zIndex: 2,
+                      }}
+                    >
+                      →
+                    </button>
+                  </>
+                ) : null}
+
                 {canPagePlayersVertically ? (
                   <div
                     style={{
@@ -1538,53 +1653,6 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                     </button>
                   </div>
                 ) : null}
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: '50%',
-                    bottom: 14,
-                    transform: 'translateX(-50%)',
-                    display: 'flex',
-                    gap: 8,
-                    alignItems: 'center',
-                    maxWidth: 'calc(100% - 120px)',
-                    padding: '8px 10px',
-                    borderRadius: 999,
-                    border: `1px solid ${isDarkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(148, 163, 184, 0.22)'}`,
-                    background: isDarkMode ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.94)',
-                    backdropFilter: 'blur(16px)',
-                    boxShadow: isDarkMode
-                      ? '0 16px 40px rgba(2, 6, 23, 0.45)'
-                      : '0 16px 40px rgba(15, 23, 42, 0.14)',
-                    overflowX: 'auto',
-                    zIndex: 2,
-                  }}
-                >
-                  {stageViews.map((stage, index) => {
-                    const isActive = index === activeStageIndex;
-                    return (
-                      <button
-                        key={stage.label}
-                        type="button"
-                        onClick={() => handleSelectStage(index)}
-                        style={{
-                          padding: '8px 14px',
-                          borderRadius: 999,
-                          border: `1px solid ${isActive ? '#7c9070' : 'transparent'}`,
-                          background: isActive ? '#7c9070' : 'transparent',
-                          color: isActive ? '#ffffff' : isDarkMode ? '#cbd5e1' : '#334155',
-                          fontSize: 11,
-                          fontWeight: 700,
-                          letterSpacing: '0.04em',
-                          whiteSpace: 'nowrap',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {stage.label}
-                      </button>
-                    );
-                  })}
-                </div>
               </>
             ) : null}
           </div>
