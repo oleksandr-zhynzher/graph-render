@@ -765,6 +765,34 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     [config, enrichedGraph, labels]
   );
 
+  const translateExtent = useMemo((): [[number, number], [number, number]] | undefined => {
+    if (!stageViews.length) return undefined;
+    const pad = 64;
+    const minX = Math.min(...stageViews.map((s) => s.bounds.minX)) - pad;
+    const minY = Math.min(...stageViews.map((s) => s.bounds.minY)) - pad;
+    const maxX = Math.max(...stageViews.map((s) => s.bounds.maxX)) + pad;
+    const maxY = Math.max(...stageViews.map((s) => s.bounds.maxY)) + pad;
+    return [
+      [minX, minY],
+      [maxX, maxY],
+    ];
+  }, [stageViews]);
+
+  const computedMinZoom = useMemo(() => {
+    if (!stageViews.length || !canvasSize.width || !canvasSize.height) return 0.05;
+    const pad = 64;
+    const worldW =
+      Math.max(...stageViews.map((s) => s.bounds.maxX)) +
+      pad -
+      (Math.min(...stageViews.map((s) => s.bounds.minX)) - pad);
+    const worldH =
+      Math.max(...stageViews.map((s) => s.bounds.maxY)) +
+      pad -
+      (Math.min(...stageViews.map((s) => s.bounds.minY)) - pad);
+    const fitZoom = Math.min(canvasSize.width / worldW, canvasSize.height / worldH);
+    return Math.max(0.05, fitZoom);
+  }, [stageViews, canvasSize]);
+
   const handleViewportChange = useCallback((nextViewport: GraphViewport) => {
     liveViewportRef.current = nextViewport;
     setViewport((current) => (areViewportsEqual(current, nextViewport) ? current : nextViewport));
@@ -1368,9 +1396,10 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
               onViewportChange={handleViewportChange}
               fitViewOnMount
               fitViewPadding={12}
-              minZoom={0.05}
+              minZoom={computedMinZoom}
               maxZoom={3}
               zoomStep={0.12}
+              translateExtent={isStageNavigationMode ? undefined : translateExtent}
               panEnabled={!isStageNavigationMode}
               zoomEnabled={!isStageNavigationMode}
               pinchZoomEnabled={!isStageNavigationMode}
