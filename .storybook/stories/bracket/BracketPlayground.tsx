@@ -793,21 +793,11 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     return Math.max(0.05, fitZoom);
   }, [stageViews, canvasSize]);
 
-  const defaultFitViewport = useMemo((): GraphViewport => {
-    if (!translateExtent) return INITIAL_VIEWPORT;
-    const [[xMin, yMin], [xMax, yMax]] = translateExtent;
-    const worldW = xMax - xMin;
-    const worldH = yMax - yMin;
-    const zoom = Math.max(
-      computedMinZoom,
-      Math.min(3, Math.min(canvasSize.width / worldW, canvasSize.height / worldH))
-    );
-    return {
-      x: canvasSize.width / 2 - (xMin + worldW / 2) * zoom,
-      y: canvasSize.height / 2 - (yMin + worldH / 2) * zoom,
-      zoom,
-    };
-  }, [translateExtent, computedMinZoom, canvasSize]);
+  const hasFitOnMountRef = useRef(false);
+
+  useEffect(() => {
+    hasFitOnMountRef.current = false;
+  }, [enrichedGraph]);
 
   const handleViewportChange = useCallback((nextViewport: GraphViewport) => {
     liveViewportRef.current = nextViewport;
@@ -847,6 +837,12 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     graphRef.current?.setViewport?.(nextViewport);
     setViewport(nextViewport);
   }, [config, enrichedGraph, labels]);
+
+  useEffect(() => {
+    if (hasFitOnMountRef.current) return;
+    hasFitOnMountRef.current = true;
+    handleStoryFit();
+  }, [handleStoryFit]);
 
   const focusStage = useCallback(
     (stageIndex: number) => {
@@ -1408,9 +1404,8 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
               graph={enrichedGraph}
               vertexComponent={vertexComponent}
               config={config}
-              defaultViewport={defaultFitViewport}
+              defaultViewport={INITIAL_VIEWPORT}
               onViewportChange={handleViewportChange}
-              fitViewOnMount
               fitViewPadding={12}
               minZoom={computedMinZoom}
               maxZoom={3}
