@@ -420,77 +420,150 @@ function BracketFrame({
       {stageLabels.length ? (
         <div
           style={{
-            padding: compact ? '5px 12px 5px' : '14px 32px 12px',
+            padding: isNavigationMode
+              ? compact
+                ? '5px 10px'
+                : '8px 16px'
+              : compact
+                ? '5px 12px 5px'
+                : '14px 32px 12px',
             background: isDarkMode ? '#20262d' : '#fbfaf7',
             borderBottom: `1px solid ${colors.HEADER_BORDER}`,
           }}
         >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(${stageLabels.length}, minmax(0, 1fr))`,
-              gap: compact ? 8 : 24,
-              alignItems: 'center',
-            }}
-          >
-            {stageLabels.map((label, index) => {
-              const isActiveStage = isNavigationMode && index === activeStageIndex;
+          {isNavigationMode ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                type="button"
+                onClick={onPreviousStage}
+                disabled={!canGoPrev}
+                aria-label="Previous stage"
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 999,
+                  border: `1px solid ${navButtonBorder}`,
+                  background: 'transparent',
+                  color: navButtonTextColor,
+                  display: 'grid',
+                  placeItems: 'center',
+                  cursor: canGoPrev ? 'pointer' : 'default',
+                  opacity: canGoPrev ? 1 : 0.35,
+                  flexShrink: 0,
+                }}
+              >
+                <ChevronLeftIcon color={navButtonTextColor} />
+              </button>
 
-              return (
-                <div
-                  key={label}
-                  style={{
-                    display: 'grid',
-                    justifyItems: 'center',
-                    gap: 8,
-                    minWidth: 0,
-                    padding: '6px 10px',
-                    borderRadius: 14,
-                    background:
-                      isActiveStage && isDarkMode
-                        ? 'rgba(216, 210, 199, 0.08)'
-                        : isActiveStage
-                          ? 'rgba(124, 144, 112, 0.08)'
-                          : 'transparent',
-                  }}
-                >
+              <div
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  gap: 6,
+                  overflowX: 'auto',
+                  scrollbarWidth: 'none',
+                }}
+              >
+                {stageLabels.map((label, index) => {
+                  const isActive = index === activeStageIndex;
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => onSelectStage(index)}
+                      style={{
+                        padding: compact ? '4px 10px' : '6px 14px',
+                        borderRadius: 999,
+                        border: `1px solid ${isActive ? colors.ICON_BG : navButtonBorder}`,
+                        background: isActive ? colors.ICON_BG : 'transparent',
+                        color: isActive ? colors.ICON_FG : colors.BADGE_TEXT,
+                        fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
+                        fontSize: compact ? 10 : 11,
+                        fontWeight: 700,
+                        letterSpacing: '0.04em',
+                        whiteSpace: 'nowrap',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={onNextStage}
+                disabled={!canGoNext}
+                aria-label="Next stage"
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 999,
+                  border: `1px solid ${navButtonBorder}`,
+                  background: 'transparent',
+                  color: navButtonTextColor,
+                  display: 'grid',
+                  placeItems: 'center',
+                  cursor: canGoNext ? 'pointer' : 'default',
+                  opacity: canGoNext ? 1 : 0.35,
+                  flexShrink: 0,
+                }}
+              >
+                <ChevronRightIcon color={navButtonTextColor} />
+              </button>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${stageLabels.length}, minmax(0, 1fr))`,
+                gap: compact ? 8 : 24,
+                alignItems: 'center',
+              }}
+            >
+              {stageLabels.map((label) => {
+                return (
                   <div
+                    key={label}
                     style={{
-                      width: 40,
-                      height: 1,
-                      background: isActiveStage
-                        ? isDarkMode
-                          ? 'rgba(247, 245, 239, 0.62)'
-                          : 'rgba(68, 75, 85, 0.34)'
-                        : isDarkMode
-                          ? 'rgba(216, 210, 199, 0.24)'
-                          : 'rgba(68, 75, 85, 0.16)',
-                    }}
-                  />
-                  <div
-                    style={{
-                      fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
-                      fontSize: 12,
-                      fontWeight: 800,
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      color: isActiveStage
-                        ? isDarkMode
-                          ? '#f7f5ef'
-                          : '#2f3741'
-                        : isDarkMode
-                          ? '#d8d2c7'
-                          : '#444b55',
-                      textAlign: 'center',
-                      whiteSpace: 'nowrap',
+                      display: 'grid',
+                      justifyItems: 'center',
+                      gap: 8,
+                      minWidth: 0,
+                      padding: '6px 10px',
+                      borderRadius: 14,
                     }}
                   >
-                    {label}
+                    <div
+                      style={{
+                        width: 40,
+                        height: 1,
+                        background: isDarkMode
+                          ? 'rgba(216, 210, 199, 0.24)'
+                          : 'rgba(68, 75, 85, 0.16)',
+                      }}
+                    />
+                    <div
+                      style={{
+                        fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
+                        fontSize: 12,
+                        fontWeight: 800,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color: isDarkMode ? '#d8d2c7' : '#444b55',
+                        textAlign: 'center',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {label}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       ) : null}
 
@@ -667,54 +740,6 @@ function BracketFrame({
                 </button>
               </div>
             ) : null}
-
-            <div
-              style={{
-                position: 'absolute',
-                left: '50%',
-                bottom: 14,
-                transform: 'translateX(-50%)',
-                display: 'flex',
-                gap: 8,
-                alignItems: 'center',
-                maxWidth: 'calc(100% - 120px)',
-                padding: '8px 10px',
-                borderRadius: 999,
-                border: `1px solid ${navButtonBorder}`,
-                background: navButtonBg,
-                boxShadow: isDarkMode
-                  ? '0 18px 38px rgba(0, 0, 0, 0.24)'
-                  : '0 18px 38px rgba(45, 45, 45, 0.12)',
-                overflowX: 'auto',
-              }}
-            >
-              {stageViews.map((stage, index) => {
-                const isActive = index === activeStageIndex;
-
-                return (
-                  <button
-                    key={stage.label}
-                    type="button"
-                    onClick={() => onSelectStage(index)}
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: 999,
-                      border: `1px solid ${isActive ? colors.ICON_BG : navButtonBorder}`,
-                      background: isActive ? colors.ICON_BG : 'transparent',
-                      color: isActive ? colors.ICON_FG : colors.BADGE_TEXT,
-                      fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
-                      fontSize: 11,
-                      fontWeight: 700,
-                      letterSpacing: '0.04em',
-                      whiteSpace: 'nowrap',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {stage.label}
-                  </button>
-                );
-              })}
-            </div>
           </>
         ) : null}
       </div>

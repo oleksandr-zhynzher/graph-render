@@ -450,7 +450,12 @@ const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent
       <g>
         <defs>
           <clipPath id={filterId}>
-            <rect width={nodeWidth} height={nodeHeight} rx={compact ? 8 : 16} ry={compact ? 8 : 16} />
+            <rect
+              width={nodeWidth}
+              height={nodeHeight}
+              rx={compact ? 8 : 16}
+              ry={compact ? 8 : 16}
+            />
           </clipPath>
         </defs>
         <rect
