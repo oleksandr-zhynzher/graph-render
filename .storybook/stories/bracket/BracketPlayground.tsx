@@ -59,7 +59,6 @@ const LABEL_PILL_HEIGHT = 20;
 const NAVIGATION_STAGE_PADDING_X = 52;
 const NAVIGATION_STAGE_PADDING_Y = 44;
 const NAVIGATION_STAGE_MIN_WIDTH = 420;
-const NAVIGATION_STAGE_MIN_HEIGHT = 250;
 const NAVIGATION_MIN_ZOOM = 0.45;
 const NAVIGATION_MAX_ZOOM = 2.1;
 const FIT_PADDING = {
@@ -595,14 +594,7 @@ const getStageViewportForStory = (
     bounds.width + NAVIGATION_STAGE_PADDING_X * 2,
     NAVIGATION_STAGE_MIN_WIDTH
   );
-  const targetHeight = Math.max(
-    bounds.height + NAVIGATION_STAGE_PADDING_Y * 2,
-    NAVIGATION_STAGE_MIN_HEIGHT
-  );
-  const zoom = Math.min(
-    NAVIGATION_MAX_ZOOM,
-    Math.max(NAVIGATION_MIN_ZOOM, Math.min(width / targetWidth, height / targetHeight))
-  );
+  const zoom = Math.min(NAVIGATION_MAX_ZOOM, Math.max(NAVIGATION_MIN_ZOOM, width / targetWidth));
 
   const visibleWorldHeight = height / zoom;
   const minTop = bounds.minY - NAVIGATION_STAGE_PADDING_Y;
@@ -869,11 +861,6 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
 
     focusStage(activeStageIndex);
   }, [activeStageIndex, focusStage, isStageNavigationMode, stageViews.length]);
-
-  const handleSelectStage = useCallback((stageIndex: number) => {
-    setVerticalStagePosition('top');
-    setActiveStageIndex(stageIndex);
-  }, []);
 
   const handlePreviousStage = useCallback(() => {
     setVerticalStagePosition('top');
@@ -1528,7 +1515,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
 
             {isStageNavigationMode && stageViews.length > 0 ? (
               <>
-                {/* Top stage carousel */}
+                {/* Top carousel: current stage name + prev/next arrows */}
                 <div
                   style={{
                     position: 'absolute',
@@ -1536,10 +1523,9 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                     left: '50%',
                     transform: 'translateX(-50%)',
                     display: 'flex',
-                    gap: 6,
+                    gap: 0,
                     alignItems: 'center',
-                    maxWidth: 'calc(100% - 100px)',
-                    padding: '6px 8px',
+                    padding: '4px',
                     borderRadius: 999,
                     border: `1px solid ${isDarkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(148, 163, 184, 0.22)'}`,
                     background: isDarkMode ? 'rgba(15, 23, 42, 0.92)' : 'rgba(255, 255, 255, 0.96)',
@@ -1556,57 +1542,54 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                     onClick={handlePreviousStage}
                     disabled={activeStageIndex === 0}
                     style={{
-                      width: 28,
-                      height: 28,
+                      width: 32,
+                      height: 32,
                       borderRadius: 999,
-                      border: `1px solid ${isDarkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(148, 163, 184, 0.22)'}`,
+                      border: 'none',
                       background: 'transparent',
                       color: isDarkMode ? '#e2e8f0' : '#0f172a',
                       display: 'grid',
                       placeItems: 'center',
                       cursor: activeStageIndex === 0 ? 'default' : 'pointer',
-                      opacity: activeStageIndex === 0 ? 0.35 : 1,
+                      opacity: activeStageIndex === 0 ? 0.3 : 1,
                       flexShrink: 0,
-                      fontSize: 16,
+                      fontSize: 18,
                     }}
                   >
                     ‹
                   </button>
 
-                  <div
+                  <span
                     style={{
-                      display: 'flex',
-                      gap: 4,
-                      overflowX: 'auto',
-                      scrollbarWidth: 'none',
+                      padding: '5px 14px',
+                      borderRadius: 999,
+                      background: '#7c9070',
+                      color: '#ffffff',
+                      fontSize: 11,
+                      fontWeight: 800,
+                      letterSpacing: '0.06em',
+                      whiteSpace: 'nowrap',
+                      userSelect: 'none',
+                      minWidth: 100,
+                      textAlign: 'center',
                     }}
                   >
-                    {stageViews.map((stage, index) => {
-                      const isActive = index === activeStageIndex;
-                      return (
-                        <button
-                          key={stage.label}
-                          type="button"
-                          onClick={() => handleSelectStage(index)}
-                          style={{
-                            padding: '5px 12px',
-                            borderRadius: 999,
-                            border: `1px solid ${isActive ? '#7c9070' : 'transparent'}`,
-                            background: isActive ? '#7c9070' : 'transparent',
-                            color: isActive ? '#ffffff' : isDarkMode ? '#cbd5e1' : '#334155',
-                            fontSize: 11,
-                            fontWeight: 700,
-                            letterSpacing: '0.04em',
-                            whiteSpace: 'nowrap',
-                            cursor: 'pointer',
-                            flexShrink: 0,
-                          }}
-                        >
-                          {stage.label}
-                        </button>
-                      );
-                    })}
-                  </div>
+                    {stageViews[activeStageIndex]?.label ?? ''}
+                  </span>
+
+                  {stageViews.length > 1 ? (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        color: isDarkMode ? '#64748b' : '#94a3b8',
+                        padding: '0 4px 0 2px',
+                        userSelect: 'none',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {activeStageIndex + 1}/{stageViews.length}
+                    </span>
+                  ) : null}
 
                   <button
                     type="button"
@@ -1614,18 +1597,18 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                     onClick={handleNextStage}
                     disabled={activeStageIndex >= stageViews.length - 1}
                     style={{
-                      width: 28,
-                      height: 28,
+                      width: 32,
+                      height: 32,
                       borderRadius: 999,
-                      border: `1px solid ${isDarkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(148, 163, 184, 0.22)'}`,
+                      border: 'none',
                       background: 'transparent',
                       color: isDarkMode ? '#e2e8f0' : '#0f172a',
                       display: 'grid',
                       placeItems: 'center',
                       cursor: activeStageIndex >= stageViews.length - 1 ? 'default' : 'pointer',
-                      opacity: activeStageIndex >= stageViews.length - 1 ? 0.35 : 1,
+                      opacity: activeStageIndex >= stageViews.length - 1 ? 0.3 : 1,
                       flexShrink: 0,
-                      fontSize: 16,
+                      fontSize: 18,
                     }}
                   >
                     ›
