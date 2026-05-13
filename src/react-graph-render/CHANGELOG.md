@@ -1,3 +1,15 @@
+## @graph-render/react [1.3.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/react@1.2.0...@graph-render/react@1.3.0) (2026-05-13)
+
+### 🚀 Features
+
+* constrain viewport pan to bracket bounds (translateExtent) ([e007635](https://github.com/oleksandr-zhynzher/graph-render/commit/e0076352658d23a86cf010f5f5595f86edabb4dd))
+
+
+### Dependencies
+
+* **@graph-render/core:** upgraded to 1.2.1
+* **@graph-render/types:** upgraded to 1.1.0
+
 ## @graph-render/react [1.2.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/react@1.1.0...@graph-render/react@1.2.0) (2026-05-10)
 
 ### 🚀 Features
