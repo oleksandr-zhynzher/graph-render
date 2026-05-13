@@ -461,8 +461,8 @@ const getFitViewportForStory = (
   });
 
   const nodeBounds = positionedNodes.reduce<ReturnType<typeof mergeBounds>>((bounds, node) => {
-    const nodeWidth = node.size?.width ?? (config.fixedNodeSize?.width ?? NODE_DIMENSIONS.WIDTH);
-    const nodeHeight = node.size?.height ?? (config.fixedNodeSize?.height ?? NODE_DIMENSIONS.HEIGHT);
+    const nodeWidth = node.size?.width ?? config.fixedNodeSize?.width ?? NODE_DIMENSIONS.WIDTH;
+    const nodeHeight = node.size?.height ?? config.fixedNodeSize?.height ?? NODE_DIMENSIONS.HEIGHT;
 
     return mergeBounds(bounds, {
       minX: node.position.x,
@@ -559,13 +559,16 @@ const getStageViewsForStory = (
       const minY = Math.min(...columnNodes.map((node) => node.position.y));
       const maxX = Math.max(
         ...columnNodes.map(
-          (node) => node.position.x + (node.size?.width ?? (config.fixedNodeSize?.width ?? NODE_DIMENSIONS.WIDTH))
+          (node) =>
+            node.position.x +
+            (node.size?.width ?? config.fixedNodeSize?.width ?? NODE_DIMENSIONS.WIDTH)
         )
       );
       const maxY = Math.max(
         ...columnNodes.map(
           (node) =>
-            node.position.y + (node.size?.height ?? (config.fixedNodeSize?.height ?? NODE_DIMENSIONS.HEIGHT))
+            node.position.y +
+            (node.size?.height ?? config.fixedNodeSize?.height ?? NODE_DIMENSIONS.HEIGHT)
         )
       );
 
@@ -666,7 +669,10 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     return {
       ...withPaths,
       nodes: Object.fromEntries(
-        Object.entries(withPaths.nodes ?? {}).map(([id, attrs]) => [id, { ...attrs, size: targetSize }])
+        Object.entries(withPaths.nodes ?? {}).map(([id, attrs]) => [
+          id,
+          { ...attrs, size: targetSize },
+        ])
       ),
     };
   }, [graph, isCompact]);
@@ -801,7 +807,9 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     if (!element) return;
     const w = Math.max(720, Math.floor(element.clientWidth));
     const h = Math.max(560, Math.floor(element.clientHeight));
-    setCanvasSize((prev) => (prev.width === w && prev.height === h ? prev : { width: w, height: h }));
+    setCanvasSize((prev) =>
+      prev.width === w && prev.height === h ? prev : { width: w, height: h }
+    );
   }, []);
 
   // Apply fit viewport as soon as canvasSize matches the real container dims.
@@ -813,7 +821,15 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     const realH = Math.max(560, Math.floor(element.clientHeight));
     // Guard: skip until the first useLayoutEffect has flushed the correct canvasSize.
     if (canvasSize.width !== realW || canvasSize.height !== realH) return;
-    const fitViewport = getFitViewportForStory(enrichedGraph, config, labels, realW, realH, 0.05, 3);
+    const fitViewport = getFitViewportForStory(
+      enrichedGraph,
+      config,
+      labels,
+      realW,
+      realH,
+      0.05,
+      3
+    );
     graphRef.current.setViewport(fitViewport);
   }, [canvasSize, config, enrichedGraph, labels]);
 

@@ -432,7 +432,9 @@ function BracketFrame({
           }}
         >
           {isNavigationMode ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <div
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+            >
               <button
                 type="button"
                 onClick={onPreviousStage}
