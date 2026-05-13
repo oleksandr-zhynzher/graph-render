@@ -1,3 +1,10 @@
+## @graph-render/tournament-tree [1.2.1](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.2.0...@graph-render/tournament-tree@1.2.1) (2026-05-13)
+
+### 🐛 Bug Fixes
+
+- svg text vertical alignment using dy="0.35em" for cross-browser support ([e1c4c58](https://github.com/oleksandr-zhynzher/graph-render/commit/e1c4c5802f9c90ee0c3f07d23a3aad680dc14cb3))
+- set nodeGap to 10px in default tournament configs ([e1c4c58](https://github.com/oleksandr-zhynzher/graph-render/commit/e1c4c5802f9c90ee0c3f07d23a3aad680dc14cb3))
+
 ## @graph-render/tournament-tree [1.2.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.1.0...@graph-render/tournament-tree@1.2.0) (2026-05-12)
 
 ### 🚀 Features
