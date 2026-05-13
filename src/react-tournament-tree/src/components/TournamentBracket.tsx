@@ -978,6 +978,38 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
     return () => window.removeEventListener('resize', handleResize);
   }, [activeStageIndex, focusStage, isNavigationMode]);
 
+  // Swipe left/right to navigate between stages in navigation mode
+  useEffect(() => {
+    const container = contentViewportRef.current;
+    if (!container || !isNavigationMode) return;
+
+    let startX = 0;
+    let startY = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      // Only act if mostly horizontal and above threshold
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        if (dx < 0) handleNextStage();
+        else handlePreviousStage();
+      }
+    };
+
+    container.addEventListener('touchstart', onTouchStart, { passive: true });
+    container.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener('touchstart', onTouchStart);
+      container.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [handleNextStage, handlePreviousStage, isNavigationMode]);
+
   const exportVertexComponent = useMemo(
     () =>
       vertexComponent ??

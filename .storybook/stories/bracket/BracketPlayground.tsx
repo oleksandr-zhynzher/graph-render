@@ -733,7 +733,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
         ? { ...DARK_THEME, nodeGap: isCompact ? 16 : DARK_THEME.nodeGap }
         : { ...LIGHT_THEME, nodeGap: isCompact ? 16 : LIGHT_THEME.nodeGap },
       labelOffset: 40,
-      labels,
+      labels: isStageNavigationMode ? undefined : labels,
       routingStyle,
       edgeSeparation: isCompact ? 8 : 20,
       selfLoopRadius: 34,
@@ -753,6 +753,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     hoverHighlight,
     isDarkMode,
     isCompact,
+    isStageNavigationMode,
     labels,
     layout,
     layoutDirection,
