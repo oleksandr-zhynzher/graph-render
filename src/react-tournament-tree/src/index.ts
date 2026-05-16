@@ -1,6 +1,9 @@
 export { SquashNode } from './components/SquashNode';
 export { TournamentBracket } from './components/TournamentBracket';
 export { BracketToolbar } from './components/BracketToolbar';
+export { routeBracketEdges } from './utils/bracketRouting';
+export { buildStageViews } from './utils/stageViews';
+export { getStageViewport } from './utils/stageViewport';
 export { injectTournamentPathKeys } from './utils/pathKeys';
 export {
   roundLabelsForGraph,
@@ -19,10 +22,14 @@ export {
 } from './constants';
 export type {
   MatchStatus,
+  StageBounds,
+  StageView,
+  StageViewportResult,
   SquashMatchMeta,
   SquashNodeData,
   SquashNodeRenderMode,
   SquashPlayer,
   SquashPositionedNode,
   TournamentBracketProps,
-} from './types';
+  VerticalStagePosition,
+} from '@graph-render/types';

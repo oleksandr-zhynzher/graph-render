@@ -1,12 +1,11 @@
 import { PositionedNode } from '@graph-render/types';
+import type { NodeColumn } from '../models/utils';
+import { DEFAULT_NODE_WIDTH } from '../constants/graph';
 
-const DEFAULT_NODE_WIDTH = 180;
+export { DEFAULT_NODE_WIDTH };
+export type { NodeColumn };
+
 const DEFAULT_COLUMN_TOLERANCE = 24;
-
-export interface NodeColumn<TNode extends PositionedNode = PositionedNode> {
-  centerX: number;
-  nodes: TNode[];
-}
 
 const getNodeWidth = (node: PositionedNode): number => node.size?.width ?? DEFAULT_NODE_WIDTH;
 

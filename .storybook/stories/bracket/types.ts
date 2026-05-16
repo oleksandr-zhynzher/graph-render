@@ -1,4 +1,4 @@
-import { NxNodeAttrs } from '@graph-render/react';
+import type { NxNodeAttrs } from '@graph-render/types';
 
 export type Stage32 = 'R32' | 'R16' | 'QF' | 'SF' | 'Final';
 export type Stage16 = 'R16' | 'QF' | 'SF' | 'Final';

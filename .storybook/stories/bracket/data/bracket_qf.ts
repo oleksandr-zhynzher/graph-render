@@ -1,4 +1,4 @@
-import { NxGraphInput } from '@graph-render/react';
+import type { NxGraphInput } from '@graph-render/types';
 
 const defaultSize = { width: 280, height: 112 };
 const finalSize = { width: 280, height: 112 };

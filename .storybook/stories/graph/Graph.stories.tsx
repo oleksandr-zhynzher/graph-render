@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Graph } from '@graph-render/react';
-import type { NxGraphInput, VertexComponentProps } from '@graph-render/react';
+import type { NxGraphInput, VertexComponentProps } from '@graph-render/types';
 
 const DemoNode = ({ node }: VertexComponentProps) => (
   <foreignObject

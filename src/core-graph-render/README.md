@@ -21,7 +21,7 @@ yarn add @graph-render/core
 ## Usage
 
 ```typescript
-import { renderGraph } from '@graph-render/core';
+import { renderGraphToSvg } from '@graph-render/core';
 
 const graph = {
   nodes: [
@@ -31,7 +31,7 @@ const graph = {
   edges: [{ source: '1', target: '2' }],
 };
 
-const svg = renderGraph(graph, {
+const { svg } = renderGraphToSvg(graph, {
   layout: 'dag',
   width: 800,
   height: 600,

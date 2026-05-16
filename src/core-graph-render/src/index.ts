@@ -47,4 +47,5 @@ export type {
 export * from './rendering';
 export * from './layouts';
 export * from './edges';
+export * from './model';
 export * from './utils';

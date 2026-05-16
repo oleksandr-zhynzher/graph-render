@@ -1,62 +1,16 @@
 import React from 'react';
-import { PositionedNode, LayoutType, LayoutDirection } from '@graph-render/types';
-import { groupPositionedNodesByColumn } from '../utils/columns';
+import type { LayoutDirection, LayoutType, PositionedNode } from '@graph-render/types';
+import {
+  LABEL_PILL_HEIGHT,
+  LABEL_PILL_MIN_WIDTH,
+  LABEL_PILL_RADIUS,
+  LABEL_PILL_FONT_SIZE,
+  LABEL_PILL_FONT_WEIGHT,
+} from '../constants/labels';
+import { getEffectiveGraphLabels, getLabelPillWidth } from '../utils/graphLabels';
 
-/**
- * Canonical dimensions for column-label pills. Exported so that the parent
- * Graph component can compute label bounds using the same values for fit-view
- * calculations, eliminating the two-source-of-truth problem.
- */
-export const LABEL_PILL_MIN_WIDTH = 64;
-export const LABEL_PILL_HEIGHT = 20;
-export const LABEL_PILL_RADIUS = 8;
-const LABEL_PILL_PADDING_X = 12;
-const LABEL_PILL_CHAR_WIDTH = 7;
-const MAX_LABEL_PILL_CHARS = 48;
-
-const LABEL_PILL_FONT_SIZE = 12;
-const LABEL_PILL_FONT_WEIGHT = 700;
-
-export function getLabelPillWidth(label: string): number {
-  const charCount = Math.min(Array.from(label).length, MAX_LABEL_PILL_CHARS);
-  return Math.max(
-    LABEL_PILL_MIN_WIDTH,
-    charCount * LABEL_PILL_CHAR_WIDTH + LABEL_PILL_PADDING_X * 2
-  );
-}
-
-export function getEffectiveGraphLabels(
-  positionedNodes: PositionedNode[],
-  layout: LayoutType,
-  layoutDirection: LayoutDirection,
-  labels?: string[],
-  autoLabels = false
-): { orderedXs: number[]; orderedLabels: string[] } {
-  const columns = groupPositionedNodesByColumn(positionedNodes);
-  const xs = columns.map((column) => column.centerX);
-
-  if (!xs.length) {
-    return { orderedXs: [], orderedLabels: [] };
-  }
-
-  const levelCounts = columns.map((column) => column.nodes.length);
-
-  const inferred = levelCounts.map((count) => {
-    const denom = count * 2;
-    if (denom <= 2) return 'Final';
-    return `1/${denom}`;
-  });
-
-  const effectiveLabels = labels && labels.length ? labels : autoLabels ? inferred : [];
-  const orderedXs =
-    layout === LayoutType.Tree && layoutDirection === LayoutDirection.RTL ? [...xs].reverse() : xs;
-  const orderedLabels =
-    layout === LayoutType.Tree && layoutDirection === LayoutDirection.RTL
-      ? [...effectiveLabels].reverse()
-      : effectiveLabels;
-
-  return { orderedXs, orderedLabels };
-}
+export { LABEL_PILL_HEIGHT, LABEL_PILL_MIN_WIDTH, LABEL_PILL_RADIUS };
+export { getEffectiveGraphLabels, getLabelPillWidth };
 
 export interface GraphLabelsProps {
   positionedNodes: PositionedNode[];

@@ -1,28 +1,36 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import {
+import { fromNxGraph, layoutNodes } from '@graph-render/core';
+import { Graph } from '@graph-render/react';
+import type {
   EdgeType,
-  fromNxGraph,
-  Graph,
   GraphConfig,
+  GraphHandle,
   GraphSearchResults,
   GraphSelection,
   GraphViewport,
   LayoutDirection,
   LayoutType,
-  layoutNodes,
   NxGraphInput,
   PositionedEdge,
   PositionedNode,
   VertexComponent,
   VertexComponentProps,
-} from '@graph-render/react';
+} from '@graph-render/types';
 import {
+  buildStageViews,
   BracketThemeProvider,
+  getStageViewport,
   injectTournamentPathKeys,
   SquashNode,
+  routeBracketEdges,
   roundLabelsForGraph,
   NODE_DIMENSIONS,
   NODE_DIMENSIONS_COMPACT,
+} from '@graph-render/tournament-tree';
+import type {
+  SquashNodeRenderMode,
+  StageView,
+  VerticalStagePosition,
 } from '@graph-render/tournament-tree';
 
 export interface BracketPlaygroundProps {
@@ -31,8 +39,6 @@ export interface BracketPlaygroundProps {
 
 type HighlightMode = 'match' | 'ancestry';
 type HoverState = { kind: 'node' | 'edge'; id: string } | null;
-type SquashNodeRenderMode = 'svg' | 'html' | 'export' | 'server';
-
 const LIGHT_THEME: NonNullable<GraphConfig['theme']> = {
   background: '#ffffff',
   edgeColor: '#d9d6cf',
@@ -52,49 +58,15 @@ const DARK_THEME: NonNullable<GraphConfig['theme']> = {
 const INITIAL_VIEWPORT: GraphViewport = { x: 0, y: 0, zoom: 1 };
 const EMPTY_SELECTION: GraphSelection = { nodeIds: [], edgeIds: [] };
 const PANEL_WIDTH = 320;
-const StoryGraph = Graph as unknown as React.ComponentType<any>;
 const DEFAULT_CANVAS_SIZE = { width: 1200, height: 900 };
 const LABEL_PILL_WIDTH = 64;
 const LABEL_PILL_HEIGHT = 20;
-const NAVIGATION_STAGE_PADDING_X = 52;
-const NAVIGATION_STAGE_PADDING_Y = 44;
-const NAVIGATION_STAGE_MIN_WIDTH = 420;
-const NAVIGATION_MIN_ZOOM = 0.45;
-const NAVIGATION_MAX_ZOOM = 2.1;
 const FIT_PADDING = {
   top: 48,
   right: 24,
   bottom: 120,
   left: 24,
 };
-
-function routeBracketEdges(nodes: PositionedNode[], edges: any[]): any[] {
-  const nodeMap = new Map(nodes.map((n) => [n.id, n]));
-  return edges.map((edge) => {
-    const source = nodeMap.get(edge.source);
-    const target = nodeMap.get(edge.target);
-    if (!source || !target) {
-      return { ...edge, points: [] };
-    }
-    const srcW = source.size?.width ?? 0;
-    const srcH = source.size?.height ?? 0;
-    const tgtH = target.size?.height ?? 0;
-    const srcRight = source.position.x + srcW;
-    const tgtLeft = target.position.x;
-    const srcMidY = source.position.y + srcH / 2;
-    const tgtMidY = target.position.y + tgtH / 2;
-    const midX = (srcRight + tgtLeft) / 2;
-    return {
-      ...edge,
-      points: [
-        { x: srcRight, y: srcMidY },
-        { x: midX, y: srcMidY },
-        { x: midX, y: tgtMidY },
-        { x: tgtLeft, y: tgtMidY },
-      ],
-    };
-  });
-}
 
 const controlSectionStyle: React.CSSProperties = {
   display: 'grid',
@@ -254,19 +226,6 @@ const StageNavigationIcon = () => (
     <circle cx="12" cy="12" r="2.2" fill="currentColor" />
   </svg>
 );
-
-type StageView = {
-  index: number;
-  label: string;
-  bounds: { minX: number; minY: number; maxX: number; maxY: number; width: number; height: number };
-};
-
-type VerticalStagePosition = 'top' | 'bottom' | 'center';
-
-type StageViewportResult = {
-  viewport: GraphViewport;
-  canPageVertically: boolean;
-};
 
 const areStringArraysEqual = (left: string[], right: string[]): boolean => {
   if (left.length !== right.length) {
@@ -544,85 +503,11 @@ const getStageViewsForStory = (
     labelMeasurementLineHeight: config.labelMeasurementLineHeight,
   });
 
-  const columns = new Map<number, PositionedNode[]>();
-  positionedNodes.forEach((node) => {
-    const key = Math.round(node.position.x);
-    const column = columns.get(key) ?? [];
-    column.push(node);
-    columns.set(key, column);
-  });
-
-  return Array.from(columns.entries())
-    .sort((a, b) => a[0] - b[0])
-    .map(([_, columnNodes], index) => {
-      const minX = Math.min(...columnNodes.map((node) => node.position.x));
-      const minY = Math.min(...columnNodes.map((node) => node.position.y));
-      const maxX = Math.max(
-        ...columnNodes.map(
-          (node) =>
-            node.position.x +
-            (node.size?.width ?? config.fixedNodeSize?.width ?? NODE_DIMENSIONS.WIDTH)
-        )
-      );
-      const maxY = Math.max(
-        ...columnNodes.map(
-          (node) =>
-            node.position.y +
-            (node.size?.height ?? config.fixedNodeSize?.height ?? NODE_DIMENSIONS.HEIGHT)
-        )
-      );
-
-      return {
-        index,
-        label: labels[index] ?? `STAGE ${index + 1}`,
-        bounds: {
-          minX,
-          minY: minY - (config.labelOffset ?? 40) - LABEL_PILL_HEIGHT + 6,
-          maxX,
-          maxY,
-          width: maxX - minX,
-          height: maxY - (minY - (config.labelOffset ?? 40) - LABEL_PILL_HEIGHT + 6),
-        },
-      };
-    });
-};
-
-const getStageViewportForStory = (
-  bounds: StageView['bounds'],
-  width: number,
-  height: number,
-  verticalPosition: VerticalStagePosition = 'top'
-): StageViewportResult => {
-  const targetWidth = Math.max(
-    bounds.width + NAVIGATION_STAGE_PADDING_X * 2,
-    NAVIGATION_STAGE_MIN_WIDTH
-  );
-  const zoom = Math.min(NAVIGATION_MAX_ZOOM, Math.max(NAVIGATION_MIN_ZOOM, width / targetWidth));
-
-  const visibleWorldHeight = height / zoom;
-  const minTop = bounds.minY - NAVIGATION_STAGE_PADDING_Y;
-  const maxTop = bounds.maxY + NAVIGATION_STAGE_PADDING_Y - visibleWorldHeight;
-  const canPageVertically = maxTop > minTop + 1;
-  const centeredTop = bounds.minY + bounds.height / 2 - visibleWorldHeight / 2;
-  const topWorld =
-    !canPageVertically || verticalPosition === 'center'
-      ? centeredTop
-      : verticalPosition === 'bottom'
-        ? maxTop
-        : minTop;
-
-  return {
-    canPageVertically,
-    viewport: {
-      zoom,
-      x: (width - bounds.width * zoom) / 2 - bounds.minX * zoom,
-      y: -topWorld * zoom,
-    },
-  };
+  return buildStageViews(positionedNodes, labels, config.labelOffset ?? 40);
 };
 
 export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
-  const graphRef = useRef<any>(null);
+  const graphRef = useRef<GraphHandle | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isStageNavigationMode, setIsStageNavigationMode] = useState(false);
@@ -881,7 +766,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
       }
 
       const isLastStage = stageIndex === stageViews.length - 1;
-      const nextStageViewport = getStageViewportForStory(
+      const nextStageViewport = getStageViewport(
         stage.bounds,
         Math.max(1, element.clientWidth),
         Math.max(1, element.clientHeight),
@@ -1427,7 +1312,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
               background: isDarkMode ? '#020617' : '#ffffff',
             }}
           >
-            <StoryGraph
+            <Graph
               ref={graphRef}
               graph={enrichedGraph}
               vertexComponent={vertexComponent}

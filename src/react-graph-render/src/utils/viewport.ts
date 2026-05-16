@@ -1,20 +1,22 @@
 import { GraphViewport, PositionedNode } from '@graph-render/types';
+import type { GraphBounds } from '../models/utils';
+import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from '../constants/graph';
 
-export interface GraphBounds {
-  minX: number;
-  minY: number;
-  maxX: number;
-  maxY: number;
-  width: number;
-  height: number;
-}
-
-const DEFAULT_NODE_WIDTH = 180;
-const DEFAULT_NODE_HEIGHT = 72;
+export type { GraphBounds };
 
 export const clampZoom = (zoom: number, minZoom: number, maxZoom: number): number => {
   return Math.min(Math.max(zoom, minZoom), maxZoom);
 };
+
+export const normalizeViewport = (
+  viewport: GraphViewport,
+  minZoom: number,
+  maxZoom: number
+): GraphViewport => ({
+  x: Number.isFinite(viewport.x) ? viewport.x : 0,
+  y: Number.isFinite(viewport.y) ? viewport.y : 0,
+  zoom: clampZoom(Number.isFinite(viewport.zoom) ? viewport.zoom : 1, minZoom, maxZoom),
+});
 
 /**
  * Clamps viewport x/y so the user cannot pan outside the given world-space extent.

@@ -6,8 +6,11 @@ import {
   GraphInputValidationMode,
   LayoutDirection,
   LayoutType,
+  NormalizedGraphConfig,
 } from '@graph-render/types';
 import { DEFAULT_THEME, DEFAULT_NODE_SIZE } from './constants';
+
+export type { NormalizedGraphConfig };
 
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 720;
@@ -119,42 +122,6 @@ const normalizeTheme = (theme?: GraphTheme): GraphTheme => ({
         // All other config fields fall back to a safe default; this now does too.
         undefined,
 });
-
-export interface NormalizedGraphConfig extends Omit<GraphConfig, 'theme' | 'fixedNodeSize'> {
-  width: number;
-  height: number;
-  padding: number;
-  defaultEdgeType: EdgeType;
-  failureBehavior: GraphFailureBehavior;
-  inputValidationMode: GraphInputValidationMode;
-  showArrows: boolean;
-  nodeSizing: NonNullable<GraphConfig['nodeSizing']>;
-  fixedNodeSize: NonNullable<GraphConfig['fixedNodeSize']>;
-  theme: GraphTheme;
-  curveEdges: boolean;
-  curveStrength: number;
-  arrowPadding: number;
-  routingStyle: NonNullable<GraphConfig['routingStyle']>;
-  edgeSeparation: number;
-  selfLoopRadius: number;
-  edgeLabelColor: string;
-  layout: LayoutType;
-  layoutDirection: LayoutDirection;
-  hoverHighlight: boolean;
-  hoverEdgeColor: string;
-  hoverNodeInColor: string;
-  hoverNodeOutColor: string;
-  hoverNodeHighlight: boolean;
-  autoLabels: boolean;
-  labelOffset: number;
-  labelPillBackground: string;
-  labelPillBorderColor: string;
-  labelPillTextColor: string;
-  labelMeasurementPaddingX: number;
-  labelMeasurementPaddingY: number;
-  labelMeasurementCharWidth: number;
-  labelMeasurementLineHeight: number;
-}
 
 export const normalizeGraphConfig = (config?: GraphConfig): NormalizedGraphConfig => {
   return {

@@ -1,7 +1,9 @@
-import React, { useEffect, useLayoutEffect, useRef } from 'react';
-import { PositionedNode, Size, VertexComponent } from '@graph-render/types';
-
-const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
+import React, { useCallback } from 'react';
+import type { PositionedNode, Size, VertexComponent } from '@graph-render/types';
+import { useGraphNodeMeasurement } from '../hooks/useGraphNodeMeasurement';
+import { getGraphNodeFrameState } from '../utils/graphNodeFrame';
+import { GraphNodeFrame } from './GraphNodeFrame';
+import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_RADIUS, DEFAULT_NODE_WIDTH } from '../constants/graph';
 
 interface GraphNodeProps {
   node: PositionedNode;
@@ -59,82 +61,69 @@ export const GraphNode = React.memo<GraphNodeProps>(
     onPathHover,
     onPathLeave,
   }) => {
-    const groupRef = useRef<SVGGElement>(null);
-    const width = node.size?.width ?? 180;
-    const height = node.size?.height ?? 72;
-    const radius = 8;
+    const width = node.size?.width ?? DEFAULT_NODE_WIDTH;
+    const height = node.size?.height ?? DEFAULT_NODE_HEIGHT;
+    const radius = DEFAULT_NODE_RADIUS;
     const hoverState = hoveredNodeStates?.get(node.id);
     const isHoveredIn = hoverState?.in ?? false;
     const isHoveredOut = hoverState?.out ?? false;
-    const isHoveredBoth = isHoveredIn && isHoveredOut;
-    const isHoveredNode = isHoveredIn || isHoveredOut;
-    const hasBorder = (!!nodeBorderColor && nodeBorderWidth > 0) || isSelected;
-
-    let borderStroke = nodeBorderColor;
-    if (isSelected) {
-      borderStroke = selectionColor;
-    } else if (isHighlighted) {
-      borderStroke = highlightColor;
-    } else if (!hasBorder) {
-      borderStroke = 'none';
-    } else if (hoverNodeHighlight) {
-      if (isHoveredBoth) {
-        borderStroke = hoverNodeBothColor;
-      } else if (isHoveredOut) {
-        borderStroke = hoverNodeOutColor;
-      } else if (isHoveredIn) {
-        borderStroke = hoverNodeInColor;
-      } else if (isHoveredNode) {
-        borderStroke = hoverNodeBorderColor;
-      }
-    }
-
-    let borderOpacity = 0;
-    if (isSelected || isHighlighted) {
-      borderOpacity = 1;
-    } else if (hasBorder) {
-      borderOpacity = hoverNodeHighlight && isHoveredNode ? 1 : 0.4;
-    }
-
-    useIsomorphicLayoutEffect(() => {
-      if (!groupRef.current || !onNodeMeasure) {
-        return;
-      }
-
-      const reportFallbackSize = () => {
-        if (width > 0 && height > 0) {
-          onNodeMeasure(node.id, { width: Math.ceil(width), height: Math.ceil(height) });
-        }
-      };
-
-      const frame = requestAnimationFrame(() => {
-        try {
-          if (typeof groupRef.current?.getBBox !== 'function') {
-            reportFallbackSize();
-            return;
-          }
-
-          const bounds = groupRef.current?.getBBox();
-          if (bounds && bounds.width > 0 && bounds.height > 0) {
-            onNodeMeasure(node.id, {
-              width: Math.ceil(bounds.width),
-              height: Math.ceil(bounds.height),
-            });
-            return;
-          }
-        } catch {
-          reportFallbackSize();
-        }
-
-        reportFallbackSize();
+    const groupRef = useGraphNodeMeasurement({ node, width, height, onNodeMeasure });
+    const { borderOpacity, borderStroke, borderWidth, isHoveredBoth, isHoveredNode } =
+      getGraphNodeFrameState({
+        isSelected,
+        isHighlighted,
+        highlightColor,
+        selectionColor,
+        nodeBorderColor,
+        nodeBorderWidth,
+        hoverNodeBorderColor,
+        hoverNodeBothColor,
+        hoverNodeInColor,
+        hoverNodeOutColor,
+        hoverNodeHighlight,
+        isHoveredIn,
+        isHoveredOut,
       });
-
-      return () => cancelAnimationFrame(frame);
-    }, [node.id, node.label, node.meta, onNodeMeasure, width, height]);
-
-    const borderWidth =
-      isSelected || isHighlighted ? Math.max(2, nodeBorderWidth) : hasBorder ? nodeBorderWidth : 0;
     const focusStrokeWidth = isFocused ? Math.max(2, borderWidth || 2) : 0;
+
+    const handleMouseDown = useCallback((event: React.MouseEvent) => {
+      event.preventDefault();
+    }, []);
+
+    const handleFocus = useCallback(() => {
+      onNodeFocus?.(node.id);
+    }, [node.id, onNodeFocus]);
+
+    const handleClick = useCallback(() => {
+      onNodeClick?.(node);
+    }, [node, onNodeClick]);
+
+    const handleDoubleClick = useCallback(() => {
+      onNodeDoubleClick?.(node);
+    }, [node, onNodeDoubleClick]);
+
+    const handleMouseEnter = useCallback(() => {
+      onNodeMouseEnter(node.id);
+    }, [node.id, onNodeMouseEnter]);
+
+    const handleKeyDown = useCallback(
+      (event: React.KeyboardEvent) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onNodeClick?.(node);
+        }
+      },
+      [node, onNodeClick]
+    );
+
+    const handlePathHover = useCallback(
+      (sourceIndex: number | null, opts?: { pathKey?: string; playerKey?: string }) => {
+        if (sourceIndex !== null) {
+          onPathHover(node.id, sourceIndex, opts?.pathKey ?? opts?.playerKey);
+        }
+      },
+      [node.id, onPathHover]
+    );
 
     return (
       <g
@@ -144,50 +133,25 @@ export const GraphNode = React.memo<GraphNodeProps>(
         role="button"
         tabIndex={0}
         aria-selected={isSelected}
-        onMouseDown={(event) => {
-          event.preventDefault();
-        }}
-        onFocus={() => onNodeFocus?.(node.id)}
-        onClick={() => onNodeClick?.(node)}
-        onDoubleClick={() => onNodeDoubleClick?.(node)}
-        onMouseEnter={() => onNodeMouseEnter(node.id)}
+        onMouseDown={handleMouseDown}
+        onFocus={handleFocus}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={onNodeMouseLeave}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            onNodeClick?.(node);
-          }
-        }}
+        onKeyDown={handleKeyDown}
       >
-        <rect
-          x={0}
-          y={0}
+        <GraphNodeFrame
           width={width}
           height={height}
-          rx={radius}
-          ry={radius}
-          fill="none"
-          stroke={borderStroke}
-          strokeOpacity={borderOpacity}
-          strokeWidth={borderWidth}
-          pointerEvents="none"
+          radius={radius}
+          borderStroke={borderStroke}
+          borderOpacity={borderOpacity}
+          borderWidth={borderWidth}
+          isFocused={isFocused}
+          selectionColor={selectionColor}
+          focusStrokeWidth={focusStrokeWidth}
         />
-        {isFocused ? (
-          <rect
-            x={-3}
-            y={-3}
-            width={width + 6}
-            height={height + 6}
-            rx={radius + 2}
-            ry={radius + 2}
-            fill="none"
-            stroke={selectionColor}
-            strokeOpacity={0.7}
-            strokeWidth={focusStrokeWidth}
-            strokeDasharray="4 3"
-            pointerEvents="none"
-          />
-        ) : null}
         <Vertex
           node={node}
           isSelected={isSelected}
@@ -200,10 +164,7 @@ export const GraphNode = React.memo<GraphNodeProps>(
           hoverInColor={hoverNodeInColor}
           hoverOutColor={hoverNodeOutColor}
           hoverBothColor={hoverNodeBothColor}
-          onPathHover={(sourceIndex, opts) =>
-            sourceIndex !== null &&
-            onPathHover(node.id, sourceIndex, opts?.pathKey ?? opts?.playerKey)
-          }
+          onPathHover={handlePathHover}
           onPathLeave={onPathLeave}
         />
       </g>

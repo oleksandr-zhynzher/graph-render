@@ -1,27 +1,6 @@
 import React from 'react';
-import { buildEdgePath, PositionedEdge } from '@graph-render/core';
-
-export interface EdgePathProps {
-  edge: PositionedEdge;
-  color: string;
-  width: number;
-  curveEdges: boolean;
-  curveStrength: number;
-  markerEnd?: string;
-  isHovered?: boolean;
-  isSelected?: boolean;
-  hoverColor: string;
-  selectionColor?: string;
-  labelColor?: string;
-  selectionMarker?: string;
-  hoverMarker?: string;
-  hoverEnabled: boolean;
-  hoverStrokeWidth?: number;
-  selectedStrokeWidth?: number;
-  hitStrokeWidth?: number;
-  onHoverChange?: (hovered: boolean) => void;
-  onClick?: () => void;
-}
+import { buildEdgePath } from '@graph-render/core';
+import type { EdgePathProps } from '@graph-render/types';
 
 // Memoised so that unchanged edges are skipped during re-renders of the parent
 // Graph component (e.g. when hover/selection state changes for a different edge).

@@ -76,3 +76,39 @@ export interface GraphConfig {
   /** Text color for the column-label pills. Defaults to `#3f434b`. */
   labelPillTextColor?: string;
 }
+
+export interface NormalizedGraphConfig extends Omit<GraphConfig, 'theme' | 'fixedNodeSize'> {
+  width: number;
+  height: number;
+  padding: number;
+  defaultEdgeType: EdgeType;
+  failureBehavior: GraphFailureBehavior;
+  inputValidationMode: GraphInputValidationMode;
+  showArrows: boolean;
+  nodeSizing: NonNullable<GraphConfig['nodeSizing']>;
+  fixedNodeSize: NonNullable<GraphConfig['fixedNodeSize']>;
+  theme: GraphTheme;
+  curveEdges: boolean;
+  curveStrength: number;
+  arrowPadding: number;
+  routingStyle: NonNullable<GraphConfig['routingStyle']>;
+  edgeSeparation: number;
+  selfLoopRadius: number;
+  edgeLabelColor: string;
+  layout: LayoutType;
+  layoutDirection: LayoutDirection;
+  hoverHighlight: boolean;
+  hoverEdgeColor: string;
+  hoverNodeInColor: string;
+  hoverNodeOutColor: string;
+  hoverNodeHighlight: boolean;
+  autoLabels: boolean;
+  labelOffset: number;
+  labelPillBackground: string;
+  labelPillBorderColor: string;
+  labelPillTextColor: string;
+  labelMeasurementPaddingX: number;
+  labelMeasurementPaddingY: number;
+  labelMeasurementCharWidth: number;
+  labelMeasurementLineHeight: number;
+}

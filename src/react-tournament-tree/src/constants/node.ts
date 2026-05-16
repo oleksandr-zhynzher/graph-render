@@ -1,4 +1,4 @@
-import type { SquashPlayer } from '../types/squash';
+import type { SquashPlayer } from '@graph-render/types';
 
 export const NODE_DIMENSIONS = {
   WIDTH: 280,

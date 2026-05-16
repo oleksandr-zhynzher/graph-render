@@ -8,3 +8,4 @@ export * from './layout';
 export * from './react';
 export * from './graph-utils';
 export * from './svg';
+export * from './tournament';

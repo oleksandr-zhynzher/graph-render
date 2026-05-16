@@ -1,55 +1,8 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  GraphSelection,
-  GraphViewport,
-  GraphProps,
-  GraphHandle,
-  NxGraphInput,
-  PositionedNode,
-  PositionedEdge,
-  NodeData,
-  EdgeData,
-} from '@graph-render/types';
-import { clampZoom } from '../utils/viewport';
-
-const DEFAULT_VIEWPORT: GraphViewport = { x: 0, y: 0, zoom: 1 };
-
-const normalizeViewport = (
-  viewport: GraphViewport,
-  minZoom: number,
-  maxZoom: number
-): GraphViewport => ({
-  x: Number.isFinite(viewport.x) ? viewport.x : 0,
-  y: Number.isFinite(viewport.y) ? viewport.y : 0,
-  zoom: clampZoom(Number.isFinite(viewport.zoom) ? viewport.zoom : 1, minZoom, maxZoom),
-});
-
-interface UseGraphViewStateOptions {
-  controlledViewport: GraphViewport | undefined;
-  defaultViewport: Partial<GraphViewport> | undefined;
-  safeMinZoom: number;
-  safeMaxZoom: number;
-  onViewportChange: ((viewport: GraphViewport) => void) | undefined;
-  selectedNodeIds: string[] | undefined;
-  selectedEdgeIds: string[] | undefined;
-  defaultSelectedNodeIds: string[] | undefined;
-  defaultSelectedEdgeIds: string[] | undefined;
-  onSelectionChange: ((selection: GraphSelection) => void) | undefined;
-  controlledFocusedNodeId: string | null | undefined;
-  defaultFocusedNodeId: string | null;
-  onFocusedNodeChange: ((nodeId: string | null) => void) | undefined;
-}
-
-interface UseGraphViewStateResult {
-  viewport: GraphViewport;
-  viewportRef: React.MutableRefObject<GraphViewport>;
-  selection: GraphSelection;
-  selectionRef: React.MutableRefObject<GraphSelection>;
-  focusedNodeId: string | null;
-  updateViewport: GraphHandle['setViewport'];
-  updateSelection: (next: GraphSelection | ((current: GraphSelection) => GraphSelection)) => void;
-  updateFocusedNode: (nodeId: string | null) => void;
-}
+import type { GraphHandle, GraphSelection, GraphViewport } from '@graph-render/types';
+import { DEFAULT_VIEWPORT } from '../constants/graph';
+import { normalizeViewport } from '../utils/viewport';
+import type { UseGraphViewStateOptions, UseGraphViewStateResult } from '../models/hooks';
 
 export const useGraphViewState = ({
   controlledViewport,

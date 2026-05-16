@@ -1,18 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
-
-interface UseGraphCollapseOptions {
-  collapsedNodeIds?: string[];
-  defaultCollapsedNodeIds?: string[];
-  onCollapsedNodeIdsChange?: (nodeIds: string[]) => void;
-}
-
-interface UseGraphCollapseResult {
-  collapsedIds: string[];
-  collapsedNodeSet: Set<string>;
-  pendingExpansionNodeSet: Set<string>;
-  updateCollapsedNodeIds: (next: string[] | ((current: string[]) => string[])) => void;
-  setPendingExpansionNodeIds: React.Dispatch<React.SetStateAction<string[]>>;
-}
+import { useCallback, useMemo, useRef, useState } from 'react';
+import type { UseGraphCollapseOptions, UseGraphCollapseResult } from '../models/hooks';
 
 export const useGraphCollapse = ({
   collapsedNodeIds,
@@ -31,16 +18,18 @@ export const useGraphCollapse = ({
     [pendingExpansionNodeIds]
   );
 
+  const collapsedIdsRef = useRef(collapsedIds);
+  collapsedIdsRef.current = collapsedIds;
+
   const updateCollapsedNodeIds = useCallback(
     (next: string[] | ((current: string[]) => string[])) => {
-      const current = collapsedIds;
-      const resolved = typeof next === 'function' ? next(current) : next;
+      const resolved = typeof next === 'function' ? next(collapsedIdsRef.current) : next;
       if (collapsedNodeIds == null) {
         setInternalCollapsedNodeIds(resolved);
       }
       onCollapsedNodeIdsChange?.(resolved);
     },
-    [collapsedIds, collapsedNodeIds, onCollapsedNodeIdsChange]
+    [collapsedNodeIds, onCollapsedNodeIdsChange]
   );
 
   return {

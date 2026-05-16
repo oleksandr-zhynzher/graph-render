@@ -1,0 +1,7 @@
+export const STAGE_LABEL_HEIGHT = 20;
+export const NAVIGATION_STAGE_PADDING_X = 52;
+export const NAVIGATION_STAGE_PADDING_Y = 44;
+export const NAVIGATION_STAGE_MIN_WIDTH = 420;
+export const NAVIGATION_STAGE_MIN_HEIGHT = 250;
+export const NAVIGATION_MIN_ZOOM = 0.45;
+export const NAVIGATION_MAX_ZOOM = 2.1;
