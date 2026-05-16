@@ -1,3 +1,16 @@
+## @graph-render/tournament-tree [1.4.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.3.0...@graph-render/tournament-tree@1.4.0) (2026-05-16)
+
+### 🚀 Features
+
+* compact mobile UI with close-up zoom in stage navigation mode ([e5df6ee](https://github.com/oleksandr-zhynzher/graph-render/commit/e5df6ee42e9cee89b961e7e526369141b577737c))
+
+### ♻️ Code Refactoring
+
+* graph rendering components ([35afb51](https://github.com/oleksandr-zhynzher/graph-render/commit/35afb518b7bbd919bc223d5324e316a175564498))
+* move inline constants to constants files ([7fcaaa6](https://github.com/oleksandr-zhynzher/graph-render/commit/7fcaaa61f56597a8e8976024159b95de0e18ffec))
+* move SquashNode constants/types/utils to top-level src folders ([ba78278](https://github.com/oleksandr-zhynzher/graph-render/commit/ba78278e9cf6436a247e814c99224287e69b3327))
+* replace all hardcoded string literal types with enums ([65f5a6e](https://github.com/oleksandr-zhynzher/graph-render/commit/65f5a6eb4c3d7f7572c9951b3fa5974ab1180a45))
+
 ## @graph-render/tournament-tree [1.3.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.2.0...@graph-render/tournament-tree@1.3.0) (2026-05-13)
 
 ### 🚀 Features
