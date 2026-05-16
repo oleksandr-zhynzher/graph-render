@@ -1,6 +1,7 @@
-export { normalizeMatchMeta } from './normalizeMatchMeta';
 export type { NormalizedSquashMatchMeta } from './normalizeMatchMeta';
+export { normalizeMatchMeta } from './normalizeMatchMeta';
 export { normalizePlayer, normalizePlayerKey, normalizePlayers } from './normalizePlayer';
+export type { SetWins } from './score';
 export {
   getCompletedWinnerIndex,
   getDisplayScores,
@@ -8,5 +9,4 @@ export {
   getScoreSegments,
   getSetWins,
 } from './score';
-export type { SetWins } from './score';
 export { getPlayerBadgeText, truncateText } from './text';

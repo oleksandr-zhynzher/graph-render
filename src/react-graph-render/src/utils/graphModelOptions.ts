@@ -1,4 +1,6 @@
 import type { LayoutOptions, NormalizedGraphConfig, RouteEdgesOptions } from '@graph-render/types';
+import { RoutingStyle } from '@graph-render/types';
+
 import type { GraphLayoutOptionsInput } from '../models/utils';
 
 export const buildGraphLayoutOptions = ({
@@ -25,7 +27,7 @@ export const buildGraphLayoutOptions = ({
 
 export const buildEdgeRoutingOptions = (config: NormalizedGraphConfig): RouteEdgesOptions => ({
   arrowPadding: config.arrowPadding,
-  straight: !config.curveEdges || config.routingStyle === 'orthogonal',
+  straight: !config.curveEdges || config.routingStyle === RoutingStyle.Orthogonal,
   layoutDirection: config.layoutDirection,
   forceRightToLeft: config.forceRightToLeft,
   routingStyle: config.routingStyle,

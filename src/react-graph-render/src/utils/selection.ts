@@ -1,12 +1,14 @@
 import type { PositionedEdge, PositionedNode } from '@graph-render/types';
-import type { SelectionBox, Rect } from '../models/utils';
+import { SelectionMode } from '@graph-render/types';
+
+import type { Rect, SelectionBox } from '../models/utils';
 
 export const toggleId = (
-  values: string[],
+  values: readonly string[],
   id: string,
-  selectionMode: 'single' | 'multiple'
-): string[] => {
-  if (selectionMode === 'single') {
+  selectionMode: SelectionMode
+): readonly string[] => {
+  if (selectionMode === SelectionMode.Single) {
     return values.length === 1 && values[0] === id ? [] : [id];
   }
 
@@ -26,10 +28,10 @@ export const isPointInsideRect = (x: number, y: number, rect: Rect): boolean => 
 
 export const getMarqueeSelection = (
   box: SelectionBox,
-  viewport: { x: number; y: number; zoom: number },
-  nodes: PositionedNode[],
-  edges: PositionedEdge[]
-): { nodeIds: string[]; edgeIds: string[] } => {
+  viewport: { readonly x: number; readonly y: number; readonly zoom: number },
+  nodes: readonly PositionedNode[],
+  edges: readonly PositionedEdge[]
+): { readonly nodeIds: readonly string[]; readonly edgeIds: readonly string[] } => {
   const rect = normalizeRect(box);
   const worldRect = {
     x: (rect.x - viewport.x) / viewport.zoom,
@@ -54,9 +56,10 @@ export const getMarqueeSelection = (
   const edgeIds = edges
     .filter((edge) => {
       const inPoints = edge.points.some((point) => isPointInsideRect(point.x, point.y, worldRect));
-      const inLabel =
-        !!edge.labelPosition &&
-        isPointInsideRect(edge.labelPosition.x, edge.labelPosition.y, worldRect);
+      const { labelPosition } = edge;
+      const inLabel = labelPosition
+        ? isPointInsideRect(labelPosition.x, labelPosition.y, worldRect)
+        : false;
       return inPoints || inLabel;
     })
     .map((edge) => edge.id);

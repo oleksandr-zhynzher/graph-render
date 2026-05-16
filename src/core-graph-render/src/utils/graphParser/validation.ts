@@ -1,8 +1,9 @@
-import type {
+import {
   GraphInputValidationMode,
-  GraphParserOptions,
-  NxGraphInput,
+  type GraphParserOptions,
+  type NxGraphInput,
 } from '@graph-render/types';
+
 import { isPlainObject } from './guards';
 
 export const assertValidGraphInput = (graph: NxGraphInput): void => {
@@ -25,19 +26,19 @@ export const assertValidGraphInput = (graph: NxGraphInput): void => {
 
     for (const [target, rawAttrs] of Object.entries(neighbors)) {
       const attrsList = Array.isArray(rawAttrs) ? rawAttrs : [rawAttrs];
-      if (!attrsList.length) {
+      if (attrsList.length === 0) {
         throw new TypeError(
           `Adjacency entry for edge "${source}" -> "${target}" must not be an empty array.`
         );
       }
 
-      attrsList.forEach((attrs, index) => {
+      for (const [index, attrs] of attrsList.entries()) {
         if (attrs != null && !isPlainObject(attrs)) {
           throw new TypeError(
             `Edge attributes for "${source}" -> "${target}" at index ${index} must be an object.`
           );
         }
-      });
+      }
     }
   }
 };
@@ -50,13 +51,15 @@ export const resolveInputValidationMode = (
   graph: NxGraphInput,
   options?: GraphParserOptions
 ): GraphInputValidationMode => {
-  if (options?.inputValidationMode === 'strict') {
-    return 'strict';
+  if (options?.inputValidationMode === GraphInputValidationMode.Strict) {
+    return GraphInputValidationMode.Strict;
   }
 
-  if (options?.inputValidationMode === 'implicit') {
-    return 'implicit';
+  if (options?.inputValidationMode === GraphInputValidationMode.Implicit) {
+    return GraphInputValidationMode.Implicit;
   }
 
-  return hasExplicitNodeDefinitions(graph) ? 'strict' : 'implicit';
+  return hasExplicitNodeDefinitions(graph)
+    ? GraphInputValidationMode.Strict
+    : GraphInputValidationMode.Implicit;
 };

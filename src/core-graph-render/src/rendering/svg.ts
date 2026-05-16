@@ -1,12 +1,16 @@
-import { NxGraphInput } from '@graph-render/types';
-import type { RenderGraphToSvgOptions, RenderGraphToSvgResult } from '@graph-render/types';
-import { fromNxGraph } from '../utils';
+import type {
+  NxGraphInput,
+  RenderGraphToSvgOptions,
+  RenderGraphToSvgResult,
+} from '@graph-render/types';
+
 import { normalizeEdges } from '../model';
-import { defaultNodeRenderer, defaultEdgeRenderer } from './defaultRenderers';
-import { assembleSvgDocument, createArrowMarkerDef, createMetadataElements } from './svg/elements';
+import { fromNxGraph } from '../utils';
+import { defaultEdgeRenderer, defaultNodeRenderer } from './defaultRenderers';
 import { extractRenderConfig, extractRenderTheme } from './svg/config';
-import { getPositionedEdgesWithFallback, getPositionedNodesWithFallback } from './svg/layout';
 import { renderEdgesToSvg, renderNodesToSvg } from './svg/content';
+import { assembleSvgDocument, createArrowMarkerDef, createMetadataElements } from './svg/elements';
+import { getPositionedEdgesWithFallback, getPositionedNodesWithFallback } from './svg/layout';
 
 export const renderGraphToSvg = (
   graph: NxGraphInput,

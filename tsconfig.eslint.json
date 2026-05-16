@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "composite": false,
+    "noEmit": true
+  },
+  "include": [
+    ".storybook/**/*.ts",
+    ".storybook/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "*.config.ts"
+  ],
+  "exclude": ["node_modules", "dist", "build", "coverage", ".nx"]
+}

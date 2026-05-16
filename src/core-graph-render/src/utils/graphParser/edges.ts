@@ -1,13 +1,16 @@
-import { EdgeType } from '@graph-render/types';
 import type { GraphInputValidationMode, NodeData, NxEdgeAttrs } from '@graph-render/types';
+import { EdgeType } from '@graph-render/types';
+
 import { assertNodeExists } from './nodes';
 import { sanitizeEdgePoints, sanitizeNodeId, sanitizeRecord } from './sanitizers';
 import type { GraphEdgeTuple } from './types';
 
 export const normalizeEdgeAttributes = <TEdgeMeta extends Record<string, unknown>, TEdgeLabel>(
-  rawAttrs: NxEdgeAttrs<TEdgeMeta, TEdgeLabel> | NxEdgeAttrs<TEdgeMeta, TEdgeLabel>[]
-): NxEdgeAttrs<TEdgeMeta, TEdgeLabel>[] => {
-  return Array.isArray(rawAttrs) ? rawAttrs : [rawAttrs];
+  rawAttrs: NxEdgeAttrs<TEdgeMeta, TEdgeLabel> | ReadonlyArray<NxEdgeAttrs<TEdgeMeta, TEdgeLabel>>
+): ReadonlyArray<NxEdgeAttrs<TEdgeMeta, TEdgeLabel>> => {
+  return Array.isArray(rawAttrs)
+    ? (rawAttrs as ReadonlyArray<NxEdgeAttrs<TEdgeMeta, TEdgeLabel>>)
+    : [rawAttrs as NxEdgeAttrs<TEdgeMeta, TEdgeLabel>];
 };
 
 const assertUniqueEdgeId = (candidate: string, usedEdgeIds: Set<string>): string => {
@@ -57,6 +60,9 @@ const createEdgeData = <TEdgeMeta extends Record<string, unknown>, TEdgeLabel>(
   const edgeType = type ?? defaultEdgeType;
   const baseId = sanitizeNodeId(String(id ?? generateEdgeId(source, target, index)), 'node');
 
+  const sanitizedPoints = sanitizeEdgePoints(points);
+  const sanitizedMeta = sanitizeRecord<TEdgeMeta>(meta);
+
   return {
     id: assertUniqueEdgeId(baseId, usedEdgeIds),
     source,
@@ -65,8 +71,8 @@ const createEdgeData = <TEdgeMeta extends Record<string, unknown>, TEdgeLabel>(
       edgeType === EdgeType.Directed || edgeType === EdgeType.Undirected
         ? edgeType
         : defaultEdgeType,
-    points: sanitizeEdgePoints(points),
-    meta: sanitizeRecord<TEdgeMeta>(meta),
+    ...(sanitizedPoints ? { points: sanitizedPoints } : {}),
+    ...(sanitizedMeta ? { meta: sanitizedMeta } : {}),
     ...rest,
   };
 };
@@ -81,21 +87,21 @@ export const processNodeEdges = <
   source: string,
   neighbors: Record<
     string,
-    NxEdgeAttrs<TEdgeMeta, TEdgeLabel> | NxEdgeAttrs<TEdgeMeta, TEdgeLabel>[]
+    NxEdgeAttrs<TEdgeMeta, TEdgeLabel> | ReadonlyArray<NxEdgeAttrs<TEdgeMeta, TEdgeLabel>>
   >,
   defaultEdgeType: EdgeType,
   inputValidationMode: GraphInputValidationMode,
   nodeMap: Map<string, NodeData<TNodeData, TNodeMeta, TNodeLabel>>,
   undirectedSeen: Set<string>,
   usedEdgeIds: Set<string>
-): GraphEdgeTuple<TEdgeMeta, TEdgeLabel>[] => {
-  const edges: GraphEdgeTuple<TEdgeMeta, TEdgeLabel>[] = [];
+): ReadonlyArray<GraphEdgeTuple<TEdgeMeta, TEdgeLabel>> => {
+  const edges: Array<GraphEdgeTuple<TEdgeMeta, TEdgeLabel>> = [];
 
   for (const [target, rawAttrs] of Object.entries(neighbors)) {
     const sanitizedTarget = sanitizeNodeId(target, 'edge-endpoint');
     assertNodeExists(nodeMap, sanitizedTarget, 'target', inputValidationMode);
 
-    normalizeEdgeAttributes(rawAttrs).forEach((attrs, idx) => {
+    for (const [idx, attrs] of normalizeEdgeAttributes(rawAttrs).entries()) {
       const edgeData = createEdgeData(
         source,
         sanitizedTarget,
@@ -116,7 +122,7 @@ export const processNodeEdges = <
       ) {
         edges.push(edgeData);
       }
-    });
+    }
   }
 
   return edges;

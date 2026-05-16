@@ -1,21 +1,25 @@
 import {
-  NodeData,
-  PositionedNode,
-  LayoutOptions,
-  LayoutType,
   LayoutDirection,
+  type LayoutOptions,
+  LayoutType,
+  type NodeData,
+  type PositionedNode,
 } from '@graph-render/types';
-import { DEFAULT_NODE_GAP, DEFAULT_PADDING, applyNodeSizing } from '../utils';
-import { gridLayout } from './grid';
+
+import { applyNodeSizing, DEFAULT_NODE_GAP, DEFAULT_PADDING } from '../utils';
 import { centeredLayout } from './centered';
-import { radialTreeLayout } from './radialTree';
-import { treeLayout } from './tree';
+import { compactBracketLayout } from './compactBracket';
 import { dagLayout } from './dag';
 import { forceDirectedLayout } from './forceDirected';
-import { compactBracketLayout } from './compactBracket';
+import { gridLayout } from './grid';
 import { orthogonalFlowLayout } from './orthogonalFlow';
+import { radialTreeLayout } from './radialTree';
+import { treeLayout } from './tree';
 
-const runSelectedLayout = (options: LayoutOptions, sizedNodes: NodeData[]): PositionedNode[] => {
+const runSelectedLayout = (
+  options: LayoutOptions,
+  sizedNodes: readonly NodeData[]
+): readonly PositionedNode[] => {
   const { edges, padding, theme, layout, width, height, layoutDirection } = options;
   const gap = theme?.nodeGap ?? DEFAULT_NODE_GAP;
   const pad = padding ?? DEFAULT_PADDING;
@@ -26,7 +30,7 @@ const runSelectedLayout = (options: LayoutOptions, sizedNodes: NodeData[]): Posi
   };
 
   switch (resolvedLayout) {
-    case LayoutType.Tree:
+    case LayoutType.Tree: {
       return treeLayout(
         sizedNodes,
         edges,
@@ -35,11 +39,14 @@ const runSelectedLayout = (options: LayoutOptions, sizedNodes: NodeData[]): Posi
         layoutDirection ?? LayoutDirection.LTR,
         height
       );
-    case LayoutType.Radial:
+    }
+    case LayoutType.Radial: {
       return radialTreeLayout(sizedNodes, edges, pad, width, height, gap);
-    case LayoutType.Centered:
+    }
+    case LayoutType.Centered: {
       return centeredLayout(sizedNodes, pad, width, height);
-    case LayoutType.Dag:
+    }
+    case LayoutType.Dag: {
       return dagLayout(
         sizedNodes,
         edges,
@@ -49,9 +56,11 @@ const runSelectedLayout = (options: LayoutOptions, sizedNodes: NodeData[]): Posi
         width,
         height
       );
-    case LayoutType.ForceDirected:
+    }
+    case LayoutType.ForceDirected: {
       return forceDirectedLayout(sizedNodes, edges, pad, width, height, gap);
-    case LayoutType.CompactBracket:
+    }
+    case LayoutType.CompactBracket: {
       return compactBracketLayout(
         sizedNodes,
         edges,
@@ -60,7 +69,8 @@ const runSelectedLayout = (options: LayoutOptions, sizedNodes: NodeData[]): Posi
         layoutDirection ?? LayoutDirection.LTR,
         height
       );
-    case LayoutType.OrthogonalFlow:
+    }
+    case LayoutType.OrthogonalFlow: {
       return orthogonalFlowLayout(
         sizedNodes,
         edges,
@@ -70,18 +80,21 @@ const runSelectedLayout = (options: LayoutOptions, sizedNodes: NodeData[]): Posi
         width,
         height
       );
-    case LayoutType.Grid:
+    }
+    case LayoutType.Grid: {
       return gridLayout(sizedNodes, pad, gap);
-    default:
+    }
+    default: {
       return assertUnreachable(resolvedLayout);
+    }
   }
 };
 
 const getAnchoredLayoutOffset = (
-  autoLayout: PositionedNode[],
-  fixedNodes: PositionedNode[]
-): { x: number; y: number } => {
-  if (!fixedNodes.length) {
+  autoLayout: readonly PositionedNode[],
+  fixedNodes: readonly PositionedNode[]
+): { readonly x: number; readonly y: number } => {
+  if (fixedNodes.length === 0) {
     return { x: 0, y: 0 };
   }
 
@@ -94,7 +107,7 @@ const getAnchoredLayoutOffset = (
       (entry): entry is { fixedNode: PositionedNode; laidOut: PositionedNode } => entry !== null
     );
 
-  if (!positionedFixed.length) {
+  if (positionedFixed.length === 0) {
     return { x: 0, y: 0 };
   }
 
@@ -112,7 +125,7 @@ const getAnchoredLayoutOffset = (
   };
 };
 
-export const layoutNodes = (options: LayoutOptions): PositionedNode[] => {
+export const layoutNodes = (options: LayoutOptions): readonly PositionedNode[] => {
   const sizedNodes = applyNodeSizing(options.nodes, options);
 
   const missingPositions = sizedNodes.some((node) => !node.position);
@@ -143,13 +156,11 @@ export const layoutNodes = (options: LayoutOptions): PositionedNode[] => {
   });
 };
 
-export {
-  gridLayout,
-  centeredLayout,
-  radialTreeLayout,
-  treeLayout,
-  dagLayout,
-  forceDirectedLayout,
-  compactBracketLayout,
-  orthogonalFlowLayout,
-};
+export { centeredLayout } from './centered';
+export { compactBracketLayout } from './compactBracket';
+export { dagLayout } from './dag';
+export { forceDirectedLayout } from './forceDirected';
+export { gridLayout } from './grid';
+export { orthogonalFlowLayout } from './orthogonalFlow';
+export { radialTreeLayout } from './radialTree';
+export { treeLayout } from './tree';

@@ -1,6 +1,7 @@
+import type { TournamentBracketProps, VertexComponentProps } from '@graph-render/types';
+import { SquashNodeRenderMode } from '@graph-render/types';
 import { useMemo } from 'react';
-import type { VertexComponentProps } from '@graph-render/types';
-import type { TournamentBracketProps } from '@graph-render/types';
+
 import { SquashNode } from '../components/SquashNode';
 
 export function useBracketVertexComponents({
@@ -16,7 +17,11 @@ export function useBracketVertexComponents({
     () =>
       vertexComponent ??
       ((props: VertexComponentProps) => (
-        <SquashNode {...props} renderMode="export" onRenderError={onInvalidNode} />
+        <SquashNode
+          {...props}
+          renderMode={SquashNodeRenderMode.Export}
+          onRenderError={onInvalidNode}
+        />
       )),
     [onInvalidNode, vertexComponent]
   );
@@ -26,7 +31,7 @@ export function useBracketVertexComponents({
       ((props: VertexComponentProps) => (
         <SquashNode
           {...props}
-          renderMode={nodeRenderMode ?? 'export'}
+          renderMode={nodeRenderMode ?? SquashNodeRenderMode.Export}
           compact={compact}
           onRenderError={onInvalidNode}
         />

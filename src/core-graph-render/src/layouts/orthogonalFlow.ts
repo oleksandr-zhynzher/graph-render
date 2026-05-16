@@ -1,4 +1,10 @@
-import { EdgeData, LayoutDirection, NodeData, PositionedNode } from '@graph-render/types';
+import {
+  type EdgeData,
+  LayoutDirection,
+  type NodeData,
+  type PositionedNode,
+} from '@graph-render/types';
+
 import { DEFAULT_NODE_GAP, DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
 import { assignDagLevels } from './treeTopology';
 
@@ -9,15 +15,15 @@ const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 720;
 
 export const orthogonalFlowLayout = (
-  nodes: NodeData[],
-  edges: EdgeData[],
+  nodes: readonly NodeData[],
+  edges: readonly EdgeData[],
   pad: number = DEFAULT_PADDING,
   gap: number = DEFAULT_NODE_GAP,
   direction: LayoutDirection = LayoutDirection.LTR,
   width: number = DEFAULT_WIDTH,
   height: number = DEFAULT_HEIGHT
-): PositionedNode[] => {
-  if (!nodes.length) {
+): readonly PositionedNode[] => {
+  if (nodes.length === 0) {
     return [];
   }
 
@@ -28,7 +34,7 @@ export const orthogonalFlowLayout = (
 
   const { levels } = assignDagLevels(nodes, edges);
   const buckets = new Map<number, NodeData[]>();
-  nodes.forEach((node) => {
+  for (const node of nodes) {
     const level = levels.get(node.id);
     if (level == null) {
       throw new Error(`DAG layout could not assign a level to node "${node.id}".`);
@@ -36,12 +42,12 @@ export const orthogonalFlowLayout = (
     const bucket = buckets.get(level) ?? [];
     bucket.push(node);
     buckets.set(level, bucket);
-  });
+  }
 
   const isRTL = direction === LayoutDirection.RTL;
 
   // Sort columns by level once so per-column x accumulation is deterministic.
-  const sortedColumns = Array.from(buckets.entries()).sort((a, b) => a[0] - b[0]);
+  const sortedColumns = [...buckets.entries()].sort((a, b) => a[0] - b[0]);
 
   // Per-column max node width drives column pitch; avoids a single wide node in
   // one column inflating the spacing of every other column.
@@ -106,7 +112,7 @@ export const orthogonalFlowLayout = (
         y: Math.min(y, maxY - nodeHeight),
       };
       y += nodeHeight + verticalGap;
-      return { ...node, position } as PositionedNode;
+      return { ...node, position };
     });
   });
 };

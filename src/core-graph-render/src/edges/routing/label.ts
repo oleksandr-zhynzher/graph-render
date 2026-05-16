@@ -1,23 +1,28 @@
-import { Point } from '@graph-render/types';
+import type { Point } from '@graph-render/types';
 
-export const calculateLabelPosition = (points: Point[]): Point | undefined => {
+export const calculateLabelPosition = (points: readonly Point[]): Point | undefined => {
   if (points.length < 2) {
     return undefined;
   }
 
   const segmentLengths = points.slice(1).map((point, index) => {
     const previous = points[index];
+    if (!previous) {
+      return 0;
+    }
     return Math.hypot(point.x - previous.x, point.y - previous.y);
   });
   const totalLength = segmentLengths.reduce((sum, length) => sum + length, 0);
   const halfway = totalLength / 2;
   let traversed = 0;
 
-  for (let index = 0; index < segmentLengths.length; index += 1) {
-    const length = segmentLengths[index];
+  for (const [index, length] of segmentLengths.entries()) {
     if (traversed + length >= halfway) {
       const start = points[index];
       const end = points[index + 1];
+      if (!start || !end) {
+        break;
+      }
       const ratio = length === 0 ? 0 : (halfway - traversed) / length;
       return {
         x: start.x + (end.x - start.x) * ratio,
@@ -27,5 +32,5 @@ export const calculateLabelPosition = (points: Point[]): Point | undefined => {
     traversed += length;
   }
 
-  return points[Math.floor(points.length / 2)];
+  return points[Math.floor(points.length / 2)] ?? points[0];
 };

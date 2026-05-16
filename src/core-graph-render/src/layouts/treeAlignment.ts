@@ -1,10 +1,11 @@
-import {
-  NodeData,
+import type {
   EdgeData,
+  LayoutDirection,
+  NodeData,
   PositionedNode,
   TreeMetrics,
-  LayoutDirection,
 } from '@graph-render/types';
+
 import { DEFAULT_NODE_SIZE } from '../utils';
 import { calculateXPosition, calculateYPosition } from './treePositioning';
 
@@ -12,14 +13,14 @@ import { calculateXPosition, calculateYPosition } from './treePositioning';
  * Position all nodes initially based on their level
  */
 export const positionNodesInLevels = (
-  nodes: NodeData[],
-  levels: string[][],
-  levelMap: Map<string, number>,
+  nodes: readonly NodeData[],
+  levels: ReadonlyArray<readonly string[]>,
+  levelMap: ReadonlyMap<string, number>,
   metrics: TreeMetrics,
   gap: number,
   padding: number,
   direction: LayoutDirection
-): PositionedNode[] => {
+): readonly PositionedNode[] => {
   return nodes.map((node) => {
     if (node.position) return node as PositionedNode;
 
@@ -38,7 +39,7 @@ export const positionNodesInLevels = (
       metrics.baseY
     );
 
-    return { ...node, position: { x, y } } as PositionedNode;
+    return { ...node, position: { x, y } };
   });
 };
 
@@ -50,15 +51,15 @@ export const positionNodesInLevels = (
  * Calculate average Y center of parent nodes
  */
 const calculateParentCentersAverage = (
-  parentIds: string[],
-  posMap: Map<string, PositionedNode>
+  parentIds: readonly string[],
+  posMap: ReadonlyMap<string, PositionedNode>
 ): number | null => {
   const centers = parentIds
     .map((src) => posMap.get(src))
-    .filter((n): n is PositionedNode => !!n)
+    .filter((node): node is PositionedNode => node !== undefined)
     .map((n) => n.position.y + (n.size?.height ?? DEFAULT_NODE_SIZE.height) / 2);
 
-  if (!centers.length) return null;
+  if (centers.length === 0) return null;
   return centers.reduce((a, b) => a + b, 0) / centers.length;
 };
 
@@ -66,32 +67,32 @@ const calculateParentCentersAverage = (
  * Align nodes with multiple parents to their parent's average position
  */
 export const alignNodesToParents = (
-  positioned: PositionedNode[],
-  edges: EdgeData[],
-  levels: string[][],
+  positioned: readonly PositionedNode[],
+  edges: readonly EdgeData[],
+  levels: ReadonlyArray<readonly string[]>,
   maxLevel: number
-): PositionedNode[] => {
+): readonly PositionedNode[] => {
   const posMap = new Map<string, PositionedNode>();
-  positioned.forEach((n) => posMap.set(n.id, n));
+  for (const n of positioned) posMap.set(n.id, n);
 
   // FIX: build a target→sources index once instead of calling
   // edges.filter(e => e.target === id) for every node (was O(nodes × edges)).
   const incomingByTarget = new Map<string, string[]>();
-  edges.forEach((e) => {
+  for (const e of edges) {
     incomingByTarget.set(e.target, [...(incomingByTarget.get(e.target) ?? []), e.source]);
-  });
+  }
 
   for (let level = 1; level <= maxLevel; level += 1) {
     const ids = levels[level] ?? [];
-    ids.forEach((id) => {
+    for (const id of ids) {
       const node = posMap.get(id);
-      if (!node) return;
+      if (!node) continue;
 
       const parentIds = incomingByTarget.get(id) ?? [];
-      if (parentIds.length < 2) return;
+      if (parentIds.length < 2) continue;
 
       const avgCenterY = calculateParentCentersAverage(parentIds, posMap);
-      if (avgCenterY === null) return;
+      if (avgCenterY === null) continue;
 
       const h = node.size?.height ?? DEFAULT_NODE_SIZE.height;
       const newY = avgCenterY - h / 2;
@@ -100,8 +101,8 @@ export const alignNodesToParents = (
         position: { ...node.position, y: newY },
       } as PositionedNode;
       posMap.set(id, updated);
-    });
+    }
   }
 
-  return Array.from(posMap.values());
+  return [...posMap.values()];
 };

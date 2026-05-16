@@ -1,11 +1,11 @@
-export * from './node';
-export * from './edge';
 export * from './config';
+export type * from './edge';
 export * from './graph';
-export * from './rendering';
-export * from './routing';
-export * from './layout';
+export type * from './graph-utils';
+export type * from './layout';
+export * from './node';
 export * from './react';
-export * from './graph-utils';
-export * from './svg';
+export type * from './rendering';
+export * from './routing';
+export type * from './svg';
 export * from './tournament';

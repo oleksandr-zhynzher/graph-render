@@ -1,4 +1,4 @@
-import { PositionedNode, Point, Size, NodeSide } from '@graph-render/types';
+import { NodeSide, type Point, type PositionedNode, type Size } from '@graph-render/types';
 
 /**
  * Calculate the center point of a node
@@ -17,14 +17,18 @@ export const getSideCenter = (node: PositionedNode, size: Size, side: NodeSide):
   const cx = node.position.x + size.width / 2;
   const cy = node.position.y + size.height / 2;
   switch (side) {
-    case NodeSide.Left:
+    case NodeSide.Left: {
       return { x: node.position.x, y: cy };
-    case NodeSide.Right:
+    }
+    case NodeSide.Right: {
       return { x: node.position.x + size.width, y: cy };
-    case NodeSide.Top:
+    }
+    case NodeSide.Top: {
       return { x: cx, y: node.position.y };
-    case NodeSide.Bottom:
+    }
+    case NodeSide.Bottom: {
       return { x: cx, y: node.position.y + size.height };
+    }
   }
 };
 
@@ -41,14 +45,18 @@ export const getAnchorPoint = (
   const cx = node.position.x + size.width / 2;
   const cy = node.position.y + size.height / 2;
   switch (side) {
-    case NodeSide.Left:
+    case NodeSide.Left: {
       return { x: node.position.x - inset, y: cy + offset };
-    case NodeSide.Right:
+    }
+    case NodeSide.Right: {
       return { x: node.position.x + size.width + inset, y: cy + offset };
-    case NodeSide.Top:
+    }
+    case NodeSide.Top: {
       return { x: cx + offset, y: node.position.y - inset };
-    case NodeSide.Bottom:
+    }
+    case NodeSide.Bottom: {
       return { x: cx + offset, y: node.position.y + size.height + inset };
+    }
   }
 };
 
@@ -57,14 +65,18 @@ export const getAnchorPoint = (
  */
 export const getSideNormal = (side: NodeSide): Point => {
   switch (side) {
-    case NodeSide.Left:
+    case NodeSide.Left: {
       return { x: -1, y: 0 };
-    case NodeSide.Right:
+    }
+    case NodeSide.Right: {
       return { x: 1, y: 0 };
-    case NodeSide.Top:
+    }
+    case NodeSide.Top: {
       return { x: 0, y: -1 };
-    case NodeSide.Bottom:
+    }
+    case NodeSide.Bottom: {
       return { x: 0, y: 1 };
+    }
   }
 };
 
@@ -73,13 +85,17 @@ export const getSideNormal = (side: NodeSide): Point => {
  */
 export const getSideInwardNormal = (side: NodeSide): Point => {
   switch (side) {
-    case NodeSide.Left:
+    case NodeSide.Left: {
       return { x: 1, y: 0 };
-    case NodeSide.Right:
+    }
+    case NodeSide.Right: {
       return { x: -1, y: 0 };
-    case NodeSide.Top:
+    }
+    case NodeSide.Top: {
       return { x: 0, y: 1 };
-    case NodeSide.Bottom:
+    }
+    case NodeSide.Bottom: {
       return { x: 0, y: -1 };
+    }
   }
 };

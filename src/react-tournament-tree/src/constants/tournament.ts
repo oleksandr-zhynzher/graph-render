@@ -1,5 +1,6 @@
 import type { GraphConfig } from '@graph-render/types';
-import { LayoutType, LayoutDirection, EdgeType } from '@graph-render/types';
+import { EdgeType, LayoutDirection, LayoutType, RoutingStyle } from '@graph-render/types';
+
 import { NODE_DIMENSIONS, NODE_DIMENSIONS_COMPACT } from './node';
 
 export const DEFAULT_TOURNAMENT_CONFIG: Readonly<GraphConfig> = {
@@ -9,7 +10,7 @@ export const DEFAULT_TOURNAMENT_CONFIG: Readonly<GraphConfig> = {
   height: 1200,
   padding: 40,
   defaultEdgeType: EdgeType.Undirected,
-  routingStyle: 'orthogonal',
+  routingStyle: RoutingStyle.Orthogonal,
   curveEdges: false,
   curveStrength: 0,
   forceRightToLeft: true,

@@ -1,12 +1,20 @@
 import type { RenderConfig, RenderGraphToSvgOptions, RenderTheme } from '@graph-render/types';
+
 import { DEFAULT_THEME, normalizeGraphConfig } from '../../utils';
 import { escapeXml, sanitizeCssColor, sanitizeFontFamily, sanitizeSvgId } from '../utils';
 
 export const extractRenderConfig = (options?: RenderGraphToSvgOptions): RenderConfig => {
   const cfg = normalizeGraphConfig(options?.config);
-  const mergedTheme = { ...DEFAULT_THEME, ...(cfg.theme ?? {}) };
+  const mergedTheme = {
+    ...cfg.theme,
+    background: cfg.theme.background ?? DEFAULT_THEME.background ?? '#0c0c10',
+    edgeColor: cfg.theme.edgeColor ?? DEFAULT_THEME.edgeColor ?? '#8b9dbf',
+    edgeWidth: cfg.theme.edgeWidth ?? DEFAULT_THEME.edgeWidth ?? 2,
+    nodeGap: cfg.theme.nodeGap ?? DEFAULT_THEME.nodeGap,
+    fontFamily: cfg.theme.fontFamily ?? DEFAULT_THEME.fontFamily ?? 'system-ui, sans-serif',
+  };
   const safeFontFamily = escapeXml(
-    sanitizeFontFamily(mergedTheme.fontFamily, DEFAULT_THEME.fontFamily)
+    sanitizeFontFamily(mergedTheme.fontFamily, DEFAULT_THEME.fontFamily ?? 'system-ui, sans-serif')
   );
 
   return {
@@ -41,9 +49,12 @@ export const extractRenderConfig = (options?: RenderGraphToSvgOptions): RenderCo
 
 export const extractRenderTheme = (config: RenderConfig): RenderTheme => {
   return {
-    edgeColor: sanitizeCssColor(config.mergedTheme.edgeColor, DEFAULT_THEME.edgeColor),
-    edgeWidth: config.mergedTheme.edgeWidth ?? DEFAULT_THEME.edgeWidth,
+    edgeColor: sanitizeCssColor(config.mergedTheme.edgeColor, DEFAULT_THEME.edgeColor ?? '#8b9dbf'),
+    edgeWidth: config.mergedTheme.edgeWidth,
     edgeLabelColor: sanitizeCssColor(config.edgeLabelColor, '#334155'),
-    background: sanitizeCssColor(config.mergedTheme.background, DEFAULT_THEME.background),
+    background: sanitizeCssColor(
+      config.mergedTheme.background,
+      DEFAULT_THEME.background ?? '#0c0c10'
+    ),
   };
 };

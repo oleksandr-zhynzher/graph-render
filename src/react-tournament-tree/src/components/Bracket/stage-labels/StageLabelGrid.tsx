@@ -1,8 +1,8 @@
-type StageLabelGridProps = {
-  labels: string[];
-  compact: boolean;
-  isDarkMode: boolean;
-};
+interface StageLabelGridProps {
+  readonly labels: readonly string[];
+  readonly compact: boolean;
+  readonly isDarkMode: boolean;
+}
 
 export function StageLabelGrid({ labels, compact, isDarkMode }: StageLabelGridProps) {
   return (

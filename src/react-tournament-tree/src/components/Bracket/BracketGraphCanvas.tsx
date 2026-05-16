@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import { Graph } from '@graph-render/react';
 import type {
   GraphConfig,
@@ -8,26 +7,30 @@ import type {
   StageView,
   TournamentBracketProps,
 } from '@graph-render/types';
+import { useCallback } from 'react';
+
 import { routeBracketEdges } from '../../utils/bracketRouting';
 import { GraphStageSync } from './GraphStageSync';
 
-type BracketGraphCanvasProps = {
-  graphRef: React.RefObject<GraphHandle | null>;
-  wrapperRef: React.RefObject<HTMLDivElement | null>;
-  graph: TournamentBracketProps['graph'];
-  vertexComponent: NonNullable<TournamentBracketProps['vertexComponent']>;
-  config: GraphConfig;
-  defaultViewport: TournamentBracketProps['defaultViewport'];
-  isNavigationMode: boolean;
-  translateExtent: [[number, number], [number, number]] | undefined;
-  showViewportControls: boolean;
-  panEnabled: TournamentBracketProps['panEnabled'];
-  zoomEnabled: TournamentBracketProps['zoomEnabled'];
-  pinchZoomEnabled: TournamentBracketProps['pinchZoomEnabled'];
-  labels: string[];
-  onStagesChange: (stages: StageView[]) => void;
-  onMatchClick: TournamentBracketProps['onMatchClick'];
-};
+interface BracketGraphCanvasProps {
+  readonly graphRef: React.RefObject<GraphHandle | null>;
+  readonly wrapperRef: React.RefObject<HTMLDivElement | null>;
+  readonly graph: TournamentBracketProps['graph'];
+  readonly vertexComponent: NonNullable<TournamentBracketProps['vertexComponent']>;
+  readonly config: GraphConfig;
+  readonly defaultViewport: TournamentBracketProps['defaultViewport'];
+  readonly isNavigationMode: boolean;
+  readonly translateExtent:
+    | readonly [readonly [number, number], readonly [number, number]]
+    | undefined;
+  readonly showViewportControls: boolean;
+  readonly panEnabled: TournamentBracketProps['panEnabled'];
+  readonly zoomEnabled: TournamentBracketProps['zoomEnabled'];
+  readonly pinchZoomEnabled: TournamentBracketProps['pinchZoomEnabled'];
+  readonly labels: readonly string[];
+  readonly onStagesChange: (stages: readonly StageView[]) => void;
+  readonly onMatchClick: TournamentBracketProps['onMatchClick'];
+}
 
 export function BracketGraphCanvas({
   graphRef,

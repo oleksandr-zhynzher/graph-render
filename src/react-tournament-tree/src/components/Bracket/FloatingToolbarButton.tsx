@@ -1,11 +1,12 @@
 import { StageNavigationIcon } from '../icons';
+import type { SquashThemeColors } from '../SquashNode/types';
 
-type FloatingToolbarButtonProps = {
-  isDarkMode: boolean;
-  isNavigationMode: boolean;
-  colors: Record<string, string>;
-  onToggleNavigationMode: () => void;
-};
+interface FloatingToolbarButtonProps {
+  readonly isDarkMode: boolean;
+  readonly isNavigationMode: boolean;
+  readonly colors: SquashThemeColors;
+  readonly onToggleNavigationMode: () => void;
+}
 
 export function FloatingToolbarButton({
   isDarkMode,

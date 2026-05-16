@@ -1,5 +1,8 @@
-import { useCallback, useRef, useState } from 'react';
 import type { DragState } from '@graph-render/types';
+import { SelectionMode } from '@graph-render/types';
+import { useCallback, useRef, useState } from 'react';
+
+import type { UseGraphPointerInteractionsOptions } from '../models/hooks';
 import {
   getPointerDistance,
   getPointerMidpoint,
@@ -10,7 +13,9 @@ import {
 } from '../utils/pointer';
 import { getMarqueeSelection } from '../utils/selection';
 import { clampViewportTranslation, clampZoom } from '../utils/viewport';
-import type { UseGraphPointerInteractionsOptions } from '../models/hooks';
+
+type Mutable<T> = { -readonly [K in keyof T]: T[K] };
+
 export const useGraphPointerInteractions = ({
   getViewportDimensions,
   marqueeSelectionEnabled,
@@ -30,7 +35,7 @@ export const useGraphPointerInteractions = ({
 }: UseGraphPointerInteractionsOptions) => {
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const dragRef = useRef<DragState>({
+  const dragRef = useRef<Mutable<DragState>>({
     active: false,
     startX: 0,
     startY: 0,
@@ -38,7 +43,7 @@ export const useGraphPointerInteractions = ({
     originY: 0,
   });
   const activePointersRef = useRef<Map<number, PointerState>>(new Map());
-  const pinchRef = useRef<PinchState>({
+  const pinchRef = useRef<Mutable<PinchState>>({
     active: false,
     startDistance: 0,
     startZoom: 1,
@@ -54,7 +59,7 @@ export const useGraphPointerInteractions = ({
       const point = getRelativeSvgPoint(svgRef.current, event.clientX, event.clientY);
       if (
         !isInteractiveTarget &&
-        selectionMode === 'multiple' &&
+        selectionMode === SelectionMode.Multiple &&
         marqueeSelectionEnabled &&
         event.shiftKey
       ) {
@@ -66,7 +71,10 @@ export const useGraphPointerInteractions = ({
       if (event.pointerType === 'touch') {
         activePointersRef.current.set(event.pointerId, point);
         if (pinchZoomEnabled && zoomEnabled && activePointersRef.current.size === 2) {
-          const [first, second] = Array.from(activePointersRef.current.values());
+          const [first, second] = [...activePointersRef.current.values()];
+          if (!first || !second) {
+            return;
+          }
           const midpoint = getPointerMidpoint(first, second);
           pinchRef.current = {
             active: true,
@@ -76,7 +84,7 @@ export const useGraphPointerInteractions = ({
             worldY: (midpoint.y - viewport.y) / viewport.zoom,
           };
           dragRef.current.active = false;
-          target.setPointerCapture?.(event.pointerId);
+          target.setPointerCapture(event.pointerId);
           return;
         }
       }
@@ -89,7 +97,7 @@ export const useGraphPointerInteractions = ({
         originY: viewport.y,
       };
       setIsDragging(true);
-      target.setPointerCapture?.(event.pointerId);
+      target.setPointerCapture(event.pointerId);
     },
     [
       marqueeSelectionEnabled,
@@ -107,7 +115,10 @@ export const useGraphPointerInteractions = ({
       if (event.pointerType === 'touch' && activePointersRef.current.has(event.pointerId)) {
         activePointersRef.current.set(event.pointerId, point);
         if (pinchRef.current.active && activePointersRef.current.size >= 2) {
-          const [first, second] = Array.from(activePointersRef.current.values());
+          const [first, second] = [...activePointersRef.current.values()];
+          if (!first || !second) {
+            return;
+          }
           const midpoint = getPointerMidpoint(first, second);
           const distance = getPointerDistance(first, second);
           const zoom = clampZoom(
@@ -169,14 +180,14 @@ export const useGraphPointerInteractions = ({
           positionedEdges
         );
         updateSelection((current) => ({
-          nodeIds: Array.from(new Set([...current.nodeIds, ...nodeIds])),
-          edgeIds: Array.from(new Set([...current.edgeIds, ...edgeIds])),
+          nodeIds: [...new Set([...current.nodeIds, ...nodeIds])],
+          edgeIds: [...new Set([...current.edgeIds, ...edgeIds])],
         }));
         setSelectionBox(null);
       }
       dragRef.current.active = false;
       setIsDragging(false);
-      (event.target as Element).releasePointerCapture?.(event.pointerId);
+      (event.target as Element).releasePointerCapture(event.pointerId);
     },
     [positionedEdges, positionedNodes, selectionBox, updateSelection, viewport]
   );

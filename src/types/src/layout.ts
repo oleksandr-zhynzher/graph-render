@@ -1,33 +1,33 @@
-import { NodeData } from './node';
-import { EdgeData } from './edge';
-import { GraphTheme, GraphConfig } from './config';
+import type { GraphConfig, GraphTheme } from './config';
+import type { EdgeData } from './edge';
+import type { NodeData } from './node';
 
 export interface LayoutOptions {
-  nodes: NodeData[];
-  edges: EdgeData[];
-  padding?: number;
-  theme?: GraphTheme;
-  layout?: GraphConfig['layout'];
-  width?: number;
-  height?: number;
-  layoutDirection?: GraphConfig['layoutDirection'];
-  nodeSizing?: GraphConfig['nodeSizing'];
-  fixedNodeSize?: GraphConfig['fixedNodeSize'];
-  labelMeasurementPaddingX?: GraphConfig['labelMeasurementPaddingX'];
-  labelMeasurementPaddingY?: GraphConfig['labelMeasurementPaddingY'];
-  labelMeasurementCharWidth?: GraphConfig['labelMeasurementCharWidth'];
-  labelMeasurementLineHeight?: GraphConfig['labelMeasurementLineHeight'];
+  readonly nodes: readonly NodeData[];
+  readonly edges: readonly EdgeData[];
+  readonly padding?: number | undefined;
+  readonly theme?: GraphTheme | undefined;
+  readonly layout?: GraphConfig['layout'] | undefined;
+  readonly width?: number | undefined;
+  readonly height?: number | undefined;
+  readonly layoutDirection?: GraphConfig['layoutDirection'] | undefined;
+  readonly nodeSizing?: GraphConfig['nodeSizing'] | undefined;
+  readonly fixedNodeSize?: GraphConfig['fixedNodeSize'] | undefined;
+  readonly labelMeasurementPaddingX?: GraphConfig['labelMeasurementPaddingX'] | undefined;
+  readonly labelMeasurementPaddingY?: GraphConfig['labelMeasurementPaddingY'] | undefined;
+  readonly labelMeasurementCharWidth?: GraphConfig['labelMeasurementCharWidth'] | undefined;
+  readonly labelMeasurementLineHeight?: GraphConfig['labelMeasurementLineHeight'] | undefined;
 }
 
 export interface GraphTopology {
-  incoming: Map<string, number>;
-  outgoing: Map<string, string[]>;
+  readonly incoming: ReadonlyMap<string, number>;
+  readonly outgoing: ReadonlyMap<string, readonly string[]>;
 }
 
 export interface TreeMetrics {
-  maxLevel: number;
-  maxNodeHeight: number;
-  maxLevelCount: number;
-  totalHeight: number;
-  baseY: number;
+  readonly maxLevel: number;
+  readonly maxNodeHeight: number;
+  readonly maxLevelCount: number;
+  readonly totalHeight: number;
+  readonly baseY: number;
 }

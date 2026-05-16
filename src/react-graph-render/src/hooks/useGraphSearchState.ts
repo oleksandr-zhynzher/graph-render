@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useRef } from 'react';
 import type { EdgeData, NodeData } from '@graph-render/types';
+import { useEffect, useMemo, useRef } from 'react';
+
+import type { UseGraphSearchStateOptions } from '../models/hooks';
 import {
   findSearchMatchedEdgeIds,
   findSearchMatchedNodeIds,
@@ -12,7 +14,6 @@ import {
   filterVisibleEdges,
   filterVisibleNodes,
 } from '../utils/searchVisibility';
-import type { UseGraphSearchStateOptions } from '../models/hooks';
 
 export const useGraphSearchState = <
   TNode extends NodeData = NodeData,

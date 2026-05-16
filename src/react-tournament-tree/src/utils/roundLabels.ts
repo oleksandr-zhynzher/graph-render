@@ -1,44 +1,44 @@
 import type { NxGraphInput } from '@graph-render/types';
 
-function buildOutgoingMap(graph: NxGraphInput): Map<string, string[]> {
+function buildOutgoingMap(graph: NxGraphInput): ReadonlyMap<string, readonly string[]> {
   const outgoing = new Map<string, string[]>();
 
-  Object.entries(graph.adj).forEach(([source, neighbors]) => {
+  for (const [source, neighbors] of Object.entries(graph.adj)) {
     outgoing.set(source, Object.keys(neighbors));
-    Object.keys(neighbors).forEach((target) => {
+    for (const target of Object.keys(neighbors)) {
       if (!outgoing.has(target)) {
         outgoing.set(target, []);
       }
-    });
-  });
+    }
+  }
 
-  Object.keys(graph.nodes ?? {}).forEach((nodeId) => {
+  for (const nodeId of Object.keys(graph.nodes ?? {})) {
     if (!outgoing.has(nodeId)) {
       outgoing.set(nodeId, []);
     }
-  });
+  }
 
   return outgoing;
 }
 
 function inferRoundCount(graph: NxGraphInput): number {
   const outgoing = buildOutgoingMap(graph);
-  if (!outgoing.size) {
+  if (outgoing.size === 0) {
     return 0;
   }
 
   const inDegree = new Map(Array.from(outgoing.keys(), (nodeId) => [nodeId, 0]));
-  outgoing.forEach((targets) => {
-    targets.forEach((target) => {
+  for (const [, targets] of outgoing) {
+    for (const target of targets) {
       inDegree.set(target, (inDegree.get(target) ?? 0) + 1);
-    });
-  });
+    }
+  }
 
-  const roots = Array.from(inDegree.entries())
+  const roots = [...inDegree.entries()]
     .filter(([, degree]) => degree === 0)
     .map(([nodeId]) => nodeId);
 
-  if (!roots.length) {
+  if (roots.length === 0) {
     return 0;
   }
 
@@ -47,9 +47,12 @@ function inferRoundCount(graph: NxGraphInput): number {
 
   for (let index = 0; index < queue.length; index += 1) {
     const current = queue[index];
+    if (!current) {
+      continue;
+    }
     const level = levels.get(current) ?? 0;
 
-    (outgoing.get(current) ?? []).forEach((target) => {
+    for (const target of outgoing.get(current) ?? []) {
       const nextLevel = level + 1;
       const existing = levels.get(target);
       if (existing == null || nextLevel > existing) {
@@ -60,7 +63,7 @@ function inferRoundCount(graph: NxGraphInput): number {
       if ((inDegree.get(target) ?? 0) === 0) {
         queue.push(target);
       }
-    });
+    }
   }
 
   const maxLevel = Math.max(...levels.values());
@@ -71,7 +74,7 @@ function inferRoundCount(graph: NxGraphInput): number {
  * Derive round labels from the number of rounds.
  * Example: 4 rounds -> ["1/8", "1/4", "1/2", "Final"].
  */
-export function roundLabelsForRoundCount(roundCount: number): string[] {
+export function roundLabelsForRoundCount(roundCount: number): readonly string[] {
   if (!Number.isFinite(roundCount) || roundCount <= 0) return [];
 
   return Array.from({ length: roundCount }, (_, idx) => {
@@ -96,7 +99,7 @@ export function roundLabelsForRoundCount(roundCount: number): string[] {
  * Derive round labels from the number of matches (nodes).
  * Example: 15 matches -> 4 rounds => ["1/8", "1/4", "1/2", "Final"].
  */
-export function roundLabelsForMatchCount(matchCount: number): string[] {
+export function roundLabelsForMatchCount(matchCount: number): readonly string[] {
   if (!Number.isFinite(matchCount) || matchCount <= 0) return [];
   const rounds = Math.max(1, Math.ceil(Math.log2(matchCount + 1)));
   return roundLabelsForRoundCount(rounds);
@@ -105,6 +108,6 @@ export function roundLabelsForMatchCount(matchCount: number): string[] {
 /**
  * Convenience helper to derive labels directly from a graph definition.
  */
-export function roundLabelsForGraph(graph: NxGraphInput): string[] {
+export function roundLabelsForGraph(graph: NxGraphInput): readonly string[] {
   return roundLabelsForRoundCount(inferRoundCount(graph));
 }

@@ -1,5 +1,5 @@
-import { PositionedNode, Size } from './node';
-import { LayoutDirection } from './config';
+import type { LayoutDirection, RoutingStyle } from './config';
+import type { PositionedNode, Size } from './node';
 
 export enum NodeSide {
   Left = 'left',
@@ -9,27 +9,32 @@ export enum NodeSide {
 }
 
 export interface RouteEdgesOptions {
-  arrowPadding?: number;
-  straight?: boolean;
-  forceRightToLeft?: boolean;
-  layoutDirection?: LayoutDirection;
-  routingStyle?: 'smart' | 'orthogonal' | 'bundled';
-  edgeSeparation?: number;
-  selfLoopRadius?: number;
+  readonly arrowPadding?: number | undefined;
+  readonly straight?: boolean | undefined;
+  readonly forceRightToLeft?: boolean | undefined;
+  readonly layoutDirection?: LayoutDirection | undefined;
+  readonly routingStyle?: RoutingStyle | undefined;
+  readonly edgeSeparation?: number | undefined;
+  readonly selfLoopRadius?: number | undefined;
 }
 
 export interface EdgeRoutingContext {
-  source: PositionedNode;
-  target: PositionedNode;
-  sourceSize: Size;
-  targetSize: Size;
-  isUndirected: boolean;
-  arrowPadding: number;
-  straight: boolean;
-  forceRightToLeft: boolean;
-  layoutDirection: LayoutDirection;
-  routingStyle: 'smart' | 'orthogonal' | 'bundled';
-  edgeSeparation: number;
-  selfLoopRadius: number;
-  otherRects: Array<{ x: number; y: number; w: number; h: number }>;
+  readonly source: PositionedNode;
+  readonly target: PositionedNode;
+  readonly sourceSize: Size;
+  readonly targetSize: Size;
+  readonly isUndirected: boolean;
+  readonly arrowPadding: number;
+  readonly straight: boolean;
+  readonly forceRightToLeft: boolean;
+  readonly layoutDirection: LayoutDirection;
+  readonly routingStyle: RoutingStyle;
+  readonly edgeSeparation: number;
+  readonly selfLoopRadius: number;
+  readonly otherRects: ReadonlyArray<{
+    readonly x: number;
+    readonly y: number;
+    readonly w: number;
+    readonly h: number;
+  }>;
 }

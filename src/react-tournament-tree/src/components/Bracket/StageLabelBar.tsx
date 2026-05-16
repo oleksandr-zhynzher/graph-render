@@ -1,19 +1,20 @@
 import { ChevronLeftIcon, ChevronRightIcon } from '../icons';
+import type { SquashThemeColors } from '../SquashNode/types';
 import { StageLabelGrid } from './stage-labels/StageLabelGrid';
 import { StageStepButton } from './stage-labels/StageStepButton';
 
-type StageLabelBarProps = {
-  stageLabels: string[];
-  compact: boolean;
-  isDarkMode: boolean;
-  isNavigationMode: boolean;
-  activeStageIndex: number;
-  colors: Record<string, string>;
-  canGoPrev: boolean;
-  canGoNext: boolean;
-  onPreviousStage: () => void;
-  onNextStage: () => void;
-};
+interface StageLabelBarProps {
+  readonly stageLabels: readonly string[];
+  readonly compact: boolean;
+  readonly isDarkMode: boolean;
+  readonly isNavigationMode: boolean;
+  readonly activeStageIndex: number;
+  readonly colors: SquashThemeColors;
+  readonly canGoPrev: boolean;
+  readonly canGoNext: boolean;
+  readonly onPreviousStage: () => void;
+  readonly onNextStage: () => void;
+}
 
 export function StageLabelBar({
   stageLabels,
@@ -27,7 +28,7 @@ export function StageLabelBar({
   onPreviousStage,
   onNextStage,
 }: StageLabelBarProps) {
-  if (!stageLabels.length) return null;
+  if (stageLabels.length === 0) return null;
   const navColor = isDarkMode ? '#f7f5ef' : '#3f4a38';
   const navBorder = isDarkMode ? '#46505c' : '#ddd7cb';
 

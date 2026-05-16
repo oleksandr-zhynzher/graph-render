@@ -1,17 +1,15 @@
 import type { EdgeId, PathTraversalResult, PositionedEdge } from '@graph-render/types';
+
 import { normalizePathKey } from './pathKeys';
-import type { FocusedPath } from '../models/utils';
 
-export { extractPathKeysFromNodes, normalizePathKey } from './pathKeys';
-
-export type { FocusedPath };
+export { type FocusedPath } from '../models/utils';
 
 export function traverseHighlightedPath(options: {
-  startNodeId: string;
-  sourceIndex?: number | null;
-  pathKey?: string;
-  incomingEdgesByTarget: Map<string, PositionedEdge[]>;
-  pathKeysByNode?: Map<string, string[]>;
+  readonly startNodeId: string;
+  readonly sourceIndex?: number | null;
+  readonly pathKey?: string | undefined;
+  readonly incomingEdgesByTarget: ReadonlyMap<string, readonly PositionedEdge[]>;
+  readonly pathKeysByNode?: ReadonlyMap<string, readonly string[]> | undefined;
   /**
    * Hard upper bound on the number of nodes visited. Prevents the traversal
    * from freezing the UI on dense graphs when neither a pathKey nor a valid
@@ -20,7 +18,7 @@ export function traverseHighlightedPath(options: {
    *
    * Defaults to 500.
    */
-  maxNodes?: number;
+  readonly maxNodes?: number;
 }): PathTraversalResult {
   const {
     startNodeId,
@@ -37,11 +35,10 @@ export function traverseHighlightedPath(options: {
   // onto the stack so that a node reached via multiple paths is not processed
   // more than once — preventing exponential fan-out on dense DAGs.
   const visitedKeys = new Set<string>([`${startNodeId}|${sourceIndex ?? ''}|${pathKey ?? ''}`]);
-  const stack: Array<{ nodeId: string; sourceIndex: number | null; pathKey?: string }> = [
-    { nodeId: startNodeId, sourceIndex: sourceIndex ?? null, pathKey },
-  ];
+  const stack: Array<{ nodeId: string; sourceIndex: number | null; pathKey?: string | undefined }> =
+    [{ nodeId: startNodeId, sourceIndex: sourceIndex ?? null, pathKey }];
 
-  while (stack.length) {
+  while (stack.length > 0) {
     // Hard cap to prevent blocking the main thread on dense graphs where the
     // fallback "follow all incoming edges" path would visit the entire graph.
     if (nodes.size >= maxNodes) {
@@ -64,17 +61,20 @@ export function traverseHighlightedPath(options: {
       });
     }
 
-    if (!chosen.length) {
+    if (chosen.length === 0) {
       if (current.sourceIndex == null) {
-        chosen = incoming;
+        chosen = [...incoming];
       } else if (incoming[current.sourceIndex]) {
-        chosen = [incoming[current.sourceIndex]];
+        const edge = incoming[current.sourceIndex];
+        if (edge) {
+          chosen = [edge];
+        }
       }
     }
 
-    chosen.forEach((edge) => {
+    for (const edge of chosen) {
       if (edges.has(edge.id)) {
-        return;
+        continue;
       }
 
       edges.add(edge.id);
@@ -98,8 +98,10 @@ export function traverseHighlightedPath(options: {
           pathKey: current.pathKey,
         });
       }
-    });
+    }
   }
 
   return { nodes, edges };
 }
+
+export { extractPathKeysFromNodes, normalizePathKey } from './pathKeys';

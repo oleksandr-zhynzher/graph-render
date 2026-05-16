@@ -1,21 +1,23 @@
+import { Graph } from '@graph-render/react';
+import type { GraphConfig, TournamentBracketProps, VertexComponent } from '@graph-render/types';
+import { SquashNodeRenderMode } from '@graph-render/types';
 import { useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
-import { Graph } from '@graph-render/react';
-import type { GraphConfig, TournamentBracketProps, VertexComponent } from '@graph-render/types';
-import { BracketThemeProvider } from '../contexts/BracketThemeContext';
+
+import { BracketThemeProvider, ThemeMode } from '../contexts/BracketThemeContext';
 import { routeBracketEdges } from '../utils/bracketRouting';
 import { downloadSvgFromElement } from '../utils/exportSvg';
 
-type UseBracketSvgExportParams = {
-  wrapperRef: React.RefObject<HTMLDivElement | null>;
-  nodeRenderMode: NonNullable<TournamentBracketProps['nodeRenderMode']>;
-  vertexComponent?: TournamentBracketProps['vertexComponent'];
-  isDarkMode: boolean;
-  enrichedGraph: TournamentBracketProps['graph'];
-  exportVertexComponent: VertexComponent;
-  mergedConfig: GraphConfig;
-};
+interface UseBracketSvgExportParams {
+  readonly wrapperRef: React.RefObject<HTMLDivElement | null>;
+  readonly nodeRenderMode: NonNullable<TournamentBracketProps['nodeRenderMode']>;
+  readonly vertexComponent?: TournamentBracketProps['vertexComponent'];
+  readonly isDarkMode: boolean;
+  readonly enrichedGraph: TournamentBracketProps['graph'];
+  readonly exportVertexComponent: VertexComponent;
+  readonly mergedConfig: GraphConfig;
+}
 
 export function useBracketSvgExport({
   wrapperRef,
@@ -27,7 +29,7 @@ export function useBracketSvgExport({
   mergedConfig,
 }: UseBracketSvgExportParams) {
   return useCallback(() => {
-    if (nodeRenderMode !== 'html' || vertexComponent) {
+    if (nodeRenderMode !== SquashNodeRenderMode.Html || vertexComponent) {
       downloadSvgFromElement(wrapperRef.current);
       return;
     }
@@ -39,14 +41,14 @@ export function useBracketSvgExport({
     host.style.overflow = 'hidden';
     host.style.opacity = '0';
     host.style.pointerEvents = 'none';
-    document.body.appendChild(host);
+    document.body.append(host);
 
     const exportRoot = createRoot(host);
 
     try {
       flushSync(() => {
         exportRoot.render(
-          <BracketThemeProvider mode={isDarkMode ? 'dark' : 'light'}>
+          <BracketThemeProvider mode={isDarkMode ? ThemeMode.Dark : ThemeMode.Light}>
             <Graph
               graph={enrichedGraph}
               vertexComponent={exportVertexComponent}
@@ -60,7 +62,7 @@ export function useBracketSvgExport({
       downloadSvgFromElement(host);
     } finally {
       exportRoot.unmount();
-      document.body.removeChild(host);
+      host.remove();
     }
   }, [
     enrichedGraph,

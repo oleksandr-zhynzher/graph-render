@@ -1,4 +1,4 @@
-import { Point } from '@graph-render/types';
+import type { Point } from '@graph-render/types';
 
 /**
  * Calculate the lead-out distance based on edge configuration
@@ -18,7 +18,7 @@ export const calculateControlPoints = (
   targetNormal: Point,
   leadOut: number,
   isUndirected: boolean
-): Point[] => {
+): readonly Point[] => {
   const outPoint = {
     x: startPoint.x + sourceNormal.x * leadOut,
     y: startPoint.y + sourceNormal.y * leadOut,
@@ -53,7 +53,7 @@ export const calculateStraightPoints = (
   targetNormal: Point,
   leadOut: number,
   isUndirected: boolean
-): Point[] => {
+): readonly Point[] => {
   const outPoint = {
     x: startPoint.x + sourceNormal.x * leadOut,
     y: startPoint.y + sourceNormal.y * leadOut,

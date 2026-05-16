@@ -1,11 +1,13 @@
-import type { MatchStatus, SquashMatchMeta } from '@graph-render/types';
-import { normalizePlayers } from './normalizePlayer';
-import type { NormalizedSquashMatchMeta } from '../../models/squash';
+import type { SquashMatchMeta } from '@graph-render/types';
+import { MatchStatus } from '@graph-render/types';
 
-export type { NormalizedSquashMatchMeta };
+import type { NormalizedSquashMatchMeta } from '../../models/squash';
+import { normalizePlayers } from './normalizePlayer';
 
 const isMatchStatus = (value: unknown): value is MatchStatus => {
-  return value === 'completed' || value === 'live' || value === 'upcoming';
+  return (
+    value === MatchStatus.Completed || value === MatchStatus.Live || value === MatchStatus.Upcoming
+  );
 };
 
 const normalizeScore = (value: unknown, label: string): number => {
@@ -16,7 +18,7 @@ const normalizeScore = (value: unknown, label: string): number => {
   return value;
 };
 
-const normalizeSets = (value: unknown): number[][] => {
+const normalizeSets = (value: unknown): ReadonlyArray<readonly number[]> => {
   if (value == null) {
     return [];
   }
@@ -39,7 +41,7 @@ const normalizeSets = (value: unknown): number[][] => {
   });
 };
 
-const normalizeTiebreaks = (value: unknown): (number[] | null)[] => {
+const normalizeTiebreaks = (value: unknown): ReadonlyArray<readonly number[] | null> => {
   if (value == null) {
     return [];
   }
@@ -100,7 +102,9 @@ export const normalizeMatchMeta = (meta: unknown): NormalizedSquashMatchMeta => 
     players: normalizePlayers(rawMeta?.players),
     sets,
     tiebreaks: normalizeTiebreaks(rawMeta?.tiebreaks),
-    status: rawMeta?.status ?? 'completed',
+    status: rawMeta?.status ?? MatchStatus.Completed,
     currentSet,
   };
 };
+
+export { type NormalizedSquashMatchMeta } from '../../models/squash';

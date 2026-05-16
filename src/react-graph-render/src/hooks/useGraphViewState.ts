@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
 import type { GraphHandle, GraphSelection, GraphViewport } from '@graph-render/types';
+import { useCallback, useMemo, useRef, useState } from 'react';
+
 import { DEFAULT_VIEWPORT } from '../constants/graph';
-import { normalizeViewport } from '../utils/viewport';
 import type { UseGraphViewStateOptions, UseGraphViewStateResult } from '../models/hooks';
+import { normalizeViewport } from '../utils/viewport';
 
 export const useGraphViewState = ({
   controlledViewport,
@@ -20,7 +21,7 @@ export const useGraphViewState = ({
   onFocusedNodeChange,
 }: UseGraphViewStateOptions): UseGraphViewStateResult => {
   const [internalViewport, setInternalViewport] = useState<GraphViewport>(() =>
-    normalizeViewport({ ...DEFAULT_VIEWPORT, ...(defaultViewport ?? {}) }, safeMinZoom, safeMaxZoom)
+    normalizeViewport({ ...DEFAULT_VIEWPORT, ...defaultViewport }, safeMinZoom, safeMaxZoom)
   );
   const [internalSelection, setInternalSelection] = useState<GraphSelection>({
     nodeIds: defaultSelectedNodeIds ?? [],
@@ -50,7 +51,7 @@ export const useGraphViewState = ({
   selectionRef.current = selection;
 
   const focusedNodeId =
-    controlledFocusedNodeId !== undefined ? controlledFocusedNodeId : internalFocusedNodeId;
+    controlledFocusedNodeId === undefined ? internalFocusedNodeId : controlledFocusedNodeId;
 
   const updateViewport = useCallback<GraphHandle['setViewport']>(
     (next) => {

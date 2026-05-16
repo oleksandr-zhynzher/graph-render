@@ -1,15 +1,16 @@
-import React from 'react';
 import type { SquashNodeRenderMode } from '@graph-render/types';
+import type React from 'react';
+
 import { truncateText } from '../../utils/squash';
 import { BODY_FONT_FAMILY } from './constants';
 import { isSvgCompatibleRenderMode } from './renderMode';
 
-type InvalidSquashNodeProps = {
-  width: number;
-  height: number;
-  renderMode: SquashNodeRenderMode;
-  nodeId: string;
-};
+interface InvalidSquashNodeProps {
+  readonly width: number;
+  readonly height: number;
+  readonly renderMode: SquashNodeRenderMode;
+  readonly nodeId: string;
+}
 
 export function InvalidSquashNode({
   width,

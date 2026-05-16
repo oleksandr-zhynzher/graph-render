@@ -1,23 +1,22 @@
-import React from 'react';
 import { getPlayerBadgeText, truncateText } from '../../utils/squash';
 import { BODY_FONT_FAMILY } from './constants';
 import { SquashSvgScoreSegments } from './SquashSvgScoreSegments';
 import type { SquashPlayerRowProps } from './types';
 
 type SquashPlayerSvgRowProps = SquashPlayerRowProps & {
-  rowY: number;
-  rowHeight: number;
-  nodeWidth: number;
-  insetX: number;
-  badgeSize: number;
-  badgePad: number;
-  playerTextX: number;
-  maxNameLength: number;
-  scoreGroupLeftX: number;
-  internalDividerX: number;
-  matchCountX: number;
-  scoreSegW: number;
-  scoreSegG: number;
+  readonly rowY: number;
+  readonly rowHeight: number;
+  readonly nodeWidth: number;
+  readonly insetX: number;
+  readonly badgeSize: number;
+  readonly badgePad: number;
+  readonly playerTextX: number;
+  readonly maxNameLength: number;
+  readonly scoreGroupLeftX: number;
+  readonly internalDividerX: number;
+  readonly matchCountX: number;
+  readonly scoreSegW: number;
+  readonly scoreSegG: number;
 };
 
 export function SquashPlayerSvgRow(props: SquashPlayerSvgRowProps) {

@@ -5,6 +5,8 @@ import {
   validatePositionedNodes,
 } from '@graph-render/core';
 import type { PositionedNode } from '@graph-render/types';
+import { GraphErrorPhase } from '@graph-render/types';
+
 import type { ResolvePositionedNodesOptions } from '../models/utils';
 
 export const resolvePositionedNodes = ({
@@ -14,7 +16,7 @@ export const resolvePositionedNodes = ({
   layoutOptions,
   onError,
   visibleNodes,
-}: ResolvePositionedNodesOptions): PositionedNode[] => {
+}: ResolvePositionedNodesOptions): readonly PositionedNode[] => {
   if (!layoutNodesOverride) {
     return resolveDefaultLayout({
       allowDegradedGraph,
@@ -31,7 +33,7 @@ export const resolvePositionedNodes = ({
     return overrideNodes;
   } catch (error) {
     const normalizedError = toError(error);
-    onError?.(normalizedError, { graph, phase: 'layout-override' });
+    onError?.(normalizedError, { graph, phase: GraphErrorPhase.LayoutOverride });
     if (!allowDegradedGraph) {
       throw normalizedError;
     }
@@ -42,7 +44,7 @@ export const resolvePositionedNodes = ({
     validatePositionedNodes(fallbackNodes, visibleNodes, 'layout');
     return fallbackNodes;
   } catch (fallbackError) {
-    onError?.(toError(fallbackError), { graph, phase: 'layout' });
+    onError?.(toError(fallbackError), { graph, phase: GraphErrorPhase.Layout });
   }
 
   return resolveFallbackLayout({ graph, layoutOptions, onError, visibleNodes });
@@ -54,14 +56,14 @@ const resolveDefaultLayout = ({
   layoutOptions,
   onError,
   visibleNodes,
-}: Omit<ResolvePositionedNodesOptions, 'layoutNodesOverride'>): PositionedNode[] => {
+}: Omit<ResolvePositionedNodesOptions, 'layoutNodesOverride'>): readonly PositionedNode[] => {
   try {
     const laidOutNodes = layoutNodes(layoutOptions);
     validatePositionedNodes(laidOutNodes, visibleNodes, 'layout');
     return laidOutNodes;
   } catch (error) {
     const normalizedError = toError(error);
-    onError?.(normalizedError, { graph, phase: 'layout' });
+    onError?.(normalizedError, { graph, phase: GraphErrorPhase.Layout });
     if (!allowDegradedGraph) {
       throw normalizedError;
     }
@@ -82,7 +84,7 @@ const resolveFallbackLayout = ({
     return fallbackNodes;
   } catch (fallbackError) {
     const normalizedFallbackError = toError(fallbackError);
-    onError?.(normalizedFallbackError, { graph, phase: 'layout' });
+    onError?.(normalizedFallbackError, { graph, phase: GraphErrorPhase.Layout });
     throw normalizedFallbackError;
   }
 };

@@ -5,6 +5,8 @@ import {
   validatePositionedEdges,
 } from '@graph-render/core';
 import type { EdgeData, PositionedEdge, PositionedNode } from '@graph-render/types';
+import { GraphErrorPhase } from '@graph-render/types';
+
 import type { ResolvePositionedEdgesOptions } from '../models/utils';
 
 export const resolvePositionedEdges = ({
@@ -15,7 +17,7 @@ export const resolvePositionedEdges = ({
   positionedNodes,
   routeEdgesOverride,
   visibleEdges,
-}: ResolvePositionedEdgesOptions): PositionedEdge[] => {
+}: ResolvePositionedEdgesOptions): readonly PositionedEdge[] => {
   const nodeIds = new Set(positionedNodes.map((node) => node.id));
 
   if (!routeEdgesOverride) {
@@ -36,7 +38,7 @@ export const resolvePositionedEdges = ({
     return overrideEdges;
   } catch (error) {
     const normalizedError = toError(error);
-    onError?.(normalizedError, { graph, phase: 'routing-override' });
+    onError?.(normalizedError, { graph, phase: GraphErrorPhase.RoutingOverride });
     if (!allowDegradedGraph) {
       throw normalizedError;
     }
@@ -47,7 +49,7 @@ export const resolvePositionedEdges = ({
     validatePositionedEdges(fallbackEdges, nodeIds, 'routing');
     return fallbackEdges;
   } catch (fallbackError) {
-    onError?.(toError(fallbackError), { graph, phase: 'routing' });
+    onError?.(toError(fallbackError), { graph, phase: GraphErrorPhase.Routing });
     return buildValidatedFallbackEdges(positionedNodes, visibleEdges, nodeIds);
   }
 };
@@ -61,15 +63,15 @@ const resolveDefaultRouting = ({
   positionedNodes,
   visibleEdges,
 }: Omit<ResolvePositionedEdgesOptions, 'routeEdgesOverride'> & {
-  nodeIds: Set<string>;
-}): PositionedEdge[] => {
+  readonly nodeIds: ReadonlySet<string>;
+}): readonly PositionedEdge[] => {
   try {
     const routedEdges = routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions);
     validatePositionedEdges(routedEdges, nodeIds, 'routing');
     return routedEdges;
   } catch (error) {
     const normalizedError = toError(error);
-    onError?.(normalizedError, { graph, phase: 'routing' });
+    onError?.(normalizedError, { graph, phase: GraphErrorPhase.Routing });
     if (!allowDegradedGraph) {
       throw normalizedError;
     }
@@ -78,10 +80,10 @@ const resolveDefaultRouting = ({
 };
 
 const buildValidatedFallbackEdges = (
-  positionedNodes: PositionedNode[],
-  visibleEdges: EdgeData[],
-  nodeIds: Set<string>
-): PositionedEdge[] => {
+  positionedNodes: readonly PositionedNode[],
+  visibleEdges: readonly EdgeData[],
+  nodeIds: ReadonlySet<string>
+): readonly PositionedEdge[] => {
   const fallbackEdges = buildFallbackEdges(positionedNodes, visibleEdges);
   validatePositionedEdges(fallbackEdges, nodeIds, 'routing');
   return fallbackEdges;

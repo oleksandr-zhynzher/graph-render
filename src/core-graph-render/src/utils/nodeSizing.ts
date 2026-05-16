@@ -1,11 +1,13 @@
-import { LayoutOptions, NodeData, Size } from '@graph-render/types';
+import type { LayoutOptions, NodeData, Size } from '@graph-render/types';
+import { NodeSizingMode } from '@graph-render/types';
+
 import { DEFAULT_NODE_SIZE } from './constants';
 
 const DEFAULT_PADDING_X = 18;
 const DEFAULT_PADDING_Y = 12;
 const DEFAULT_CHAR_WIDTH = 8;
 const DEFAULT_LINE_HEIGHT = 18;
-const MAX_MEASUREMENT_TEXT_LENGTH = 4_000;
+const MAX_MEASUREMENT_TEXT_LENGTH = 4000;
 const MAX_MEASUREMENT_LINES = 200;
 const MAX_MEASUREMENT_CHARS_PER_LINE = 400;
 
@@ -26,7 +28,7 @@ const getNodeLabel = (node: NodeData): string => {
   return node.id;
 };
 
-const getMeasuredLines = (label: string): string[] => {
+const getMeasuredLines = (label: string): readonly string[] => {
   const truncatedLabel = label.slice(0, MAX_MEASUREMENT_TEXT_LENGTH);
   const rawLines = truncatedLabel.split(/\r?\n/);
   const measuredLines: string[] = [];
@@ -36,15 +38,15 @@ const getMeasuredLines = (label: string): string[] => {
     index < rawLines.length && measuredLines.length < MAX_MEASUREMENT_LINES;
     index += 1
   ) {
-    const codePoints = Array.from(rawLines[index]);
-    if (!codePoints.length) {
+    const codePoints = [...(rawLines[index] ?? '')];
+    if (codePoints.length === 0) {
       continue;
     }
 
     measuredLines.push(codePoints.slice(0, MAX_MEASUREMENT_CHARS_PER_LINE).join(''));
   }
 
-  return measuredLines.length ? measuredLines : [''];
+  return measuredLines.length > 0 ? measuredLines : [''];
 };
 
 const estimateLabelSize = (node: NodeData, options: LayoutOptions): Size => {
@@ -62,7 +64,7 @@ const estimateLabelSize = (node: NodeData, options: LayoutOptions): Size => {
     node.measurementHints?.lineHeight ?? options.labelMeasurementLineHeight ?? DEFAULT_LINE_HEIGHT;
   let maxChars = 1;
   for (const line of lines) {
-    const lineLength = Array.from(line).length;
+    const lineLength = [...line].length;
     if (lineLength > maxChars) {
       maxChars = lineLength;
     }
@@ -76,24 +78,27 @@ const estimateLabelSize = (node: NodeData, options: LayoutOptions): Size => {
 };
 
 const getResolvedSize = (node: NodeData, options: LayoutOptions): Size => {
-  const mode = node.sizeMode ?? options.nodeSizing ?? 'fixed';
+  const mode = node.sizeMode ?? options.nodeSizing ?? NodeSizingMode.Fixed;
   const fixedSize = options.fixedNodeSize ?? DEFAULT_NODE_SIZE;
   const explicitSize = node.size ? clampSize(node.size, fixedSize) : null;
   const measuredSize = node.measuredSize ? clampSize(node.measuredSize, fixedSize) : null;
   const estimatedSize = estimateLabelSize(node, options);
 
-  if (mode === 'measured') {
+  if (mode === NodeSizingMode.Measured) {
     return measuredSize ?? explicitSize ?? estimatedSize;
   }
 
-  if (mode === 'label') {
+  if (mode === NodeSizingMode.Label) {
     return explicitSize ?? estimatedSize;
   }
 
   return explicitSize ?? fixedSize;
 };
 
-export const applyNodeSizing = (nodes: NodeData[], options: LayoutOptions): NodeData[] => {
+export const applyNodeSizing = (
+  nodes: readonly NodeData[],
+  options: LayoutOptions
+): readonly NodeData[] => {
   return nodes.map((node) => ({
     ...node,
     size: getResolvedSize(node, options),

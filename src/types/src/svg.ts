@@ -1,17 +1,16 @@
 import type {
-  GraphConfig,
-  EdgeType,
-  GraphFailureBehavior,
-  LayoutType,
-  LayoutDirection,
-  GraphTheme,
-  NodeSizingMode,
-  Size,
-  NodeRenderer,
   EdgeRenderer,
-  PositionedNode,
-  PositionedEdge,
+  EdgeType,
+  GraphConfig,
+  GraphFailureBehavior,
   GraphInputValidationMode,
+  LayoutDirection,
+  LayoutType,
+  NodeRenderer,
+  NodeSizingMode,
+  PositionedEdge,
+  PositionedNode,
+  Size,
 } from './index';
 
 /**
@@ -21,65 +20,69 @@ export interface RenderGraphToSvgOptions<
   TNode extends PositionedNode = PositionedNode,
   TEdge extends PositionedEdge = PositionedEdge,
 > {
-  config?: GraphConfig;
-  vertexRenderer?: NodeRenderer<TNode>;
-  edgeRenderer?: EdgeRenderer<TEdge>;
-  markerId?: string;
-  title?: string;
-  desc?: string;
+  readonly config?: GraphConfig | undefined;
+  readonly vertexRenderer?: NodeRenderer<TNode> | undefined;
+  readonly edgeRenderer?: EdgeRenderer<TEdge> | undefined;
+  readonly markerId?: string | undefined;
+  readonly title?: string | undefined;
+  readonly desc?: string | undefined;
 }
 
 /**
  * Result of rendering a graph to SVG
  */
 export interface RenderGraphToSvgResult {
-  svg: string;
-  width: number;
-  height: number;
-  nodes: PositionedNode[];
-  edges: PositionedEdge[];
+  readonly svg: string;
+  readonly width: number;
+  readonly height: number;
+  readonly nodes: readonly PositionedNode[];
+  readonly edges: readonly PositionedEdge[];
 }
 
 /**
  * Internal render configuration with all required properties
  */
 export interface RenderConfig {
-  width: number;
-  height: number;
-  padding: number | undefined;
-  defaultEdgeType: EdgeType;
-  failureBehavior: GraphFailureBehavior;
-  inputValidationMode: GraphInputValidationMode;
-  curveEdges: boolean;
-  curveStrength: number;
-  arrowPadding: number;
-  showArrows: boolean;
-  nodeSizing: NodeSizingMode;
-  fixedNodeSize: Size;
-  labelMeasurementPaddingX: number;
-  labelMeasurementPaddingY: number;
-  labelMeasurementCharWidth: number;
-  labelMeasurementLineHeight: number;
-  routingStyle: NonNullable<GraphConfig['routingStyle']>;
-  edgeSeparation: number;
-  selfLoopRadius: number;
-  layout: LayoutType;
-  layoutDirection: LayoutDirection;
-  forceRightToLeft?: boolean;
-  markerId: string;
-  edgeLabelColor: string;
-  mergedTheme: Required<
-    Pick<GraphTheme, 'background' | 'edgeColor' | 'edgeWidth' | 'fontFamily'>
-  > & { nodeGap: number };
-  safeFontFamily: string;
+  readonly width: number;
+  readonly height: number;
+  readonly padding: number | undefined;
+  readonly defaultEdgeType: EdgeType;
+  readonly failureBehavior: GraphFailureBehavior;
+  readonly inputValidationMode: GraphInputValidationMode;
+  readonly curveEdges: boolean;
+  readonly curveStrength: number;
+  readonly arrowPadding: number;
+  readonly showArrows: boolean;
+  readonly nodeSizing: NodeSizingMode;
+  readonly fixedNodeSize: Size;
+  readonly labelMeasurementPaddingX: number;
+  readonly labelMeasurementPaddingY: number;
+  readonly labelMeasurementCharWidth: number;
+  readonly labelMeasurementLineHeight: number;
+  readonly routingStyle: NonNullable<GraphConfig['routingStyle']>;
+  readonly edgeSeparation: number;
+  readonly selfLoopRadius: number;
+  readonly layout: LayoutType;
+  readonly layoutDirection: LayoutDirection;
+  readonly forceRightToLeft?: boolean | undefined;
+  readonly markerId: string;
+  readonly edgeLabelColor: string;
+  readonly mergedTheme: {
+    readonly background: string;
+    readonly edgeColor: string;
+    readonly edgeWidth: number;
+    readonly fontFamily: string;
+    readonly nodeGap: number;
+  };
+  readonly safeFontFamily: string;
 }
 
 /**
  * Theme properties used during rendering
  */
 export interface RenderTheme {
-  edgeColor: string;
-  edgeWidth: number;
-  edgeLabelColor: string;
-  background: string;
+  readonly edgeColor: string;
+  readonly edgeWidth: number;
+  readonly edgeLabelColor: string;
+  readonly background: string;
 }

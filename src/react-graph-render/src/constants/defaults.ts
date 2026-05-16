@@ -1,4 +1,11 @@
-import { EdgeType, GraphConfig, LayoutDirection, LayoutType } from '@graph-render/types';
+import type { GraphConfig } from '@graph-render/types';
+import {
+  EdgeType,
+  LayoutDirection,
+  LayoutType,
+  NodeSizingMode,
+  RoutingStyle,
+} from '@graph-render/types';
 
 // These three fields are intentionally absent from the default object
 // (their undefined values let consumers override them selectively).
@@ -41,14 +48,14 @@ export const DEFAULT_CONFIG: Required<
   curveEdges: true,
   curveStrength: 0.3,
   arrowPadding: 6,
-  routingStyle: 'smart',
+  routingStyle: RoutingStyle.Smart,
   edgeSeparation: 18,
   selfLoopRadius: 32,
   layout: LayoutType.Centered,
   layoutDirection: LayoutDirection.LTR,
   autoLabels: false,
   labelOffset: 32,
-  nodeSizing: 'fixed',
+  nodeSizing: NodeSizingMode.Fixed,
   labelMeasurementPaddingX: 18,
   labelMeasurementPaddingY: 12,
   labelMeasurementCharWidth: 8,

@@ -1,13 +1,14 @@
 import {
-  PositionedNode,
-  Point,
-  Size,
-  NodeSide,
-  EdgeRoutingContext,
+  type EdgeRoutingContext,
   LayoutDirection,
+  NodeSide,
+  type Point,
+  type PositionedNode,
+  type Size,
 } from '@graph-render/types';
-import { getSideCenter } from './geometry';
+
 import { segmentIntersectsRect } from './collision';
+import { getSideCenter } from './geometry';
 
 /**
  * Sort node sides by distance to a target point
@@ -16,7 +17,7 @@ export const sortSidesByDistance = (
   node: PositionedNode,
   size: Size,
   targetPoint: Point
-): NodeSide[] => {
+): readonly NodeSide[] => {
   const sides: NodeSide[] = [NodeSide.Left, NodeSide.Right, NodeSide.Top, NodeSide.Bottom];
   return [...sides].sort((a, b) => {
     const ca = getSideCenter(node, size, a);
@@ -31,10 +32,10 @@ export const sortSidesByDistance = (
  * Apply directional preference for source sides based on layout flow.
  */
 export const applyDirectionalPreference = (
-  sides: NodeSide[],
+  sides: readonly NodeSide[],
   isDirected: boolean,
   layoutDirection: LayoutDirection = LayoutDirection.LTR
-): NodeSide[] => {
+): readonly NodeSide[] => {
   if (!isDirected) return sides;
 
   const preferredSide = layoutDirection === LayoutDirection.RTL ? NodeSide.Left : NodeSide.Right;
@@ -50,9 +51,9 @@ export const applyDirectionalPreference = (
  */
 export const findNonIntersectingSides = (
   context: EdgeRoutingContext,
-  sortedSourceSides: NodeSide[],
-  sortedTargetSides: NodeSide[]
-): { sourceSide: NodeSide; targetSide: NodeSide } => {
+  sortedSourceSides: readonly NodeSide[],
+  sortedTargetSides: readonly NodeSide[]
+): { readonly sourceSide: NodeSide; readonly targetSide: NodeSide } => {
   for (const s of sortedSourceSides) {
     for (const t of sortedTargetSides) {
       const start = getSideCenter(context.source, context.sourceSize, s);
@@ -63,5 +64,8 @@ export const findNonIntersectingSides = (
     }
   }
   // Return first options if no non-intersecting pair found
-  return { sourceSide: sortedSourceSides[0], targetSide: sortedTargetSides[0] };
+  return {
+    sourceSide: sortedSourceSides[0] ?? NodeSide.Right,
+    targetSide: sortedTargetSides[0] ?? NodeSide.Left,
+  };
 };

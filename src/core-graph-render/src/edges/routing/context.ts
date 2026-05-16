@@ -1,6 +1,7 @@
-import { EdgeRoutingContext } from '@graph-render/types';
+import type { EdgeRoutingContext } from '@graph-render/types';
+
 import { DEFAULT_NODE_SIZE } from '../../utils';
-import { RoutingContextInput } from './types';
+import type { RoutingContextInput } from './types';
 
 /**
  * Create routing context for an edge

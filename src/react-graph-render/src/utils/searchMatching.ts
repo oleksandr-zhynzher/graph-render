@@ -1,11 +1,12 @@
 import type { EdgeData, GraphSearchResults, NodeData } from '@graph-render/types';
+
 import type { HighlightContext } from '../models/utils';
 
 export const findSearchMatchedNodeIds = <TNode extends NodeData>(
-  nodes: TNode[],
+  nodes: readonly TNode[],
   query: string | undefined,
   searchPredicate: ((node: TNode, query: string) => boolean) | undefined
-): string[] => {
+): readonly string[] => {
   const normalizedQuery = query?.trim().toLowerCase();
   if (!normalizedQuery) {
     return [];
@@ -20,17 +21,17 @@ export const findSearchMatchedNodeIds = <TNode extends NodeData>(
 };
 
 export const findSearchMatchedEdgeIds = <TEdge extends EdgeData>(
-  edges: TEdge[],
+  edges: readonly TEdge[],
   query: string | undefined,
-  searchMatchedNodeIdSet: Set<string>
-): string[] => {
+  searchMatchedNodeIdSet: ReadonlySet<string>
+): readonly string[] => {
   const normalizedQuery = query?.trim().toLowerCase();
   if (!normalizedQuery) {
     return [];
   }
 
   return edges.flatMap((edge) => {
-    const label = edge.label != null ? String(edge.label).toLowerCase() : '';
+    const label = edge.label == null ? '' : String(edge.label).toLowerCase();
     const isMatched =
       searchMatchedNodeIdSet.has(edge.source) ||
       searchMatchedNodeIdSet.has(edge.target) ||

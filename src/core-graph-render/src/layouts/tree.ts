@@ -1,26 +1,32 @@
-import { NodeData, EdgeData, PositionedNode, LayoutDirection } from '@graph-render/types';
-import { DEFAULT_PADDING, DEFAULT_NODE_GAP } from '../utils';
+import {
+  type EdgeData,
+  LayoutDirection,
+  type NodeData,
+  type PositionedNode,
+} from '@graph-render/types';
+
+import { DEFAULT_NODE_GAP, DEFAULT_PADDING } from '../utils';
+import { alignNodesToParents, positionNodesInLevels } from './treeAlignment';
+import { calculateTreeMetrics } from './treePositioning';
 import {
   assertHierarchicalGraph,
+  assignNodesToLevels,
   buildGraphTopology,
   findRootNodes,
-  assignNodesToLevels,
   groupNodesByLevel,
 } from './treeTopology';
-import { calculateTreeMetrics } from './treePositioning';
-import { positionNodesInLevels, alignNodesToParents } from './treeAlignment';
 
 /**
  * Layout nodes in a tree/hierarchical structure
  */
 export const treeLayout = (
-  nodes: NodeData[],
-  edges: EdgeData[],
+  nodes: readonly NodeData[],
+  edges: readonly EdgeData[],
   pad: number = DEFAULT_PADDING,
   gap: number = DEFAULT_NODE_GAP,
   direction: LayoutDirection = LayoutDirection.LTR,
   containerHeight?: number
-): PositionedNode[] => {
+): readonly PositionedNode[] => {
   assertHierarchicalGraph(nodes, edges);
 
   const { incoming, outgoing } = buildGraphTopology(edges);

@@ -1,11 +1,11 @@
 import type { GraphHandle, StageView } from '@graph-render/types';
 
-export type UseStageNavigationParams = {
-  defaultNavigationMode: boolean;
-  graphRef: React.RefObject<GraphHandle | null>;
-  contentViewportRef: React.RefObject<HTMLDivElement | null>;
-  graphWidth?: number;
-  graphHeight?: number;
-  stageViews: StageView[];
-  setStageViews: React.Dispatch<React.SetStateAction<StageView[]>>;
-};
+export interface UseStageNavigationParams {
+  readonly defaultNavigationMode: boolean;
+  readonly graphRef: React.RefObject<GraphHandle | null>;
+  readonly contentViewportRef: React.RefObject<HTMLDivElement | null>;
+  readonly graphWidth?: number | undefined;
+  readonly graphHeight?: number | undefined;
+  readonly stageViews: readonly StageView[];
+  readonly setStageViews: React.Dispatch<React.SetStateAction<readonly StageView[]>>;
+}

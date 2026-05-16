@@ -2,5 +2,10 @@
   "extends": "../../.eslintrc.react.json",
   "parserOptions": {
     "project": "./tsconfig.json"
+  },
+  "settings": {
+    "tailwindcss": {
+      "config": "../../tailwind.config.js"
+    }
   }
 }

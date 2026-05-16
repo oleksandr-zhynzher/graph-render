@@ -1,12 +1,14 @@
 import { useCallback } from 'react';
-import { DEFAULT_SELECTION } from '../constants/graph';
-import { getNearestNodeInDirection } from '../utils/keyboardNavigation';
-import type { UseGraphKeyboardNavigationOptions } from '../models/hooks';
 
-const getArrowDirection = (key: string): 'left' | 'right' | 'up' | 'down' => {
-  if (key === 'ArrowLeft') return 'left';
-  if (key === 'ArrowRight') return 'right';
-  return key === 'ArrowUp' ? 'up' : 'down';
+import { DEFAULT_SELECTION } from '../constants/graph';
+import type { UseGraphKeyboardNavigationOptions } from '../models/hooks';
+import { KeyboardDirection } from '../models/utils';
+import { getNearestNodeInDirection } from '../utils/keyboardNavigation';
+
+const getArrowDirection = (key: string): KeyboardDirection => {
+  if (key === 'ArrowLeft') return KeyboardDirection.Left;
+  if (key === 'ArrowRight') return KeyboardDirection.Right;
+  return key === 'ArrowUp' ? KeyboardDirection.Up : KeyboardDirection.Down;
 };
 
 export const useGraphKeyboardNavigation = ({

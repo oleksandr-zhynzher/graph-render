@@ -1,11 +1,11 @@
-import { PositionedNode, Point, Size } from '@graph-render/types';
+import type { Point, PositionedNode, Size } from '@graph-render/types';
 
 export const createSelfLoopPoints = (
   node: PositionedNode,
   size: Size,
   loopRadius: number,
   offset: number
-): Point[] => {
+): readonly Point[] => {
   const right = node.position.x + size.width;
   const top = node.position.y;
   const anchorX = right - Math.min(size.width * 0.2, 16);

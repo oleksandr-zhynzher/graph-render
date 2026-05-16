@@ -1,32 +1,33 @@
-import { useBracketTheme } from '../../contexts/BracketThemeContext';
 import type { StageView, VerticalStagePosition } from '@graph-render/types';
+
+import { useBracketTheme } from '../../contexts/BracketThemeContext';
 import { BracketHeader } from './BracketHeader';
 import { FloatingToolbarButton } from './FloatingToolbarButton';
 import { StageLabelBar } from './StageLabelBar';
 import { StageNavigationControls } from './StageNavigationControls';
 
-type BracketFrameProps = {
-  children: React.ReactNode;
-  title: string;
-  badgeText: string;
-  stageLabels: string[];
-  isDarkMode: boolean;
-  isNavigationMode: boolean;
-  stageViews: StageView[];
-  activeStageIndex: number;
-  verticalStagePosition: VerticalStagePosition;
-  canPagePlayersVertically: boolean;
-  contentViewportRef: React.RefObject<HTMLDivElement | null>;
-  showToolbar: boolean;
-  compact: boolean;
-  onToggleNavigationMode: () => void;
-  onPreviousStage: () => void;
-  onNextStage: () => void;
-  onPagePlayersUp: () => void;
-  onPagePlayersDown: () => void;
-  onToggleDarkMode: () => void;
-  onExportSVG: () => void;
-};
+interface BracketFrameProps {
+  readonly children: React.ReactNode;
+  readonly title: string;
+  readonly badgeText: string;
+  readonly stageLabels: readonly string[];
+  readonly isDarkMode: boolean;
+  readonly isNavigationMode: boolean;
+  readonly stageViews: readonly StageView[];
+  readonly activeStageIndex: number;
+  readonly verticalStagePosition: VerticalStagePosition;
+  readonly canPagePlayersVertically: boolean;
+  readonly contentViewportRef: React.RefObject<HTMLDivElement | null>;
+  readonly showToolbar: boolean;
+  readonly compact: boolean;
+  readonly onToggleNavigationMode: () => void;
+  readonly onPreviousStage: () => void;
+  readonly onNextStage: () => void;
+  readonly onPagePlayersUp: () => void;
+  readonly onPagePlayersDown: () => void;
+  readonly onToggleDarkMode: () => void;
+  readonly onExportSVG: () => void;
+}
 
 export function BracketFrame({
   children,

@@ -1,9 +1,9 @@
-export type NavigationColors = {
-  text: string;
-  background: string;
-  border: string;
-  shadow: string;
-};
+export interface NavigationColors {
+  readonly text: string;
+  readonly background: string;
+  readonly border: string;
+  readonly shadow: string;
+}
 
 export function getNavigationColors(isDarkMode: boolean): NavigationColors {
   return {
@@ -22,12 +22,12 @@ export function RoundNavigationButton({
   onClick,
   style,
 }: {
-  label: string;
-  disabled: boolean;
-  colors: NavigationColors;
-  children: React.ReactNode;
-  onClick: () => void;
-  style?: React.CSSProperties;
+  readonly label: string;
+  readonly disabled: boolean;
+  readonly colors: NavigationColors;
+  readonly children: React.ReactNode;
+  readonly onClick: () => void;
+  readonly style?: React.CSSProperties;
 }) {
   return (
     <button

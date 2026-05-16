@@ -1,127 +1,135 @@
 import type {
   EdgeData,
   GraphHandle,
+  GraphHoverTrigger,
   GraphProps,
   GraphSearchResults,
   GraphSelection,
   GraphViewport,
   NodeData,
+  NormalizedGraphConfig,
   NxGraphInput,
   PositionedEdge,
   PositionedNode,
+  SelectionMode,
   Size,
 } from '@graph-render/types';
 import type { MutableRefObject } from 'react';
+
 import type { FocusedPath } from './utils';
 
 // ── useGraphCollapse ─────────────────────────────────────────────────────────
 
 export interface UseGraphCollapseOptions {
-  collapsedNodeIds?: string[];
-  defaultCollapsedNodeIds?: string[];
-  onCollapsedNodeIdsChange?: (nodeIds: string[]) => void;
+  readonly collapsedNodeIds?: readonly string[] | undefined;
+  readonly defaultCollapsedNodeIds?: readonly string[] | undefined;
+  readonly onCollapsedNodeIdsChange?: ((nodeIds: readonly string[]) => void) | undefined;
 }
 
 export interface UseGraphCollapseResult {
-  collapsedIds: string[];
-  collapsedNodeSet: Set<string>;
-  pendingExpansionNodeSet: Set<string>;
-  updateCollapsedNodeIds: (next: string[] | ((current: string[]) => string[])) => void;
-  setPendingExpansionNodeIds: React.Dispatch<React.SetStateAction<string[]>>;
+  readonly collapsedIds: readonly string[];
+  readonly collapsedNodeSet: ReadonlySet<string>;
+  readonly pendingExpansionNodeSet: ReadonlySet<string>;
+  readonly updateCollapsedNodeIds: (
+    next: readonly string[] | ((current: readonly string[]) => readonly string[])
+  ) => void;
+  readonly setPendingExpansionNodeIds: React.Dispatch<React.SetStateAction<readonly string[]>>;
 }
 
 // ── useGraphCollapseHandlers ─────────────────────────────────────────────────
 
-export type GraphErrorHandler = GraphProps<
-  NxGraphInput,
-  PositionedNode,
-  PositionedEdge,
-  NodeData,
-  EdgeData
->['onError'];
+export type GraphErrorHandler = GraphProps['onError'];
 
 export interface UseGraphCollapseHandlersOptions {
-  childNodeIdsByParent: Map<string, string[]>;
-  collapsedNodeSet: Set<string>;
-  graph: NxGraphInput;
-  onError: GraphErrorHandler;
-  onNodeCollapse: ((nodeId: string) => void) | undefined;
-  onNodeExpand: ((nodeId: string) => void | Promise<void>) | undefined;
-  pendingExpansionNodeSet: Set<string>;
-  setPendingExpansionNodeIds: React.Dispatch<React.SetStateAction<string[]>>;
-  toggleCollapseOnNodeDoubleClick: boolean;
-  updateCollapsedNodeIds: (next: string[] | ((current: string[]) => string[])) => void;
+  readonly childNodeIdsByParent: ReadonlyMap<string, readonly string[]>;
+  readonly collapsedNodeSet: ReadonlySet<string>;
+  readonly graph: NxGraphInput;
+  readonly onError: GraphErrorHandler;
+  readonly onNodeCollapse: ((nodeId: string) => void) | undefined;
+  readonly onNodeExpand: ((nodeId: string) => void | Promise<void>) | undefined;
+  readonly pendingExpansionNodeSet: ReadonlySet<string>;
+  readonly setPendingExpansionNodeIds: React.Dispatch<React.SetStateAction<readonly string[]>>;
+  readonly toggleCollapseOnNodeDoubleClick: boolean;
+  readonly updateCollapsedNodeIds: (
+    next: readonly string[] | ((current: readonly string[]) => readonly string[])
+  ) => void;
 }
 
 // ── useGraphHoverHandlers ────────────────────────────────────────────────────
 
-export type HoverMeta = {
-  selection: GraphSelection;
-  trigger: 'pointer' | 'path';
-  viewport: GraphViewport;
-};
+export interface HoverMeta {
+  readonly selection: GraphSelection;
+  readonly trigger: GraphHoverTrigger;
+  readonly viewport: GraphViewport;
+}
 
 export interface UseGraphHoverHandlersOptions {
-  hoverHighlight: boolean;
-  onEdgeHoverChange:
+  readonly hoverHighlight: boolean;
+  readonly onEdgeHoverChange:
     | ((edge: PositionedEdge, hovered: boolean, meta: HoverMeta) => void)
     | undefined;
-  onNodeHoverChange:
+  readonly onNodeHoverChange:
     | ((node: PositionedNode, hovered: boolean, meta: HoverMeta) => void)
     | undefined;
-  positionedEdgeMap: Map<string, PositionedEdge>;
-  positionedNodeMap: Map<string, PositionedNode>;
-  selection: GraphSelection;
-  setFocusedPath: React.Dispatch<React.SetStateAction<FocusedPath | null>>;
-  setHoveredEdgeId: React.Dispatch<React.SetStateAction<string | null>>;
-  setHoveredNodeId: React.Dispatch<React.SetStateAction<string | null>>;
-  viewport: GraphViewport;
+  readonly positionedEdgeMap: ReadonlyMap<string, PositionedEdge>;
+  readonly positionedNodeMap: ReadonlyMap<string, PositionedNode>;
+  readonly selection: GraphSelection;
+  readonly setFocusedPath: React.Dispatch<React.SetStateAction<FocusedPath | null>>;
+  readonly setHoveredEdgeId: React.Dispatch<React.SetStateAction<string | null>>;
+  readonly setHoveredNodeId: React.Dispatch<React.SetStateAction<string | null>>;
+  readonly viewport: GraphViewport;
 }
 
 // ── useGraphKeyboardNavigation ───────────────────────────────────────────────
 
 export interface UseGraphKeyboardNavigationOptions {
-  centerOnNode: (nodeId: string) => void;
-  fitView: () => void;
-  focusedNodeId: string | null;
-  handleNodeSelection: (node: PositionedNode) => void;
-  keyboardNavigation: boolean;
-  positionedNodeMap: Map<string, PositionedNode>;
-  positionedNodes: PositionedNode[];
-  setFocusedPath: React.Dispatch<React.SetStateAction<FocusedPath | null>>;
-  updateFocusedNode: (nodeId: string | null) => void;
-  updateSelection: (next: GraphSelection | ((current: GraphSelection) => GraphSelection)) => void;
-  updateViewport: GraphHandle['setViewport'];
-  zoomStep: number;
+  readonly centerOnNode: (nodeId: string) => void;
+  readonly fitView: () => void;
+  readonly focusedNodeId: string | null;
+  readonly handleNodeSelection: (node: PositionedNode) => void;
+  readonly keyboardNavigation: boolean;
+  readonly positionedNodeMap: ReadonlyMap<string, PositionedNode>;
+  readonly positionedNodes: readonly PositionedNode[];
+  readonly setFocusedPath: React.Dispatch<React.SetStateAction<FocusedPath | null>>;
+  readonly updateFocusedNode: (nodeId: string | null) => void;
+  readonly updateSelection: (
+    next: GraphSelection | ((current: GraphSelection) => GraphSelection)
+  ) => void;
+  readonly updateViewport: GraphHandle['setViewport'];
+  readonly zoomStep: number;
 }
 
 // ── useGraphNodeMeasurement ──────────────────────────────────────────────────
 
 export interface UseGraphNodeMeasurementOptions {
-  node: PositionedNode;
-  width: number;
-  height: number;
-  onNodeMeasure?: (nodeId: string, size: Size) => void;
+  readonly node: PositionedNode;
+  readonly width: number;
+  readonly height: number;
+  readonly onNodeMeasure?: ((nodeId: string, size: Size) => void) | undefined;
 }
 
 // ── useGraphPointerInteractions ──────────────────────────────────────────────
 
 export interface UseGraphPointerInteractionsOptions {
-  getViewportDimensions: () => { width: number; height: number };
-  marqueeSelectionEnabled: boolean;
-  panEnabled: boolean;
-  pinchZoomEnabled: boolean;
-  positionedEdges: PositionedEdge[];
-  positionedNodes: PositionedNode[];
-  safeMaxZoom: number;
-  safeMinZoom: number;
-  selectionMode: 'single' | 'multiple';
-  svgRef: React.RefObject<SVGSVGElement | null>;
-  translateExtent: [[number, number], [number, number]] | undefined;
-  updateSelection: (next: GraphSelection | ((current: GraphSelection) => GraphSelection)) => void;
-  updateViewport: GraphHandle['setViewport'];
-  viewport: GraphViewport;
-  zoomEnabled: boolean;
+  readonly getViewportDimensions: () => { readonly width: number; readonly height: number };
+  readonly marqueeSelectionEnabled: boolean;
+  readonly panEnabled: boolean;
+  readonly pinchZoomEnabled: boolean;
+  readonly positionedEdges: readonly PositionedEdge[];
+  readonly positionedNodes: readonly PositionedNode[];
+  readonly safeMaxZoom: number;
+  readonly safeMinZoom: number;
+  readonly selectionMode: SelectionMode;
+  readonly svgRef: React.RefObject<SVGSVGElement | null>;
+  readonly translateExtent:
+    | readonly [readonly [number, number], readonly [number, number]]
+    | undefined;
+  readonly updateSelection: (
+    next: GraphSelection | ((current: GraphSelection) => GraphSelection)
+  ) => void;
+  readonly updateViewport: GraphHandle['setViewport'];
+  readonly viewport: GraphViewport;
+  readonly zoomEnabled: boolean;
 }
 
 // ── useGraphSearchState ──────────────────────────────────────────────────────
@@ -130,96 +138,106 @@ export interface UseGraphSearchStateOptions<
   TNode extends NodeData = NodeData,
   TEdge extends EdgeData = EdgeData,
 > {
-  nodes: TNode[];
-  edges: TEdge[];
-  collapsedIds: string[];
-  hiddenNodeIds?: string[];
-  searchQuery?: string;
-  hideUnmatchedSearch?: boolean;
-  searchPredicate?: (node: TNode, query: string) => boolean;
-  highlightedNodeIds?: string[];
-  highlightedEdgeIds?: string[];
-  highlightStrategy?: (context: {
-    nodes: TNode[];
-    edges: TEdge[];
-    query: string;
-    matchedNodeIds: string[];
-    matchedEdgeIds: string[];
-  }) => Partial<GraphSearchResults>;
-  onSearchResultsChange?: (results: GraphSearchResults) => void;
+  readonly nodes: readonly TNode[];
+  readonly edges: readonly TEdge[];
+  readonly collapsedIds: readonly string[];
+  readonly hiddenNodeIds?: readonly string[] | undefined;
+  readonly searchQuery?: string | undefined;
+  readonly hideUnmatchedSearch?: boolean | undefined;
+  readonly searchPredicate?: ((node: TNode, query: string) => boolean) | undefined;
+  readonly highlightedNodeIds?: readonly string[] | undefined;
+  readonly highlightedEdgeIds?: readonly string[] | undefined;
+  readonly highlightStrategy?:
+    | ((context: {
+        readonly nodes: readonly TNode[];
+        readonly edges: readonly TEdge[];
+        readonly query: string;
+        readonly matchedNodeIds: readonly string[];
+        readonly matchedEdgeIds: readonly string[];
+      }) => Partial<GraphSearchResults>)
+    | undefined;
+  readonly onSearchResultsChange?: ((results: GraphSearchResults) => void) | undefined;
 }
 
 // ── useGraphSelectionHandlers ────────────────────────────────────────────────
 
 export interface UseGraphSelectionHandlersOptions {
-  edgeSelectionEnabled: boolean;
-  nodeSelectionEnabled: boolean;
-  onEdgeClick: ((edge: PositionedEdge) => void) | undefined;
-  onNodeClick: ((node: PositionedNode) => void) | undefined;
-  selectionMode: 'single' | 'multiple';
-  updateFocusedNode: (nodeId: string | null) => void;
-  updateSelection: (next: GraphSelection | ((current: GraphSelection) => GraphSelection)) => void;
+  readonly edgeSelectionEnabled: boolean;
+  readonly nodeSelectionEnabled: boolean;
+  readonly onEdgeClick: ((edge: PositionedEdge) => void) | undefined;
+  readonly onNodeClick: ((node: PositionedNode) => void) | undefined;
+  readonly selectionMode: SelectionMode;
+  readonly updateFocusedNode: (nodeId: string | null) => void;
+  readonly updateSelection: (
+    next: GraphSelection | ((current: GraphSelection) => GraphSelection)
+  ) => void;
 }
 
 // ── useGraphViewportController ───────────────────────────────────────────────
 
 export interface UseGraphViewportControllerOptions {
-  cfg: import('@graph-render/types').NormalizedGraphConfig;
-  fitViewOnMount: boolean;
-  fitViewPadding: number;
-  graph: NxGraphInput;
-  positionedEdges: PositionedEdge[];
-  positionedNodeMap: Map<string, PositionedNode>;
-  positionedNodes: PositionedNode[];
-  ref: React.ForwardedRef<GraphHandle>;
-  safeMaxZoom: number;
-  safeMinZoom: number;
-  svgRef: React.RefObject<SVGSVGElement | null>;
-  updateSelection: (next: GraphSelection | ((current: GraphSelection) => GraphSelection)) => void;
-  updateViewport: GraphHandle['setViewport'];
-  viewport: GraphViewport;
-  zoomStep: number;
+  readonly cfg: NormalizedGraphConfig;
+  readonly fitViewOnMount: boolean;
+  readonly fitViewPadding: number;
+  readonly graph: NxGraphInput;
+  readonly positionedEdges: readonly PositionedEdge[];
+  readonly positionedNodeMap: ReadonlyMap<string, PositionedNode>;
+  readonly positionedNodes: readonly PositionedNode[];
+  readonly ref: React.ForwardedRef<GraphHandle>;
+  readonly safeMaxZoom: number;
+  readonly safeMinZoom: number;
+  readonly svgRef: React.RefObject<SVGSVGElement | null>;
+  readonly updateSelection: (
+    next: GraphSelection | ((current: GraphSelection) => GraphSelection)
+  ) => void;
+  readonly updateViewport: GraphHandle['setViewport'];
+  readonly viewport: GraphViewport;
+  readonly zoomStep: number;
 }
 
 // ── useGraphViewState ────────────────────────────────────────────────────────
 
 export interface UseGraphViewStateOptions {
-  controlledViewport: GraphViewport | undefined;
-  defaultViewport: Partial<GraphViewport> | undefined;
-  safeMinZoom: number;
-  safeMaxZoom: number;
-  onViewportChange: ((viewport: GraphViewport) => void) | undefined;
-  selectedNodeIds: string[] | undefined;
-  selectedEdgeIds: string[] | undefined;
-  defaultSelectedNodeIds: string[] | undefined;
-  defaultSelectedEdgeIds: string[] | undefined;
-  onSelectionChange: ((selection: GraphSelection) => void) | undefined;
-  controlledFocusedNodeId: string | null | undefined;
-  defaultFocusedNodeId: string | null;
-  onFocusedNodeChange: ((nodeId: string | null) => void) | undefined;
+  readonly controlledViewport: GraphViewport | undefined;
+  readonly defaultViewport: Partial<GraphViewport> | undefined;
+  readonly safeMinZoom: number;
+  readonly safeMaxZoom: number;
+  readonly onViewportChange: ((viewport: GraphViewport) => void) | undefined;
+  readonly selectedNodeIds: readonly string[] | undefined;
+  readonly selectedEdgeIds: readonly string[] | undefined;
+  readonly defaultSelectedNodeIds: readonly string[] | undefined;
+  readonly defaultSelectedEdgeIds: readonly string[] | undefined;
+  readonly onSelectionChange: ((selection: GraphSelection) => void) | undefined;
+  readonly controlledFocusedNodeId: string | null | undefined;
+  readonly defaultFocusedNodeId: string | null;
+  readonly onFocusedNodeChange: ((nodeId: string | null) => void) | undefined;
 }
 
 export interface UseGraphViewStateResult {
-  viewport: GraphViewport;
-  viewportRef: MutableRefObject<GraphViewport>;
-  selection: GraphSelection;
-  selectionRef: MutableRefObject<GraphSelection>;
-  focusedNodeId: string | null;
-  updateViewport: GraphHandle['setViewport'];
-  updateSelection: (next: GraphSelection | ((current: GraphSelection) => GraphSelection)) => void;
-  updateFocusedNode: (nodeId: string | null) => void;
+  readonly viewport: GraphViewport;
+  readonly viewportRef: MutableRefObject<GraphViewport>;
+  readonly selection: GraphSelection;
+  readonly selectionRef: MutableRefObject<GraphSelection>;
+  readonly focusedNodeId: string | null;
+  readonly updateViewport: GraphHandle['setViewport'];
+  readonly updateSelection: (
+    next: GraphSelection | ((current: GraphSelection) => GraphSelection)
+  ) => void;
+  readonly updateFocusedNode: (nodeId: string | null) => void;
 }
 
 // ── useGraphWheelZoom ────────────────────────────────────────────────────────
 
 export interface UseGraphWheelZoomOptions {
-  getViewportDimensions: () => { width: number; height: number };
-  safeMaxZoom: number;
-  safeMinZoom: number;
-  svgRef: React.RefObject<SVGSVGElement | null>;
-  translateExtent: [[number, number], [number, number]] | undefined;
-  updateViewport: GraphHandle['setViewport'];
-  viewportRef: React.MutableRefObject<GraphViewport>;
-  zoomEnabled: boolean;
-  zoomStep: number;
+  readonly getViewportDimensions: () => { readonly width: number; readonly height: number };
+  readonly safeMaxZoom: number;
+  readonly safeMinZoom: number;
+  readonly svgRef: React.RefObject<SVGSVGElement | null>;
+  readonly translateExtent:
+    | readonly [readonly [number, number], readonly [number, number]]
+    | undefined;
+  readonly updateViewport: GraphHandle['setViewport'];
+  readonly viewportRef: React.MutableRefObject<GraphViewport>;
+  readonly zoomEnabled: boolean;
+  readonly zoomStep: number;
 }

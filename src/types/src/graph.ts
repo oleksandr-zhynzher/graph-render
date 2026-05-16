@@ -1,10 +1,14 @@
-import { NodeId, NodeData } from './node';
-import { EdgeData } from './edge';
+import type { EdgeData } from './edge';
+import type { NodeData, NodeId } from './node';
 
-export type GraphInputValidationMode = 'auto' | 'strict' | 'implicit';
+export enum GraphInputValidationMode {
+  Auto = 'auto',
+  Strict = 'strict',
+  Implicit = 'implicit',
+}
 
 export interface GraphParserOptions {
-  inputValidationMode?: GraphInputValidationMode;
+  readonly inputValidationMode?: GraphInputValidationMode;
 }
 
 export type NxNodeAttrs<
@@ -14,7 +18,7 @@ export type NxNodeAttrs<
 > = Partial<Omit<NodeData<TData, TMeta, TLabel>, 'id'>>;
 export type NxEdgeAttrs<TMeta extends object = Record<string, unknown>, TLabel = unknown> = Partial<
   Omit<EdgeData<TMeta, TLabel>, 'id' | 'source' | 'target'>
-> & { id?: string };
+> & { readonly id?: string };
 
 export interface NxGraphInput<
   TNodeData = unknown,
@@ -23,9 +27,12 @@ export interface NxGraphInput<
   TEdgeMeta extends object = Record<string, unknown>,
   TEdgeLabel = unknown,
 > {
-  nodes?: Record<NodeId, NxNodeAttrs<TNodeData, TNodeMeta, TNodeLabel>>;
-  adj: Record<
+  readonly nodes?: Record<NodeId, NxNodeAttrs<TNodeData, TNodeMeta, TNodeLabel>>;
+  readonly adj: Record<
     NodeId,
-    Record<NodeId, NxEdgeAttrs<TEdgeMeta, TEdgeLabel> | NxEdgeAttrs<TEdgeMeta, TEdgeLabel>[]>
+    Record<
+      NodeId,
+      NxEdgeAttrs<TEdgeMeta, TEdgeLabel> | ReadonlyArray<NxEdgeAttrs<TEdgeMeta, TEdgeLabel>>
+    >
   >;
 }

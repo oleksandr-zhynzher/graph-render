@@ -1,30 +1,26 @@
-import React from 'react';
 import type { LayoutDirection, LayoutType, PositionedNode } from '@graph-render/types';
+
 import {
-  LABEL_PILL_HEIGHT,
-  LABEL_PILL_MIN_WIDTH,
-  LABEL_PILL_RADIUS,
   LABEL_PILL_FONT_SIZE,
   LABEL_PILL_FONT_WEIGHT,
+  LABEL_PILL_HEIGHT,
+  LABEL_PILL_RADIUS,
 } from '../constants/labels';
 import { getEffectiveGraphLabels, getLabelPillWidth } from '../utils/graphLabels';
 
-export { LABEL_PILL_HEIGHT, LABEL_PILL_MIN_WIDTH, LABEL_PILL_RADIUS };
-export { getEffectiveGraphLabels, getLabelPillWidth };
-
 export interface GraphLabelsProps {
-  positionedNodes: PositionedNode[];
-  layout: LayoutType;
-  layoutDirection: LayoutDirection;
-  labels?: string[];
-  autoLabels: boolean;
-  labelOffset: number;
+  readonly positionedNodes: readonly PositionedNode[];
+  readonly layout: LayoutType;
+  readonly layoutDirection: LayoutDirection;
+  readonly labels?: readonly string[] | undefined;
+  readonly autoLabels: boolean;
+  readonly labelOffset: number;
   /** Background fill of the label pill. Defaults to `#eef1f6`. */
-  pillBackground?: string;
+  readonly pillBackground?: string | undefined;
   /** Border stroke of the label pill. Defaults to `#d7dbe3`. */
-  pillBorderColor?: string;
+  readonly pillBorderColor?: string | undefined;
   /** Text color inside the label pill. Defaults to `#3f434b`. */
-  pillTextColor?: string;
+  readonly pillTextColor?: string | undefined;
 }
 
 export function GraphLabels({
@@ -46,7 +42,7 @@ export function GraphLabels({
     autoLabels
   );
 
-  if (!orderedXs.length || !orderedLabels.length) return null;
+  if (orderedXs.length === 0 || orderedLabels.length === 0) return null;
 
   // FIX: avoid spreading a potentially large array into Math.min, which can
   // throw a RangeError when the argument count exceeds the JS engine limit.
@@ -93,3 +89,6 @@ export function GraphLabels({
     </g>
   );
 }
+
+export { LABEL_PILL_HEIGHT, LABEL_PILL_MIN_WIDTH, LABEL_PILL_RADIUS } from '../constants/labels';
+export { getEffectiveGraphLabels, getLabelPillWidth } from '../utils/graphLabels';

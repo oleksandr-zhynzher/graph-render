@@ -1,12 +1,13 @@
 import React from 'react';
+
 import { DownloadIcon, SunMoonIcon, ToolbarNavigationIcon } from './icons';
 
 interface BracketToolbarProps {
-  isDarkMode: boolean;
-  isNavigationMode: boolean;
-  onToggleDarkMode: () => void;
-  onToggleNavigationMode: () => void;
-  onExportSVG: () => void;
+  readonly isDarkMode: boolean;
+  readonly isNavigationMode: boolean;
+  readonly onToggleDarkMode: () => void;
+  readonly onToggleNavigationMode: () => void;
+  readonly onExportSVG: () => void;
 }
 
 export const BracketToolbar = React.memo<BracketToolbarProps>(function BracketToolbar({

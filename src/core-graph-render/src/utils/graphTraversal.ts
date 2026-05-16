@@ -1,15 +1,17 @@
-import { PositionedEdge } from '@graph-render/types';
+import type { PositionedEdge } from '@graph-render/types';
 
 /**
  * Group edges by their target node
  */
-export const groupEdgesByTarget = (edges: PositionedEdge[]): Map<string, PositionedEdge[]> => {
+export const groupEdgesByTarget = (
+  edges: readonly PositionedEdge[]
+): ReadonlyMap<string, readonly PositionedEdge[]> => {
   const map = new Map<string, PositionedEdge[]>();
-  edges.forEach((edge) => {
+  for (const edge of edges) {
     const arr = map.get(edge.target) ?? [];
     arr.push(edge);
     map.set(edge.target, arr);
-  });
+  }
   return map;
 };
 
@@ -17,9 +19,9 @@ export const groupEdgesByTarget = (edges: PositionedEdge[]): Map<string, Positio
  * Sort edges by their source node position (y first, then x)
  */
 export const sortEdgesBySourcePosition = (
-  edges: PositionedEdge[],
-  nodePositions: Map<string, { x: number; y: number }>
-): PositionedEdge[] => {
+  edges: readonly PositionedEdge[],
+  nodePositions: ReadonlyMap<string, { readonly x: number; readonly y: number }>
+): readonly PositionedEdge[] => {
   return [...edges].sort((a, b) => {
     const pa = nodePositions.get(a.source);
     const pb = nodePositions.get(b.source);

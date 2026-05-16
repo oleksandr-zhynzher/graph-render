@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useImperativeHandle, useRef } from 'react';
 import type { NormalizedGraphConfig, PositionedEdge, PositionedNode } from '@graph-render/types';
+import { useCallback, useEffect, useImperativeHandle, useRef } from 'react';
+
 import { DEFAULT_VIEWPORT, FIT_BOUNDS_MARGIN } from '../constants/graph';
+import type { UseGraphViewportControllerOptions } from '../models/hooks';
 import {
   expandBounds,
   getEdgeLabelBounds,
@@ -13,12 +15,11 @@ import {
   getGraphBounds,
   type GraphBounds,
 } from '../utils/viewport';
-import type { UseGraphViewportControllerOptions } from '../models/hooks';
 
 const getContentBounds = (
   cfg: NormalizedGraphConfig,
-  positionedEdges: PositionedEdge[],
-  positionedNodes: PositionedNode[]
+  positionedEdges: readonly PositionedEdge[],
+  positionedNodes: readonly PositionedNode[]
 ): GraphBounds | null => {
   const graphBounds = getGraphBounds(positionedNodes);
   const bounds = mergeBounds(

@@ -1,3 +1,6 @@
+import type { StageBounds, StageViewportResult } from '@graph-render/types';
+import { VerticalStagePosition } from '@graph-render/types';
+
 import {
   NAVIGATION_MAX_ZOOM,
   NAVIGATION_MIN_ZOOM,
@@ -6,13 +9,12 @@ import {
   NAVIGATION_STAGE_PADDING_X,
   NAVIGATION_STAGE_PADDING_Y,
 } from '../constants/stageNavigation';
-import type { StageBounds, StageViewportResult, VerticalStagePosition } from '@graph-render/types';
 
 export function getStageViewport(
   bounds: StageBounds,
   width: number,
   height: number,
-  verticalPosition: VerticalStagePosition = 'top'
+  verticalPosition: VerticalStagePosition = VerticalStagePosition.Top
 ): StageViewportResult {
   const targetWidth = Math.max(
     bounds.width + NAVIGATION_STAGE_PADDING_X * 2,
@@ -33,9 +35,9 @@ export function getStageViewport(
   const canPageVertically = maxTop > minTop + 1;
   const centeredTop = bounds.minY + bounds.height / 2 - visibleWorldHeight / 2;
   const topWorld =
-    !canPageVertically || verticalPosition === 'center'
+    !canPageVertically || verticalPosition === VerticalStagePosition.Center
       ? centeredTop
-      : verticalPosition === 'bottom'
+      : verticalPosition === VerticalStagePosition.Bottom
         ? maxTop
         : minTop;
 

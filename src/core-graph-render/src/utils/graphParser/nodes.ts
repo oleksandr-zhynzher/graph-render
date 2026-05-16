@@ -1,4 +1,5 @@
-import type { GraphInputValidationMode, NodeData, NxGraphInput } from '@graph-render/types';
+import { GraphInputValidationMode, type NodeData, type NxGraphInput } from '@graph-render/types';
+
 import { isPlainObject } from './guards';
 import { sanitizeNodeData, sanitizeNodeId } from './sanitizers';
 import type { GraphNodeTuple } from './types';
@@ -43,7 +44,7 @@ export const assertNodeExists = <TNodeData, TNodeMeta extends Record<string, unk
 ): void => {
   const sanitizedNodeId = sanitizeNodeId(nodeId, 'edge-endpoint');
 
-  if (inputValidationMode === 'implicit') {
+  if (inputValidationMode === GraphInputValidationMode.Implicit) {
     ensureNodeExists(nodeMap, sanitizedNodeId);
     return;
   }

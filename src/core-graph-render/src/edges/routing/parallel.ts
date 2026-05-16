@@ -1,7 +1,6 @@
-import { EdgeData, EdgeType } from '@graph-render/types';
-import { ParallelEdgeMeta } from './types';
+import { type EdgeData, EdgeType } from '@graph-render/types';
 
-export type { ParallelEdgeMeta };
+import type { ParallelEdgeMeta } from './types';
 
 export const DEFAULT_PARALLEL_EDGE_META: ParallelEdgeMeta = {
   index: 0,
@@ -14,25 +13,29 @@ const getParallelGroupKey = (edge: EdgeData): string => {
   return `${pair}|${edge.type ?? EdgeType.Directed}`;
 };
 
-export const buildParallelEdgeIndex = (edges: EdgeData[]): Map<string, ParallelEdgeMeta> => {
+export const buildParallelEdgeIndex = (
+  edges: readonly EdgeData[]
+): ReadonlyMap<string, ParallelEdgeMeta> => {
   const groups = new Map<string, EdgeData[]>();
 
-  edges.forEach((edge) => {
+  for (const edge of edges) {
     const key = getParallelGroupKey(edge);
     groups.set(key, [...(groups.get(key) ?? []), edge]);
-  });
+  }
 
   const meta = new Map<string, ParallelEdgeMeta>();
-  groups.forEach((group) => {
+  for (const [, group] of groups) {
     const total = group.length;
-    group.forEach((edge, index) => {
+    for (const [index, edge] of group.entries()) {
       meta.set(edge.id, {
         index,
         total,
         centeredOffset: index - (total - 1) / 2,
       });
-    });
-  });
+    }
+  }
 
   return meta;
 };
+
+export { type ParallelEdgeMeta } from './types';

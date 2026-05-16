@@ -1,13 +1,14 @@
-import { useEffect, useMemo } from 'react';
 import type { GraphRenderContext, StageView } from '@graph-render/types';
+import { useEffect, useMemo } from 'react';
+
 import { buildStageViews } from '../../utils/stageViews';
 
-type GraphStageSyncProps = {
-  context: GraphRenderContext;
-  labels: string[];
-  labelOffset: number;
-  onStagesChange: (stages: StageView[]) => void;
-};
+interface GraphStageSyncProps {
+  readonly context: GraphRenderContext;
+  readonly labels: readonly string[];
+  readonly labelOffset: number;
+  readonly onStagesChange: (stages: readonly StageView[]) => void;
+}
 
 export function GraphStageSync({
   context,

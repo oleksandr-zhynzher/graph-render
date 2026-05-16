@@ -1,5 +1,8 @@
-import { EdgeType, type EdgeData } from '@graph-render/types';
+import type { EdgeData, EdgeType } from '@graph-render/types';
 
-export const normalizeEdges = (edges: EdgeData[], defaultType: EdgeType): EdgeData[] => {
+export const normalizeEdges = (
+  edges: readonly EdgeData[],
+  defaultType: EdgeType
+): readonly EdgeData[] => {
   return edges.map((edge) => ({ ...edge, type: edge.type ?? defaultType }));
 };

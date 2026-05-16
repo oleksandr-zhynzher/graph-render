@@ -14,7 +14,7 @@ export function injectTournamentPathKeys(graph: NxGraphInput): NxGraphInput {
   const nextNodes: typeof graph.nodes = {};
 
   for (const [id, attrs] of Object.entries(graph.nodes)) {
-    const players = (attrs.meta as Record<string, unknown> | undefined)?.players;
+    const players = attrs.meta?.['players'];
     if (!Array.isArray(players) || players.length === 0) {
       nextNodes[id] = attrs;
       continue;
@@ -25,9 +25,9 @@ export function injectTournamentPathKeys(graph: NxGraphInput): NxGraphInput {
         if (
           player &&
           typeof player === 'object' &&
-          typeof (player as Record<string, unknown>).name === 'string'
+          typeof (player as Record<string, unknown>)['name'] === 'string'
         ) {
-          return ((player as Record<string, unknown>).name as string).trim();
+          return ((player as Record<string, unknown>)['name'] as string).trim();
         }
 
         return '';
@@ -42,7 +42,7 @@ export function injectTournamentPathKeys(graph: NxGraphInput): NxGraphInput {
     changed = true;
     nextNodes[id] = {
       ...attrs,
-      meta: { ...(attrs.meta as object | undefined), pathKeys: names } as Record<string, unknown>,
+      meta: { ...(attrs.meta as object | undefined), pathKeys: names },
     };
   }
 

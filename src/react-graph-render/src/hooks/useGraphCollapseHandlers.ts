@@ -1,5 +1,7 @@
-import { useCallback } from 'react';
 import type { PositionedNode } from '@graph-render/types';
+import { GraphErrorPhase } from '@graph-render/types';
+import { useCallback } from 'react';
+
 import type { UseGraphCollapseHandlersOptions } from '../models/hooks';
 
 const toError = (error: unknown): Error => {
@@ -30,7 +32,7 @@ export const useGraphCollapseHandlers = ({
         try {
           onNodeCollapse?.(node.id);
         } catch (error) {
-          onError?.(toError(error), { graph, phase: 'interaction' });
+          onError?.(toError(error), { graph, phase: GraphErrorPhase.Interaction });
         }
         return;
       }
@@ -43,7 +45,9 @@ export const useGraphCollapseHandlers = ({
           );
           void Promise.resolve(expandResult)
             .then(() => updateCollapsedNodeIds((current) => current.filter((id) => id !== node.id)))
-            .catch((error) => onError?.(toError(error), { graph, phase: 'interaction' }))
+            .catch((error) =>
+              onError?.(toError(error), { graph, phase: GraphErrorPhase.Interaction })
+            )
             .finally(() => {
               setPendingExpansionNodeIds((current) =>
                 current.filter((pendingNodeId) => pendingNodeId !== node.id)
@@ -54,7 +58,7 @@ export const useGraphCollapseHandlers = ({
 
         updateCollapsedNodeIds((current) => current.filter((id) => id !== node.id));
       } catch (error) {
-        onError?.(toError(error), { graph, phase: 'interaction' });
+        onError?.(toError(error), { graph, phase: GraphErrorPhase.Interaction });
       }
     },
     [

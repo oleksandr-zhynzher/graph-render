@@ -1,22 +1,23 @@
-import { NodeData, TreeMetrics, LayoutDirection } from '@graph-render/types';
+import { LayoutDirection, type NodeData, type TreeMetrics } from '@graph-render/types';
+
 import { getMaxNodeHeight } from '../utils';
 
 /**
  * Calculate tree layout metrics
  */
 export const calculateTreeMetrics = (
-  nodes: NodeData[],
-  levels: string[][],
+  nodes: readonly NodeData[],
+  levels: ReadonlyArray<readonly string[]>,
   gap: number,
   padding: number,
   containerHeight?: number
 ): TreeMetrics => {
-  const maxLevel = levels.length ? levels.length - 1 : 0;
+  const maxLevel = levels.length > 0 ? levels.length - 1 : 0;
   const maxNodeHeight = getMaxNodeHeight(nodes);
   const maxLevelCount = Math.max(1, ...levels.map((l) => l?.length ?? 0));
   const totalHeight = maxLevelCount * maxNodeHeight + (maxLevelCount - 1) * gap;
   const baseY =
-    containerHeight != null ? Math.max(padding, (containerHeight - totalHeight) / 2) : padding;
+    containerHeight == null ? padding : Math.max(padding, (containerHeight - totalHeight) / 2);
 
   return { maxLevel, maxNodeHeight, maxLevelCount, totalHeight, baseY };
 };
@@ -42,7 +43,7 @@ export const calculateXPosition = (
  */
 export const calculateYPosition = (
   nodeIndex: number,
-  levelNodes: string[],
+  levelNodes: readonly string[],
   maxNodeHeight: number,
   gap: number,
   totalHeight: number,

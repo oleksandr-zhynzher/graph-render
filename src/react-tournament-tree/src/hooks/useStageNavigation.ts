@@ -1,8 +1,10 @@
+import type { GraphViewport, StageView } from '@graph-render/types';
+import { VerticalStagePosition } from '@graph-render/types';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { GraphViewport, StageView, VerticalStagePosition } from '@graph-render/types';
+
+import type { UseStageNavigationParams } from '../models/bracket';
 import { getStageViewport } from '../utils/stageViewport';
 import { useStageSwipeNavigation } from './useStageSwipeNavigation';
-import type { UseStageNavigationParams } from '../models/bracket';
 
 export function useStageNavigation({
   defaultNavigationMode,
@@ -15,17 +17,22 @@ export function useStageNavigation({
 }: UseStageNavigationParams) {
   const [isNavigationMode, setIsNavigationMode] = useState(defaultNavigationMode);
   const [activeStageIndex, setActiveStageIndex] = useState(0);
-  const [verticalStagePosition, setVerticalStagePosition] = useState<VerticalStagePosition>('top');
+  const [verticalStagePosition, setVerticalStagePosition] = useState<VerticalStagePosition>(
+    VerticalStagePosition.Top
+  );
   const [canPagePlayersVertically, setCanPagePlayersVertically] = useState(false);
   const previousViewportRef = useRef<GraphViewport | null>(null);
 
   const handleStagesChange = useCallback(
-    (nextStages: StageView[]) => {
+    (nextStages: readonly StageView[]) => {
       setStageViews((prevStages) => {
         const isSame =
           prevStages.length === nextStages.length &&
           prevStages.every((stage, index) => {
             const nextStage = nextStages[index];
+            if (!nextStage) {
+              return false;
+            }
             return (
               stage.label === nextStage.label &&
               stage.bounds.minX === nextStage.bounds.minX &&
@@ -73,22 +80,22 @@ export function useStageNavigation({
     }
 
     previousViewportRef.current = graphRef.current?.getViewport() ?? null;
-    setVerticalStagePosition('top');
+    setVerticalStagePosition(VerticalStagePosition.Top);
     setIsNavigationMode(true);
   }, [graphRef, isNavigationMode]);
 
   const selectStage = useCallback((stageIndex: number) => {
-    setVerticalStagePosition('top');
+    setVerticalStagePosition(VerticalStagePosition.Top);
     setActiveStageIndex(stageIndex);
   }, []);
 
   const previousStage = useCallback(() => {
-    setVerticalStagePosition('top');
+    setVerticalStagePosition(VerticalStagePosition.Top);
     setActiveStageIndex((prev) => Math.max(0, prev - 1));
   }, []);
 
   const nextStage = useCallback(() => {
-    setVerticalStagePosition('top');
+    setVerticalStagePosition(VerticalStagePosition.Top);
     setActiveStageIndex((prev) => Math.min(Math.max(stageViews.length - 1, 0), prev + 1));
   }, [stageViews.length]);
 
@@ -97,7 +104,7 @@ export function useStageNavigation({
   }, [stageViews.length]);
 
   useEffect(() => {
-    if (isNavigationMode && stageViews.length) focusStage(activeStageIndex);
+    if (isNavigationMode && stageViews.length > 0) focusStage(activeStageIndex);
   }, [activeStageIndex, focusStage, isNavigationMode, stageViews.length]);
 
   useEffect(() => {
@@ -124,7 +131,7 @@ export function useStageNavigation({
     handleSelectStage: selectStage,
     handlePreviousStage: previousStage,
     handleNextStage: nextStage,
-    handlePagePlayersUp: () => setVerticalStagePosition('top'),
-    handlePagePlayersDown: () => setVerticalStagePosition('bottom'),
+    handlePagePlayersUp: () => setVerticalStagePosition(VerticalStagePosition.Top),
+    handlePagePlayersDown: () => setVerticalStagePosition(VerticalStagePosition.Bottom),
   };
 }

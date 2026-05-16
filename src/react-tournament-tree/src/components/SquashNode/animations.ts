@@ -8,7 +8,7 @@ export function ensureSquashNodeAnimations(): void {
   }
 
   const styleTag = document.createElement('style');
-  styleTag.setAttribute('data-squash-node-animations', 'true');
+  styleTag.dataset['squashNodeAnimations'] = 'true';
   styleTag.textContent = `
     @keyframes pulse {
       0%, 100% {
@@ -25,5 +25,5 @@ export function ensureSquashNodeAnimations(): void {
       }
     }
   `;
-  document.head.appendChild(styleTag);
+  document.head.append(styleTag);
 }

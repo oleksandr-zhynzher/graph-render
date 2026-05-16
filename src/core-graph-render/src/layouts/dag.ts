@@ -1,4 +1,10 @@
-import { EdgeData, LayoutDirection, NodeData, PositionedNode } from '@graph-render/types';
+import {
+  type EdgeData,
+  LayoutDirection,
+  type NodeData,
+  type PositionedNode,
+} from '@graph-render/types';
+
 import {
   DEFAULT_NODE_GAP,
   DEFAULT_NODE_SIZE,
@@ -7,30 +13,31 @@ import {
 } from '../utils';
 import { assignDagLevels } from './treeTopology';
 
-const groupNodesByLayer = (nodes: NodeData[], levels: Map<string, number>): NodeData[][] => {
+const groupNodesByLayer = (
+  nodes: readonly NodeData[],
+  levels: ReadonlyMap<string, number>
+): ReadonlyArray<readonly NodeData[]> => {
   const buckets = new Map<number, NodeData[]>();
-  nodes.forEach((node) => {
+  for (const node of nodes) {
     const level = levels.get(node.id) ?? 0;
     const entries = buckets.get(level) ?? [];
     entries.push(node);
     buckets.set(level, entries);
-  });
+  }
 
-  return Array.from(buckets.entries())
-    .sort((a, b) => a[0] - b[0])
-    .map(([, entries]) => entries);
+  return [...buckets.entries()].sort((a, b) => a[0] - b[0]).map(([, entries]) => entries);
 };
 
 export const dagLayout = (
-  nodes: NodeData[],
-  edges: EdgeData[],
+  nodes: readonly NodeData[],
+  edges: readonly EdgeData[],
   pad: number = DEFAULT_PADDING,
   gap: number = DEFAULT_NODE_GAP,
   direction: LayoutDirection = LayoutDirection.LTR,
-  width: number = 960,
-  height: number = 720
-): PositionedNode[] => {
-  if (!nodes.length) {
+  width = 960,
+  height = 720
+): readonly PositionedNode[] => {
+  if (nodes.length === 0) {
     return [];
   }
 

@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { bracketGraph } from './data/bracket';
-import { bracketGraphR16 } from './data/bracket_r8';
-import { bracketGraphQF } from './data/bracket_qf';
-import { bracketGraphR64 } from './data/bracket_r64';
-import { bracketGraphLive } from './data/bracket_live';
+
 import { BracketPlayground } from './BracketPlayground';
+import { bracketGraph } from './data/bracket';
+import { bracketGraphLive } from './data/bracket_live';
+import { bracketGraphQF } from './data/bracket_qf';
+import { bracketGraphR16 } from './data/bracket_r8';
+import { bracketGraphR64 } from './data/bracket_r64';
 
 const meta: Meta<typeof BracketPlayground> = {
   title: 'Bracket/Squash Tournament',

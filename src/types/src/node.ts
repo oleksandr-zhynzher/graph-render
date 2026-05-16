@@ -1,23 +1,27 @@
 export type NodeId = string;
 
 export interface Point {
-  x: number;
-  y: number;
+  readonly x: number;
+  readonly y: number;
 }
 
 export interface Size {
-  width: number;
-  height: number;
+  readonly width: number;
+  readonly height: number;
 }
 
-export type NodeSizingMode = 'fixed' | 'label' | 'measured';
+export enum NodeSizingMode {
+  Fixed = 'fixed',
+  Label = 'label',
+  Measured = 'measured',
+}
 
 export interface NodeMeasurementHints {
-  label?: string;
-  paddingX?: number;
-  paddingY?: number;
-  estimatedCharWidth?: number;
-  lineHeight?: number;
+  readonly label?: string | undefined;
+  readonly paddingX?: number | undefined;
+  readonly paddingY?: number | undefined;
+  readonly estimatedCharWidth?: number | undefined;
+  readonly lineHeight?: number | undefined;
 }
 
 export interface NodeData<
@@ -25,15 +29,15 @@ export interface NodeData<
   TMeta extends object = Record<string, unknown>,
   TLabel = unknown,
 > {
-  id: NodeId;
-  label?: TLabel;
-  position?: Point;
-  size?: Size;
-  measuredSize?: Size;
-  sizeMode?: NodeSizingMode;
-  measurementHints?: NodeMeasurementHints;
-  data?: TData;
-  meta?: TMeta;
+  readonly id: NodeId;
+  readonly label?: TLabel | undefined;
+  readonly position?: Point | undefined;
+  readonly size?: Size | undefined;
+  readonly measuredSize?: Size | undefined;
+  readonly sizeMode?: NodeSizingMode | undefined;
+  readonly measurementHints?: NodeMeasurementHints | undefined;
+  readonly data?: TData | undefined;
+  readonly meta?: TMeta | undefined;
 }
 
 export interface PositionedNode<
@@ -41,5 +45,5 @@ export interface PositionedNode<
   TMeta extends object = Record<string, unknown>,
   TLabel = unknown,
 > extends NodeData<TData, TMeta, TLabel> {
-  position: Point;
+  readonly position: Point;
 }

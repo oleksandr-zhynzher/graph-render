@@ -1,4 +1,5 @@
 import type { GraphConfig, StageView, TournamentBracketProps } from '@graph-render/types';
+
 import {
   COMPACT_TOURNAMENT_CONFIG,
   DARK_COMPACT_TOURNAMENT_CONFIG,
@@ -28,7 +29,7 @@ export function buildGraphConfig(
     ...restConfig,
     labels: undefined,
     autoLabels: false,
-    theme: { ...(baseConfig.theme ?? {}), ...(themeOverride ?? {}) },
+    theme: { ...baseConfig.theme, ...themeOverride },
   };
 }
 
@@ -54,7 +55,7 @@ export function buildBracketGraph(
 export function resolveBadgeText(
   badgeText: string | undefined,
   graph: TournamentBracketProps['graph'],
-  labels: string[]
+  labels: readonly string[]
 ) {
   if (badgeText) return badgeText;
   const nodeCount = Object.keys(graph.nodes ?? {}).length;
@@ -63,9 +64,9 @@ export function resolveBadgeText(
 }
 
 export function getTranslateExtent(
-  stageViews: StageView[]
-): [[number, number], [number, number]] | undefined {
-  if (!stageViews.length) return undefined;
+  stageViews: readonly StageView[]
+): readonly [readonly [number, number], readonly [number, number]] | undefined {
+  if (stageViews.length === 0) return undefined;
   const padding = 64;
 
   return [

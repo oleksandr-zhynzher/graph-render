@@ -1,14 +1,14 @@
 import {
-  EdgeType,
   type EdgeData,
+  EdgeType,
   type PositionedEdge,
   type PositionedNode,
 } from '@graph-render/types';
 
 export const buildFallbackEdges = (
-  positionedNodes: PositionedNode[],
-  edges: EdgeData[]
-): PositionedEdge[] => {
+  positionedNodes: readonly PositionedNode[],
+  edges: readonly EdgeData[]
+): readonly PositionedEdge[] => {
   const nodeMap = new Map(positionedNodes.map((node) => [node.id, node]));
 
   return edges.flatMap((edge) => {

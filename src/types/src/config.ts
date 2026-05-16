@@ -1,7 +1,16 @@
-import { NodeSizingMode, Size } from './node';
-import { GraphInputValidationMode } from './graph';
+import type { GraphInputValidationMode } from './graph';
+import type { NodeSizingMode, Size } from './node';
 
-export type GraphFailureBehavior = 'throw' | 'degrade';
+export enum GraphFailureBehavior {
+  Throw = 'throw',
+  Degrade = 'degrade',
+}
+
+export enum RoutingStyle {
+  Smart = 'smart',
+  Orthogonal = 'orthogonal',
+  Bundled = 'bundled',
+}
 
 export enum EdgeType {
   Directed = 'directed',
@@ -25,90 +34,90 @@ export enum LayoutDirection {
 }
 
 export interface GraphTheme {
-  background?: string;
-  edgeColor?: string;
-  edgeWidth?: number;
-  nodeGap?: number;
-  fontFamily?: string;
-  nodeBorderColor?: string;
-  nodeBorderWidth?: number;
+  readonly background?: string | undefined;
+  readonly edgeColor?: string | undefined;
+  readonly edgeWidth?: number | undefined;
+  readonly nodeGap?: number | undefined;
+  readonly fontFamily?: string | undefined;
+  readonly nodeBorderColor?: string | undefined;
+  readonly nodeBorderWidth?: number | undefined;
 }
 
 export interface GraphConfig {
-  defaultEdgeType?: EdgeType;
-  failureBehavior?: GraphFailureBehavior;
-  inputValidationMode?: GraphInputValidationMode;
-  showArrows?: boolean;
-  width?: number;
-  height?: number;
-  padding?: number;
-  nodeSizing?: NodeSizingMode;
-  fixedNodeSize?: Size;
-  labelMeasurementPaddingX?: number;
-  labelMeasurementPaddingY?: number;
-  labelMeasurementCharWidth?: number;
-  labelMeasurementLineHeight?: number;
-  theme?: GraphTheme;
-  curveEdges?: boolean;
-  curveStrength?: number;
-  arrowPadding?: number;
-  routingStyle?: 'smart' | 'orthogonal' | 'bundled';
-  edgeSeparation?: number;
-  selfLoopRadius?: number;
-  edgeLabelColor?: string;
-  layout?: LayoutType;
-  layoutDirection?: LayoutDirection;
-  hoverHighlight?: boolean;
-  hoverEdgeColor?: string;
-  hoverNodeBorderColor?: string;
-  hoverNodeInColor?: string;
-  hoverNodeOutColor?: string;
-  hoverNodeBothColor?: string;
-  hoverNodeHighlight?: boolean;
-  labels?: string[];
-  autoLabels?: boolean;
-  labelOffset?: number;
-  forceRightToLeft?: boolean;
+  readonly defaultEdgeType?: EdgeType | undefined;
+  readonly failureBehavior?: GraphFailureBehavior | undefined;
+  readonly inputValidationMode?: GraphInputValidationMode | undefined;
+  readonly showArrows?: boolean | undefined;
+  readonly width?: number | undefined;
+  readonly height?: number | undefined;
+  readonly padding?: number | undefined;
+  readonly nodeSizing?: NodeSizingMode | undefined;
+  readonly fixedNodeSize?: Size | undefined;
+  readonly labelMeasurementPaddingX?: number | undefined;
+  readonly labelMeasurementPaddingY?: number | undefined;
+  readonly labelMeasurementCharWidth?: number | undefined;
+  readonly labelMeasurementLineHeight?: number | undefined;
+  readonly theme?: GraphTheme | undefined;
+  readonly curveEdges?: boolean | undefined;
+  readonly curveStrength?: number | undefined;
+  readonly arrowPadding?: number | undefined;
+  readonly routingStyle?: RoutingStyle | undefined;
+  readonly edgeSeparation?: number | undefined;
+  readonly selfLoopRadius?: number | undefined;
+  readonly edgeLabelColor?: string | undefined;
+  readonly layout?: LayoutType | undefined;
+  readonly layoutDirection?: LayoutDirection | undefined;
+  readonly hoverHighlight?: boolean | undefined;
+  readonly hoverEdgeColor?: string | undefined;
+  readonly hoverNodeBorderColor?: string | undefined;
+  readonly hoverNodeInColor?: string | undefined;
+  readonly hoverNodeOutColor?: string | undefined;
+  readonly hoverNodeBothColor?: string | undefined;
+  readonly hoverNodeHighlight?: boolean | undefined;
+  readonly labels?: readonly string[] | undefined;
+  readonly autoLabels?: boolean | undefined;
+  readonly labelOffset?: number | undefined;
+  readonly forceRightToLeft?: boolean | undefined;
   /** Background color for the column-label pills. Defaults to `#eef1f6`. */
-  labelPillBackground?: string;
+  readonly labelPillBackground?: string | undefined;
   /** Border color for the column-label pills. Defaults to `#d7dbe3`. */
-  labelPillBorderColor?: string;
+  readonly labelPillBorderColor?: string | undefined;
   /** Text color for the column-label pills. Defaults to `#3f434b`. */
-  labelPillTextColor?: string;
+  readonly labelPillTextColor?: string | undefined;
 }
 
 export interface NormalizedGraphConfig extends Omit<GraphConfig, 'theme' | 'fixedNodeSize'> {
-  width: number;
-  height: number;
-  padding: number;
-  defaultEdgeType: EdgeType;
-  failureBehavior: GraphFailureBehavior;
-  inputValidationMode: GraphInputValidationMode;
-  showArrows: boolean;
-  nodeSizing: NonNullable<GraphConfig['nodeSizing']>;
-  fixedNodeSize: NonNullable<GraphConfig['fixedNodeSize']>;
-  theme: GraphTheme;
-  curveEdges: boolean;
-  curveStrength: number;
-  arrowPadding: number;
-  routingStyle: NonNullable<GraphConfig['routingStyle']>;
-  edgeSeparation: number;
-  selfLoopRadius: number;
-  edgeLabelColor: string;
-  layout: LayoutType;
-  layoutDirection: LayoutDirection;
-  hoverHighlight: boolean;
-  hoverEdgeColor: string;
-  hoverNodeInColor: string;
-  hoverNodeOutColor: string;
-  hoverNodeHighlight: boolean;
-  autoLabels: boolean;
-  labelOffset: number;
-  labelPillBackground: string;
-  labelPillBorderColor: string;
-  labelPillTextColor: string;
-  labelMeasurementPaddingX: number;
-  labelMeasurementPaddingY: number;
-  labelMeasurementCharWidth: number;
-  labelMeasurementLineHeight: number;
+  readonly width: number;
+  readonly height: number;
+  readonly padding: number;
+  readonly defaultEdgeType: EdgeType;
+  readonly failureBehavior: GraphFailureBehavior;
+  readonly inputValidationMode: GraphInputValidationMode;
+  readonly showArrows: boolean;
+  readonly nodeSizing: NonNullable<GraphConfig['nodeSizing']>;
+  readonly fixedNodeSize: NonNullable<GraphConfig['fixedNodeSize']>;
+  readonly theme: GraphTheme;
+  readonly curveEdges: boolean;
+  readonly curveStrength: number;
+  readonly arrowPadding: number;
+  readonly routingStyle: NonNullable<GraphConfig['routingStyle']>;
+  readonly edgeSeparation: number;
+  readonly selfLoopRadius: number;
+  readonly edgeLabelColor: string;
+  readonly layout: LayoutType;
+  readonly layoutDirection: LayoutDirection;
+  readonly hoverHighlight: boolean;
+  readonly hoverEdgeColor: string;
+  readonly hoverNodeInColor: string;
+  readonly hoverNodeOutColor: string;
+  readonly hoverNodeHighlight: boolean;
+  readonly autoLabels: boolean;
+  readonly labelOffset: number;
+  readonly labelPillBackground: string;
+  readonly labelPillBorderColor: string;
+  readonly labelPillTextColor: string;
+  readonly labelMeasurementPaddingX: number;
+  readonly labelMeasurementPaddingY: number;
+  readonly labelMeasurementCharWidth: number;
+  readonly labelMeasurementLineHeight: number;
 }

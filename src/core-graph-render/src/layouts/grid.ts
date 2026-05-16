@@ -1,5 +1,6 @@
-import { NodeData, PositionedNode, Point } from '@graph-render/types';
-import { DEFAULT_NODE_SIZE, DEFAULT_PADDING, DEFAULT_NODE_GAP } from '../utils';
+import type { NodeData, Point, PositionedNode } from '@graph-render/types';
+
+import { DEFAULT_NODE_GAP, DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
 
 /**
  * Calculate grid dimensions based on node count
@@ -31,10 +32,10 @@ const calculateGridPosition = (
  * Layout nodes in a grid pattern
  */
 export const gridLayout = (
-  nodes: NodeData[],
+  nodes: readonly NodeData[],
   pad: number = DEFAULT_PADDING,
   gap: number = DEFAULT_NODE_GAP
-): PositionedNode[] => {
+): readonly PositionedNode[] => {
   const count = nodes.length;
   const cols = calculateGridColumns(count);
 
@@ -45,6 +46,6 @@ export const gridLayout = (
     const nodeHeight = node.size?.height ?? DEFAULT_NODE_SIZE.height;
     const position = calculateGridPosition(idx, cols, nodeWidth, nodeHeight, pad, gap);
 
-    return { ...node, position } as PositionedNode;
+    return { ...node, position };
   });
 };

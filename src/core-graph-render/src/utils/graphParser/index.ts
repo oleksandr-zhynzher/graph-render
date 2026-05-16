@@ -1,10 +1,11 @@
 import {
-  EdgeData,
+  type EdgeData,
   EdgeType,
-  GraphParserOptions,
-  NodeData,
-  NxGraphInput,
+  type GraphParserOptions,
+  type NodeData,
+  type NxGraphInput,
 } from '@graph-render/types';
+
 import { processNodeEdges } from './edges';
 import { assertNodeExists, buildNodeMap } from './nodes';
 import { sanitizeNodeId } from './sanitizers';
@@ -15,7 +16,7 @@ export const fromNxGraph = (
   graph: NxGraphInput,
   defaultEdgeType: EdgeType = EdgeType.Undirected,
   options?: GraphParserOptions
-): { nodes: NodeData[]; edges: EdgeData[] } => {
+): { readonly nodes: readonly NodeData[]; readonly edges: readonly EdgeData[] } => {
   assertValidGraphInput(graph);
 
   const nodeMap = buildNodeMap(graph);
@@ -42,7 +43,7 @@ export const fromNxGraph = (
   }
 
   return {
-    nodes: Array.from(nodeMap.values()),
+    nodes: [...nodeMap.values()],
     edges,
   };
 };
@@ -58,16 +59,16 @@ export const fromTypedNxGraph = <
   defaultEdgeType: EdgeType = EdgeType.Undirected,
   options?: GraphParserOptions
 ): {
-  nodes: GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel>[];
-  edges: GraphEdgeTuple<TEdgeMeta, TEdgeLabel>[];
+  readonly nodes: ReadonlyArray<GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel>>;
+  readonly edges: ReadonlyArray<GraphEdgeTuple<TEdgeMeta, TEdgeLabel>>;
 } => {
-  assertValidGraphInput(graph as NxGraphInput);
+  assertValidGraphInput(graph);
 
   const nodeMap = buildNodeMap<TNodeData, TNodeMeta, TNodeLabel>(graph);
-  const inputValidationMode = resolveInputValidationMode(graph as NxGraphInput, options);
+  const inputValidationMode = resolveInputValidationMode(graph, options);
   const undirectedSeen = new Set<string>();
   const usedEdgeIds = new Set<string>();
-  const edges: GraphEdgeTuple<TEdgeMeta, TEdgeLabel>[] = [];
+  const edges: Array<GraphEdgeTuple<TEdgeMeta, TEdgeLabel>> = [];
 
   for (const [source, neighbors] of Object.entries(graph.adj)) {
     const sanitizedSource = sanitizeNodeId(source, 'edge-endpoint');
@@ -87,7 +88,7 @@ export const fromTypedNxGraph = <
   }
 
   return {
-    nodes: Array.from(nodeMap.values()),
+    nodes: [...nodeMap.values()],
     edges,
   };
 };

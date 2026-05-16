@@ -1,9 +1,9 @@
-import { Point } from '@graph-render/types';
+import type { Point } from '@graph-render/types';
 
 export const segmentIntersectsRect = (
   p1: Point,
   p2: Point,
-  rect: { x: number; y: number; w: number; h: number }
+  rect: { readonly x: number; readonly y: number; readonly w: number; readonly h: number }
 ): boolean => {
   const { x, y, w, h } = rect;
   const minX = Math.min(p1.x, p2.x);

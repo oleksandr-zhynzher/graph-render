@@ -1,13 +1,12 @@
-import type { MatchStatus } from '@graph-render/types';
+import { MatchStatus } from '@graph-render/types';
+
 import type { SetWins } from '../../models/squash';
 
-export type { SetWins };
-
 export const getDisplayScores = (
-  sets: number[][],
-  tiebreaks: (number[] | null)[],
+  sets: ReadonlyArray<readonly number[]>,
+  tiebreaks: ReadonlyArray<readonly number[] | null>,
   playerIndex: number
-): string[] => {
+): readonly string[] => {
   return sets.map((setScores, setIndex) => {
     const score = setScores[playerIndex];
 
@@ -25,12 +24,12 @@ export const getDisplayScores = (
 };
 
 export const getScoreSegments = (
-  sets: number[][],
-  tiebreaks: (number[] | null)[],
+  sets: ReadonlyArray<readonly number[]>,
+  tiebreaks: ReadonlyArray<readonly number[] | null>,
   playerIndex: number
-): string[] => {
+): readonly string[] => {
   const segments = getDisplayScores(sets, tiebreaks, playerIndex);
-  return segments.length ? segments : ['—'];
+  return segments.length > 0 ? segments : ['—'];
 };
 
 export const getScoreGroupWidth = (
@@ -45,12 +44,18 @@ export const getScoreGroupWidth = (
   return segmentCount * segmentWidth + Math.max(0, segmentCount - 1) * segmentGap;
 };
 
-export const getSetWins = (sets: number[][], status: MatchStatus, currentSet: number): SetWins => {
-  return sets.reduce<SetWins>(
-    (acc, [a, b], index) => {
-      if (status === 'live' && index === currentSet) {
+export const getSetWins = (
+  sets: ReadonlyArray<readonly number[]>,
+  status: MatchStatus,
+  currentSet: number
+): SetWins => {
+  return sets.reduce<{ p1: number; p2: number }>(
+    (acc, setScores, index) => {
+      if (status === MatchStatus.Live && index === currentSet) {
         return acc;
       }
+      const a = setScores[0] ?? 0;
+      const b = setScores[1] ?? 0;
 
       if (a > b) {
         acc.p1 += 1;
@@ -65,9 +70,11 @@ export const getSetWins = (sets: number[][], status: MatchStatus, currentSet: nu
 };
 
 export const getCompletedWinnerIndex = (setWins: SetWins, status: MatchStatus): number | null => {
-  if (status !== 'completed' || setWins.p1 === setWins.p2) {
+  if (status !== MatchStatus.Completed || setWins.p1 === setWins.p2) {
     return null;
   }
 
   return setWins.p1 > setWins.p2 ? 0 : 1;
 };
+
+export { type SetWins } from '../../models/squash';

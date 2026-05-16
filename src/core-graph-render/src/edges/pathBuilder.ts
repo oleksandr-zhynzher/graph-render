@@ -1,11 +1,20 @@
-import { PositionedEdge, Point } from '@graph-render/types';
+import type { Point, PositionedEdge } from '@graph-render/types';
 
 /**
  * Build a straight line path from edge points
  */
-const buildStraightPath = (points: Point[]): string => {
-  const [start, ...rest] = points;
+const buildStraightPath = (points: readonly Point[]): string => {
+  const start = getPointAt(points, 0);
+  const rest = points.slice(1);
   return [`M ${start.x} ${start.y}`, ...rest.map((pt) => `L ${pt.x} ${pt.y}`)].join(' ');
+};
+
+const getPointAt = (points: readonly Point[], index: number): Point => {
+  const point = points[index];
+  if (!point) {
+    throw new Error(`Expected edge point at index ${index}.`);
+  }
+  return point;
 };
 
 /**
@@ -51,8 +60,13 @@ const buildThreePointPath = (start: Point, control: Point, end: Point): string =
 /**
  * Build a cubic bezier path for six-point edges (standard curved edge)
  */
-const buildSixPointPath = (points: Point[]): string => {
-  const [start, out, c1, c2, straightIn, end] = points;
+const buildSixPointPath = (points: readonly Point[]): string => {
+  const start = getPointAt(points, 0);
+  const out = getPointAt(points, 1);
+  const c1 = getPointAt(points, 2);
+  const c2 = getPointAt(points, 3);
+  const straightIn = getPointAt(points, 4);
+  const end = getPointAt(points, 5);
   return [
     `M ${start.x} ${start.y}`,
     `L ${out.x} ${out.y}`,
@@ -64,17 +78,19 @@ const buildSixPointPath = (points: Point[]): string => {
 /**
  * Build a path with multiple quadratic curves for variable-length edges
  */
-const buildMultiPointPath = (points: Point[]): string => {
-  const [start, ...rest] = points;
+const buildMultiPointPath = (points: readonly Point[]): string => {
+  const start = getPointAt(points, 0);
+  const rest = points.slice(1);
   const commands = [`M ${start.x} ${start.y}`];
 
-  if (rest.length) {
-    commands.push(`L ${rest[0].x} ${rest[0].y}`);
+  if (rest.length > 0) {
+    const first = getPointAt(rest, 0);
+    commands.push(`L ${first.x} ${first.y}`);
   }
 
   for (let i = 1; i < rest.length - 1; i += 1) {
-    const ctrl = rest[i];
-    const next = rest[i + 1];
+    const ctrl = getPointAt(rest, i);
+    const next = getPointAt(rest, i + 1);
     const isLastCurve = i === rest.length - 2;
     if (isLastCurve) {
       // FIX: removed the trailing `L rest[last]` that duplicated the Q endpoint.
@@ -88,7 +104,8 @@ const buildMultiPointPath = (points: Point[]): string => {
   }
 
   if (rest.length === 2) {
-    const [ctrl, end] = rest;
+    const ctrl = getPointAt(rest, 0);
+    const end = getPointAt(rest, 1);
     commands.push(`Q ${ctrl.x} ${ctrl.y} ${end.x} ${end.y}`);
   }
 
@@ -119,12 +136,15 @@ export const buildEdgePath = (
   }
 
   if (edge.points.length === 2) {
-    const [start, end] = edge.points;
+    const start = getPointAt(edge.points, 0);
+    const end = getPointAt(edge.points, 1);
     return buildTwoPointCurvedPath(start, end, curveStrength);
   }
 
   if (edge.points.length === 3) {
-    const [start, control, end] = edge.points;
+    const start = getPointAt(edge.points, 0);
+    const control = getPointAt(edge.points, 1);
+    const end = getPointAt(edge.points, 2);
     return buildThreePointPath(start, control, end);
   }
 

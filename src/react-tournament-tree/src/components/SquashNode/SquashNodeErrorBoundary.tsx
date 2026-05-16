@@ -1,35 +1,36 @@
-import React from 'react';
 import type { SquashNodeRenderMode } from '@graph-render/types';
+import React from 'react';
+
 import { InvalidSquashNode } from './InvalidSquashNode';
 
-type SquashNodeErrorBoundaryProps = {
-  nodeId: string;
-  renderMode: SquashNodeRenderMode;
-  width: number;
-  height: number;
-  onRenderError?: (nodeId: string, error: Error) => void;
-  children: React.ReactNode;
-};
+interface SquashNodeErrorBoundaryProps {
+  readonly nodeId: string;
+  readonly renderMode: SquashNodeRenderMode;
+  readonly width: number;
+  readonly height: number;
+  readonly onRenderError?: ((nodeId: string, error: Error) => void) | undefined;
+  readonly children: React.ReactNode;
+}
 
-type SquashNodeErrorBoundaryState = {
-  error: Error | null;
-};
+interface SquashNodeErrorBoundaryState {
+  readonly error: Error | null;
+}
 
 export class SquashNodeErrorBoundary extends React.Component<
   SquashNodeErrorBoundaryProps,
   SquashNodeErrorBoundaryState
 > {
-  state: SquashNodeErrorBoundaryState = { error: null };
+  override state: SquashNodeErrorBoundaryState = { error: null };
 
   static getDerivedStateFromError(error: Error): SquashNodeErrorBoundaryState {
     return { error };
   }
 
-  componentDidCatch(error: Error): void {
+  override componentDidCatch(error: Error): void {
     this.props.onRenderError?.(this.props.nodeId, error);
   }
 
-  componentDidUpdate(prevProps: SquashNodeErrorBoundaryProps): void {
+  override componentDidUpdate(prevProps: SquashNodeErrorBoundaryProps): void {
     if (
       this.state.error &&
       (prevProps.nodeId !== this.props.nodeId || prevProps.children !== this.props.children)
@@ -38,7 +39,7 @@ export class SquashNodeErrorBoundary extends React.Component<
     }
   }
 
-  render(): React.ReactNode {
+  override render(): React.ReactNode {
     if (!this.state.error) {
       return this.props.children;
     }

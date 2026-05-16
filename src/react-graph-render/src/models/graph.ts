@@ -1,6 +1,7 @@
 import type {
   EdgeData,
   GraphConfig,
+  GraphErrorPhase,
   GraphSearchResults,
   LayoutOptions,
   NodeData,
@@ -12,51 +13,57 @@ import type {
   Size,
 } from '@graph-render/types';
 
-export type GraphModelErrorPhase = 'layout' | 'layout-override' | 'routing' | 'routing-override';
+export type GraphModelErrorPhase = Exclude<GraphErrorPhase, GraphErrorPhase.Interaction>;
 
 export type GraphModelErrorHandler = (
   error: Error,
   context: {
-    graph: NxGraphInput;
-    phase: GraphModelErrorPhase;
+    readonly graph: NxGraphInput;
+    readonly phase: GraphModelErrorPhase;
   }
 ) => void;
 
 export interface UseGraphModelOptions {
-  graph: NxGraphInput;
-  config: NormalizedGraphConfig;
-  mergedTheme: NonNullable<GraphConfig['theme']>;
-  collapsedIds: string[];
-  hiddenNodeIds?: string[];
-  searchQuery?: string;
-  hideUnmatchedSearch?: boolean;
-  searchPredicate?: (node: NodeData, query: string) => boolean;
-  highlightedNodeIds?: string[];
-  highlightedEdgeIds?: string[];
-  highlightStrategy?: (context: {
-    nodes: NodeData[];
-    edges: EdgeData[];
-    query: string;
-    matchedNodeIds: string[];
-    matchedEdgeIds: string[];
-  }) => Partial<GraphSearchResults>;
-  onSearchResultsChange?: (results: GraphSearchResults) => void;
-  layoutNodesOverride?: (options: LayoutOptions) => PositionedNode[];
-  routeEdgesOverride?: (
-    nodes: PositionedNode[],
-    edges: EdgeData[],
-    options?: RouteEdgesOptions
-  ) => PositionedEdge[];
-  onError?: GraphModelErrorHandler;
+  readonly graph: NxGraphInput;
+  readonly config: NormalizedGraphConfig;
+  readonly mergedTheme: NonNullable<GraphConfig['theme']>;
+  readonly collapsedIds: readonly string[];
+  readonly hiddenNodeIds?: readonly string[] | undefined;
+  readonly searchQuery?: string | undefined;
+  readonly hideUnmatchedSearch?: boolean | undefined;
+  readonly searchPredicate?: ((node: NodeData, query: string) => boolean) | undefined;
+  readonly highlightedNodeIds?: readonly string[] | undefined;
+  readonly highlightedEdgeIds?: readonly string[] | undefined;
+  readonly highlightStrategy?:
+    | ((context: {
+        readonly nodes: readonly NodeData[];
+        readonly edges: readonly EdgeData[];
+        readonly query: string;
+        readonly matchedNodeIds: readonly string[];
+        readonly matchedEdgeIds: readonly string[];
+      }) => Partial<GraphSearchResults>)
+    | undefined;
+  readonly onSearchResultsChange?: ((results: GraphSearchResults) => void) | undefined;
+  readonly layoutNodesOverride?:
+    | ((options: LayoutOptions) => readonly PositionedNode[])
+    | undefined;
+  readonly routeEdgesOverride?:
+    | ((
+        nodes: readonly PositionedNode[],
+        edges: readonly EdgeData[],
+        options?: RouteEdgesOptions
+      ) => readonly PositionedEdge[])
+    | undefined;
+  readonly onError?: GraphModelErrorHandler | undefined;
 }
 
 export interface GraphModelResult {
-  childNodeIdsByParent: Map<string, string[]>;
-  effectiveHighlightedEdgeSet: Set<string>;
-  effectiveHighlightedNodeSet: Set<string>;
-  handleNodeMeasure: (nodeId: string, size: Size) => void;
-  positionedEdges: PositionedEdge[];
-  positionedNodes: PositionedNode[];
-  visibleEdges: EdgeData[];
-  visibleNodesWithMeasuredSize: NodeData[];
+  readonly childNodeIdsByParent: ReadonlyMap<string, readonly string[]>;
+  readonly effectiveHighlightedEdgeSet: ReadonlySet<string>;
+  readonly effectiveHighlightedNodeSet: ReadonlySet<string>;
+  readonly handleNodeMeasure: (nodeId: string, size: Size) => void;
+  readonly positionedEdges: readonly PositionedEdge[];
+  readonly positionedNodes: readonly PositionedNode[];
+  readonly visibleEdges: readonly EdgeData[];
+  readonly visibleNodesWithMeasuredSize: readonly NodeData[];
 }

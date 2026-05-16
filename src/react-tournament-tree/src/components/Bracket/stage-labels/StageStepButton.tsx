@@ -1,11 +1,11 @@
-type StageStepButtonProps = {
-  label: string;
-  disabled: boolean;
-  border: string;
-  color: string;
-  children: React.ReactNode;
-  onClick: () => void;
-};
+interface StageStepButtonProps {
+  readonly label: string;
+  readonly disabled: boolean;
+  readonly border: string;
+  readonly color: string;
+  readonly children: React.ReactNode;
+  readonly onClick: () => void;
+}
 
 export function StageStepButton({
   label,

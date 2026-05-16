@@ -1,6 +1,10 @@
 import type { EdgeData, NodeData } from '@graph-render/types';
+import { NodeSizingMode } from '@graph-render/types';
+
 import { isFiniteNumber, isPlainObject } from './guards';
 import type { GraphNodeTuple } from './types';
+
+type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
 export const sanitizeNodeId = (value: string, kind: 'node' | 'edge-endpoint'): string => {
   const normalized = value.trim();
@@ -11,21 +15,29 @@ export const sanitizeNodeId = (value: string, kind: 'node' | 'edge-endpoint'): s
   return normalized;
 };
 
-export const sanitizePoint = (value: unknown): { x: number; y: number } | undefined => {
-  if (!isPlainObject(value) || !isFiniteNumber(value.x) || !isFiniteNumber(value.y)) {
+export const sanitizePoint = (
+  value: unknown
+): { readonly x: number; readonly y: number } | undefined => {
+  if (!isPlainObject(value)) {
     return undefined;
   }
 
-  return { x: value.x, y: value.y };
+  const x = value['x'];
+  const y = value['y'];
+  return isFiniteNumber(x) && isFiniteNumber(y) ? { x, y } : undefined;
 };
 
-const sanitizeSize = (value: unknown): { width: number; height: number } | undefined => {
-  if (!isPlainObject(value) || !isFiniteNumber(value.width) || !isFiniteNumber(value.height)) {
+const sanitizeSize = (
+  value: unknown
+): { readonly width: number; readonly height: number } | undefined => {
+  if (!isPlainObject(value)) {
     return undefined;
   }
 
-  return value.width > 0 && value.height > 0
-    ? { width: value.width, height: value.height }
+  const width = value['width'];
+  const height = value['height'];
+  return isFiniteNumber(width) && isFiniteNumber(height) && width > 0 && height > 0
+    ? { width, height }
     : undefined;
 };
 
@@ -38,37 +50,55 @@ export const sanitizeRecord = <T extends Record<string, unknown>>(
 const sanitizeMeasurementHints = (value: unknown): NodeData['measurementHints'] | undefined => {
   if (!isPlainObject(value)) return undefined;
 
-  return {
-    label: typeof value.label === 'string' ? value.label : undefined,
-    paddingX: isFiniteNumber(value.paddingX) && value.paddingX >= 0 ? value.paddingX : undefined,
-    paddingY: isFiniteNumber(value.paddingY) && value.paddingY >= 0 ? value.paddingY : undefined,
-    estimatedCharWidth:
-      isFiniteNumber(value.estimatedCharWidth) && value.estimatedCharWidth > 0
-        ? value.estimatedCharWidth
-        : undefined,
-    lineHeight:
-      isFiniteNumber(value.lineHeight) && value.lineHeight > 0 ? value.lineHeight : undefined,
-  };
+  const hints: Mutable<NonNullable<NodeData['measurementHints']>> = {};
+  const label = value['label'];
+  const paddingX = value['paddingX'];
+  const paddingY = value['paddingY'];
+  const estimatedCharWidth = value['estimatedCharWidth'];
+  const lineHeight = value['lineHeight'];
+
+  if (typeof label === 'string') hints.label = label;
+  if (isFiniteNumber(paddingX) && paddingX >= 0) hints.paddingX = paddingX;
+  if (isFiniteNumber(paddingY) && paddingY >= 0) hints.paddingY = paddingY;
+  if (isFiniteNumber(estimatedCharWidth) && estimatedCharWidth > 0) {
+    hints.estimatedCharWidth = estimatedCharWidth;
+  }
+  if (isFiniteNumber(lineHeight) && lineHeight > 0) hints.lineHeight = lineHeight;
+
+  return Object.keys(hints).length > 0 ? hints : undefined;
 };
 
 export const sanitizeNodeData = <TNodeData, TNodeMeta extends Record<string, unknown>, TNodeLabel>(
   id: string,
   attrs: Record<string, unknown>
 ): GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel> => {
-  return {
+  const node: Mutable<GraphNodeTuple<TNodeData, TNodeMeta, TNodeLabel>> = {
     id,
-    label: attrs.label as TNodeLabel | undefined,
-    position: sanitizePoint(attrs.position),
-    size: sanitizeSize(attrs.size),
-    measuredSize: sanitizeSize(attrs.measuredSize),
-    sizeMode:
-      attrs.sizeMode === 'fixed' || attrs.sizeMode === 'label' || attrs.sizeMode === 'measured'
-        ? attrs.sizeMode
-        : undefined,
-    measurementHints: sanitizeMeasurementHints(attrs.measurementHints),
-    data: attrs.data as TNodeData | undefined,
-    meta: sanitizeRecord<TNodeMeta>(attrs.meta),
   };
+  const label = attrs['label'];
+  const position = sanitizePoint(attrs['position']);
+  const size = sanitizeSize(attrs['size']);
+  const measuredSize = sanitizeSize(attrs['measuredSize']);
+  const sizeMode = attrs['sizeMode'];
+  const measurementHints = sanitizeMeasurementHints(attrs['measurementHints']);
+  const data = attrs['data'];
+  const meta = sanitizeRecord<TNodeMeta>(attrs['meta']);
+
+  if (label !== undefined) node.label = label as TNodeLabel;
+  if (position) node.position = position;
+  if (size) node.size = size;
+  if (measuredSize) node.measuredSize = measuredSize;
+  if (
+    sizeMode === NodeSizingMode.Fixed ||
+    sizeMode === NodeSizingMode.Label ||
+    sizeMode === NodeSizingMode.Measured
+  )
+    node.sizeMode = sizeMode;
+  if (measurementHints) node.measurementHints = measurementHints;
+  if (data !== undefined) node.data = data as TNodeData;
+  if (meta) node.meta = meta;
+
+  return node;
 };
 
 export const sanitizeEdgePoints = (value: unknown): EdgeData['points'] | undefined => {

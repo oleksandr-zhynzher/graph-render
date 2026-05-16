@@ -1,7 +1,6 @@
 import type { PositionedNode } from '@graph-render/types';
-import type { KeyboardDirection } from '../models/utils';
 
-export type { KeyboardDirection };
+import { KeyboardDirection } from '../models/utils';
 
 const getNodeCenter = (node: PositionedNode) => ({
   x: node.position.x + (node.size?.width ?? 0) / 2,
@@ -10,7 +9,7 @@ const getNodeCenter = (node: PositionedNode) => ({
 
 export const getNearestNodeInDirection = (
   currentNode: PositionedNode,
-  nodes: PositionedNode[],
+  nodes: readonly PositionedNode[],
   direction: KeyboardDirection
 ): PositionedNode | null => {
   const currentCenter = getNodeCenter(currentNode);
@@ -24,10 +23,10 @@ export const getNearestNodeInDirection = (
 
     const center = getNodeCenter(node);
     const isCandidate =
-      (direction === 'left' && center.x < currentCenter.x) ||
-      (direction === 'right' && center.x > currentCenter.x) ||
-      (direction === 'up' && center.y < currentCenter.y) ||
-      (direction === 'down' && center.y > currentCenter.y);
+      (direction === KeyboardDirection.Left && center.x < currentCenter.x) ||
+      (direction === KeyboardDirection.Right && center.x > currentCenter.x) ||
+      (direction === KeyboardDirection.Up && center.y < currentCenter.y) ||
+      (direction === KeyboardDirection.Down && center.y > currentCenter.y);
 
     if (!isCandidate) {
       continue;
@@ -42,3 +41,5 @@ export const getNearestNodeInDirection = (
 
   return nearest;
 };
+
+export { KeyboardDirection } from '../models/utils';

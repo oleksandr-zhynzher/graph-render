@@ -1,68 +1,81 @@
 import type { GraphConfig } from './config';
 import type { NxGraphInput } from './graph';
-import type { GraphViewport, VertexComponent } from './react';
 import type { NodeData, PositionedNode } from './node';
+import type { GraphViewport, VertexComponent } from './react';
 
 export interface SquashPlayer {
-  name: string;
-  seed?: number;
-  country?: string;
+  readonly name: string;
+  readonly seed?: number | undefined;
+  readonly country?: string | undefined;
 }
 
-export type MatchStatus = 'completed' | 'live' | 'upcoming';
+export enum MatchStatus {
+  Completed = 'completed',
+  Live = 'live',
+  Upcoming = 'upcoming',
+}
 
 export interface SquashMatchMeta {
-  stage?: string;
-  players?: SquashPlayer[];
-  sets?: number[][];
-  tiebreaks?: (number[] | null)[];
-  status?: MatchStatus;
-  currentSet?: number;
+  readonly stage?: string | undefined;
+  readonly players?: readonly SquashPlayer[] | undefined;
+  readonly sets?: ReadonlyArray<readonly number[]> | undefined;
+  readonly tiebreaks?: ReadonlyArray<readonly number[] | null> | undefined;
+  readonly status?: MatchStatus | undefined;
+  readonly currentSet?: number | undefined;
 }
 
 export type SquashNodeData = NodeData<unknown, SquashMatchMeta, string>;
 export type SquashPositionedNode = PositionedNode<unknown, SquashMatchMeta, string>;
 
-export type SquashNodeRenderMode = 'svg' | 'html' | 'export' | 'server';
+export enum SquashNodeRenderMode {
+  Svg = 'svg',
+  Html = 'html',
+  Export = 'export',
+  Server = 'server',
+}
 
-export type StageBounds = {
-  minX: number;
-  minY: number;
-  maxX: number;
-  maxY: number;
-  width: number;
-  height: number;
-};
+export interface StageBounds {
+  readonly minX: number;
+  readonly minY: number;
+  readonly maxX: number;
+  readonly maxY: number;
+  readonly width: number;
+  readonly height: number;
+}
 
-export type StageView = {
-  index: number;
-  label: string;
-  bounds: StageBounds;
-  nodeIds: string[];
-};
+export interface StageView {
+  readonly index: number;
+  readonly label: string;
+  readonly bounds: StageBounds;
+  readonly nodeIds: readonly string[];
+}
 
-export type VerticalStagePosition = 'top' | 'bottom' | 'center';
+export enum VerticalStagePosition {
+  Top = 'top',
+  Bottom = 'bottom',
+  Center = 'center',
+}
 
-export type StageViewportResult = {
-  viewport: GraphViewport;
-  canPageVertically: boolean;
-};
+export interface StageViewportResult {
+  readonly viewport: GraphViewport;
+  readonly canPageVertically: boolean;
+}
 
 export interface TournamentBracketProps {
-  graph: NxGraphInput;
-  config?: Partial<GraphConfig>;
-  defaultViewport?: Partial<GraphViewport>;
-  vertexComponent?: VertexComponent;
-  nodeRenderMode?: SquashNodeRenderMode;
-  title?: string;
-  badgeText?: string;
-  showToolbar?: boolean;
-  showViewportControls?: boolean;
-  defaultNavigationMode?: boolean;
-  panEnabled?: boolean;
-  zoomEnabled?: boolean;
-  pinchZoomEnabled?: boolean;
-  compact?: boolean;
-  onMatchClick?: (node: SquashPositionedNode) => void;
-  onInvalidNode?: (nodeId: string, error: Error) => void;
+  readonly graph: NxGraphInput;
+  readonly config?: Partial<GraphConfig> | undefined;
+  readonly defaultViewport?: Partial<GraphViewport> | undefined;
+  readonly vertexComponent?: VertexComponent | undefined;
+  readonly nodeRenderMode?: SquashNodeRenderMode | undefined;
+  readonly title?: string | undefined;
+  readonly badgeText?: string | undefined;
+  readonly showToolbar?: boolean | undefined;
+  readonly showViewportControls?: boolean | undefined;
+  readonly defaultNavigationMode?: boolean | undefined;
+  readonly panEnabled?: boolean | undefined;
+  readonly zoomEnabled?: boolean | undefined;
+  readonly pinchZoomEnabled?: boolean | undefined;
+  readonly compact?: boolean | undefined;
+  readonly onMatchClick?: ((node: SquashPositionedNode) => void) | undefined;
+  readonly onInvalidNode?: ((nodeId: string, error: Error) => void) | undefined;
 }

@@ -1,18 +1,19 @@
-import type { VerticalStagePosition } from '@graph-render/types';
+import { VerticalStagePosition } from '@graph-render/types';
+
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, ChevronUpIcon } from '../icons';
 import { getNavigationColors, RoundNavigationButton } from './navigation/NavigationButton';
 
-type StageNavigationControlsProps = {
-  isDarkMode: boolean;
-  activeStageIndex: number;
-  stageCount: number;
-  verticalStagePosition: VerticalStagePosition;
-  canPagePlayersVertically: boolean;
-  onPreviousStage: () => void;
-  onNextStage: () => void;
-  onPagePlayersUp: () => void;
-  onPagePlayersDown: () => void;
-};
+interface StageNavigationControlsProps {
+  readonly isDarkMode: boolean;
+  readonly activeStageIndex: number;
+  readonly stageCount: number;
+  readonly verticalStagePosition: VerticalStagePosition;
+  readonly canPagePlayersVertically: boolean;
+  readonly onPreviousStage: () => void;
+  readonly onNextStage: () => void;
+  readonly onPagePlayersUp: () => void;
+  readonly onPagePlayersDown: () => void;
+}
 
 export function StageNavigationControls({
   isDarkMode,
@@ -29,8 +30,10 @@ export function StageNavigationControls({
   const colors = getNavigationColors(isDarkMode);
   const canGoPrev = activeStageIndex > 0;
   const canGoNext = activeStageIndex < stageCount - 1;
-  const canPageUp = canPagePlayersVertically && verticalStagePosition === 'bottom';
-  const canPageDown = canPagePlayersVertically && verticalStagePosition === 'top';
+  const canPageUp =
+    canPagePlayersVertically && verticalStagePosition === VerticalStagePosition.Bottom;
+  const canPageDown =
+    canPagePlayersVertically && verticalStagePosition === VerticalStagePosition.Top;
 
   return (
     <>
@@ -93,12 +96,12 @@ function OverlayButton({
   children,
   onClick,
 }: {
-  label: string;
-  position: 'left' | 'right';
-  disabled: boolean;
-  colors: ReturnType<typeof getNavigationColors>;
-  children: React.ReactNode;
-  onClick: () => void;
+  readonly label: string;
+  readonly position: 'left' | 'right';
+  readonly disabled: boolean;
+  readonly colors: ReturnType<typeof getNavigationColors>;
+  readonly children: React.ReactNode;
+  readonly onClick: () => void;
 }) {
   return (
     <RoundNavigationButton

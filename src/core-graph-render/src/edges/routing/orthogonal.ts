@@ -1,6 +1,8 @@
-import { NodeSide, Point } from '@graph-render/types';
+import type { NodeSide, Point } from '@graph-render/types';
+import { RoutingStyle } from '@graph-render/types';
+
 import { getSideNormal } from '../geometry';
-import { OrthogonalRoutingStyle } from './types';
+import type { OrthogonalRoutingStyle } from './types';
 
 const ORTHOGONAL_TERMINAL_SEGMENT = 20;
 
@@ -13,7 +15,7 @@ export const calculateOrthogonalPoints = (
   parallelOffset: number,
   sourceSide: NodeSide,
   targetSide: NodeSide
-): Point[] => {
+): readonly Point[] => {
   const sourceNormal = getSideNormal(sourceSide);
   const targetNormal = getSideNormal(targetSide);
   const startLead = {
@@ -36,7 +38,7 @@ export const calculateOrthogonalPoints = (
 
   if (preferHorizontalRun) {
     const midX =
-      routingStyle === 'bundled'
+      routingStyle === RoutingStyle.Bundled
         ? (sourceCenter.x + targetCenter.x) / 2 + parallelOffset * 0.5
         : startLead.x + dx / 2;
 
@@ -51,7 +53,7 @@ export const calculateOrthogonalPoints = (
   }
 
   const midY =
-    routingStyle === 'bundled'
+    routingStyle === RoutingStyle.Bundled
       ? (sourceCenter.y + targetCenter.y) / 2 + parallelOffset * 0.5
       : startLead.y + dy / 2;
 

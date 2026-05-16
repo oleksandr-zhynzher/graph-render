@@ -1,5 +1,7 @@
-import { useCallback, useRef } from 'react';
 import type { PositionedNode } from '@graph-render/types';
+import { GraphHoverTrigger } from '@graph-render/types';
+import { useCallback, useRef } from 'react';
+
 import type { UseGraphHoverHandlersOptions } from '../models/hooks';
 
 export const useGraphHoverHandlers = ({
@@ -23,7 +25,11 @@ export const useGraphHoverHandlers = ({
   viewportRef.current = viewport;
 
   const emitNodeHover = useCallback(
-    (node: PositionedNode, hovered: boolean, trigger: 'pointer' | 'path' = 'pointer') => {
+    (
+      node: PositionedNode,
+      hovered: boolean,
+      trigger: GraphHoverTrigger = GraphHoverTrigger.Pointer
+    ) => {
       onNodeHoverChange?.(node, hovered, {
         viewport: viewportRef.current,
         selection: selectionRef.current,
@@ -58,7 +64,7 @@ export const useGraphHoverHandlers = ({
     (nodeId: string, sourceIndex: number, pathKey?: string) => {
       setFocusedPath({ nodeId, sourceIndex, pathKey });
       const node = positionedNodeMap.get(nodeId);
-      if (node) emitNodeHover(node, true, 'path');
+      if (node) emitNodeHover(node, true, GraphHoverTrigger.Path);
     },
     [emitNodeHover, positionedNodeMap, setFocusedPath]
   );
@@ -72,7 +78,7 @@ export const useGraphHoverHandlers = ({
         onEdgeHoverChange?.(edge, isHovered, {
           viewport: viewportRef.current,
           selection: selectionRef.current,
-          trigger: 'pointer',
+          trigger: GraphHoverTrigger.Pointer,
         });
 
       if (!hoverHighlight) return;

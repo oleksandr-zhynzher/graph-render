@@ -1,6 +1,4 @@
-import type { PointerState, PinchState, SelectionBox } from '../models/utils';
-
-export type { PointerState, PinchState, SelectionBox };
+import type { PointerState } from '../models/utils';
 
 export const getPointerDistance = (a: PointerState, b: PointerState): number => {
   return Math.hypot(a.x - b.x, a.y - b.y);
@@ -26,3 +24,5 @@ export const getRelativeSvgPoint = (
     y: clientY - rect.top,
   };
 };
+
+export { type PinchState, type PointerState, type SelectionBox } from '../models/utils';

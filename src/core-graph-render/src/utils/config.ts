@@ -1,20 +1,21 @@
 import {
   EdgeType,
-  GraphConfig,
+  type GraphConfig,
   GraphFailureBehavior,
-  GraphTheme,
   GraphInputValidationMode,
+  type GraphTheme,
   LayoutDirection,
   LayoutType,
-  NormalizedGraphConfig,
+  NodeSizingMode,
+  type NormalizedGraphConfig,
+  RoutingStyle,
 } from '@graph-render/types';
-import { DEFAULT_THEME, DEFAULT_NODE_SIZE } from './constants';
 
-export type { NormalizedGraphConfig };
+import { DEFAULT_NODE_SIZE, DEFAULT_THEME } from './constants';
 
 const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 720;
-const MAX_DIMENSION = 32768;
+const MAX_DIMENSION = 32_768;
 const DEFAULT_CURVE_STRENGTH = 0.3;
 const DEFAULT_ARROW_PADDING = 6;
 const DEFAULT_EDGE_SEPARATION = 18;
@@ -32,7 +33,7 @@ const DEFAULT_LABEL_PILL_BACKGROUND = '#eef1f6';
 const DEFAULT_LABEL_PILL_BORDER_COLOR = '#d7dbe3';
 const DEFAULT_LABEL_PILL_TEXT_COLOR = '#3f434b';
 const CSS_COLOR_PATTERN =
-  /^(#[0-9a-fA-F]{3,8}|(?:rgb|hsl)a?\([0-9\s.,%+-]+\)|[a-zA-Z][a-zA-Z0-9-]*|var\(--[a-zA-Z0-9-_]+\))$/;
+  /^(#[\dA-Fa-f]{3,8}|(?:rgb|hsl)a?\([\d\s%+,.-]+\)|[A-Za-z][\dA-Za-z-]*|var\(--[\w-]+\))$/;
 
 const getFinitePositive = (value: unknown, fallback: number): number => {
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : fallback;
@@ -52,14 +53,20 @@ const getFailureBehavior = (
   value: unknown,
   fallback: GraphFailureBehavior
 ): GraphFailureBehavior => {
-  return value === 'throw' || value === 'degrade' ? value : fallback;
+  return value === GraphFailureBehavior.Throw || value === GraphFailureBehavior.Degrade
+    ? value
+    : fallback;
 };
 
 const getInputValidationMode = (
   value: unknown,
   fallback: GraphInputValidationMode
 ): GraphInputValidationMode => {
-  return value === 'auto' || value === 'strict' || value === 'implicit' ? value : fallback;
+  return value === GraphInputValidationMode.Auto ||
+    value === GraphInputValidationMode.Strict ||
+    value === GraphInputValidationMode.Implicit
+    ? value
+    : fallback;
 };
 
 const sanitizeCssColor = (value: unknown, fallback: string): string => {
@@ -79,15 +86,20 @@ const getLayoutDirection = (value: unknown, fallback: LayoutDirection): LayoutDi
   return value === LayoutDirection.LTR || value === LayoutDirection.RTL ? value : fallback;
 };
 
-const getNodeSizing = (value: unknown, fallback: NonNullable<GraphConfig['nodeSizing']>) => {
-  return value === 'fixed' || value === 'label' || value === 'measured' ? value : fallback;
+const getNodeSizing = (value: unknown, fallback: NodeSizingMode): NodeSizingMode => {
+  return value === NodeSizingMode.Fixed ||
+    value === NodeSizingMode.Label ||
+    value === NodeSizingMode.Measured
+    ? value
+    : fallback;
 };
 
-const getRoutingStyle = (
-  value: unknown,
-  fallback: NonNullable<GraphConfig['routingStyle']>
-): NonNullable<GraphConfig['routingStyle']> => {
-  return value === 'smart' || value === 'orthogonal' || value === 'bundled' ? value : fallback;
+const getRoutingStyle = (value: unknown, fallback: RoutingStyle): RoutingStyle => {
+  return value === RoutingStyle.Smart ||
+    value === RoutingStyle.Orthogonal ||
+    value === RoutingStyle.Bundled
+    ? value
+    : fallback;
 };
 
 const normalizeFixedNodeSize = (value: unknown): NonNullable<GraphConfig['fixedNodeSize']> => {
@@ -107,21 +119,25 @@ const normalizeFixedNodeSize = (value: unknown): NonNullable<GraphConfig['fixedN
   return { width, height };
 };
 
-const normalizeTheme = (theme?: GraphTheme): GraphTheme => ({
-  ...DEFAULT_THEME,
-  ...theme,
-  edgeWidth: getFinitePositive(theme?.edgeWidth, DEFAULT_THEME.edgeWidth),
-  nodeGap: getFinitePositive(theme?.nodeGap, DEFAULT_THEME.nodeGap),
-  nodeBorderWidth:
+const normalizeTheme = (theme?: GraphTheme): GraphTheme => {
+  const nodeBorderWidth =
     typeof theme?.nodeBorderWidth === 'number' &&
     Number.isFinite(theme.nodeBorderWidth) &&
     theme.nodeBorderWidth >= 0
       ? theme.nodeBorderWidth
-      : // FIX: was `theme?.nodeBorderWidth`, which passed invalid values (e.g.,
-        // the string "2px") straight through to the SVG stroke-width attribute.
-        // All other config fields fall back to a safe default; this now does too.
-        undefined,
-});
+      : undefined;
+
+  return {
+    ...theme,
+    background: theme?.background ?? DEFAULT_THEME.background,
+    edgeColor: theme?.edgeColor ?? DEFAULT_THEME.edgeColor,
+    edgeWidth: getFinitePositive(theme?.edgeWidth, DEFAULT_THEME.edgeWidth ?? 2),
+    nodeGap: getFinitePositive(theme?.nodeGap, DEFAULT_THEME.nodeGap),
+    fontFamily: theme?.fontFamily ?? DEFAULT_THEME.fontFamily,
+    ...(theme?.nodeBorderColor ? { nodeBorderColor: theme.nodeBorderColor } : {}),
+    ...(nodeBorderWidth !== undefined ? { nodeBorderWidth } : {}),
+  };
+};
 
 export const normalizeGraphConfig = (config?: GraphConfig): NormalizedGraphConfig => {
   return {
@@ -130,10 +146,13 @@ export const normalizeGraphConfig = (config?: GraphConfig): NormalizedGraphConfi
     height: getFiniteBounded(config?.height, 1, MAX_DIMENSION, DEFAULT_HEIGHT),
     padding: getFiniteNonNegative(config?.padding, 24),
     defaultEdgeType: getEdgeType(config?.defaultEdgeType, EdgeType.Directed),
-    failureBehavior: getFailureBehavior(config?.failureBehavior, 'throw'),
-    inputValidationMode: getInputValidationMode(config?.inputValidationMode, 'auto'),
+    failureBehavior: getFailureBehavior(config?.failureBehavior, GraphFailureBehavior.Throw),
+    inputValidationMode: getInputValidationMode(
+      config?.inputValidationMode,
+      GraphInputValidationMode.Auto
+    ),
     showArrows: config?.showArrows ?? true,
-    nodeSizing: getNodeSizing(config?.nodeSizing, 'fixed'),
+    nodeSizing: getNodeSizing(config?.nodeSizing, NodeSizingMode.Fixed),
     fixedNodeSize: normalizeFixedNodeSize(config?.fixedNodeSize),
     labelMeasurementPaddingX: getFiniteNonNegative(
       config?.labelMeasurementPaddingX,
@@ -155,7 +174,7 @@ export const normalizeGraphConfig = (config?: GraphConfig): NormalizedGraphConfi
     curveEdges: config?.curveEdges ?? true,
     curveStrength: getFiniteBounded(config?.curveStrength, 0, 1, DEFAULT_CURVE_STRENGTH),
     arrowPadding: getFiniteNonNegative(config?.arrowPadding, DEFAULT_ARROW_PADDING),
-    routingStyle: getRoutingStyle(config?.routingStyle, 'smart'),
+    routingStyle: getRoutingStyle(config?.routingStyle, RoutingStyle.Smart),
     edgeSeparation: getFinitePositive(config?.edgeSeparation, DEFAULT_EDGE_SEPARATION),
     selfLoopRadius: getFinitePositive(config?.selfLoopRadius, DEFAULT_SELF_LOOP_RADIUS),
     edgeLabelColor: config?.edgeLabelColor ?? DEFAULT_EDGE_LABEL_COLOR,
@@ -183,3 +202,5 @@ export const normalizeGraphConfig = (config?: GraphConfig): NormalizedGraphConfi
     forceRightToLeft: config?.forceRightToLeft ?? false,
   };
 };
+
+export { type NormalizedGraphConfig } from '@graph-render/types';

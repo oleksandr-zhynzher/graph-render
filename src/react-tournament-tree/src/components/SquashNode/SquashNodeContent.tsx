@@ -1,5 +1,7 @@
+import { SquashNodeRenderMode } from '@graph-render/types';
 import React, { useEffect, useState } from 'react';
-import { NODE_DIMENSIONS, NODE_DIMENSIONS_COMPACT } from '../../constants';
+
+import { DEFAULT_PLAYERS, NODE_DIMENSIONS, NODE_DIMENSIONS_COMPACT } from '../../constants';
 import { useBracketTheme } from '../../contexts/BracketThemeContext';
 import {
   getCompletedWinnerIndex,
@@ -13,6 +15,9 @@ import { SquashNodeHtml } from './SquashNodeHtml';
 import { SquashNodeSvg } from './SquashNodeSvg';
 import type { SquashNodeProps } from './types';
 
+const DEFAULT_PLAYER_ONE = DEFAULT_PLAYERS[0] ?? { name: 'TBD', seed: 0 };
+const DEFAULT_PLAYER_TWO = DEFAULT_PLAYERS[1] ?? { name: 'TBD', seed: 0 };
+
 export const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent({
   node,
   isHovered,
@@ -20,20 +25,21 @@ export const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNode
   activePathNodeIds,
   onPathHover,
   onPathLeave,
-  renderMode = 'export',
+  renderMode = SquashNodeRenderMode.Export,
   compact = true,
 }) {
   const [hoveredPlayerIndex, setHoveredPlayerIndex] = useState<number | null>(null);
   const { colors } = useBracketTheme();
 
   useEffect(() => {
-    if (renderMode === 'html') {
+    if (renderMode === SquashNodeRenderMode.Html) {
       ensureSquashNodeAnimations();
     }
   }, [renderMode]);
 
   const meta = normalizeMatchMeta(node.meta);
-  const [p1, p2] = meta.players;
+  const p1 = meta.players[0] ?? DEFAULT_PLAYER_ONE;
+  const p2 = meta.players[1] ?? DEFAULT_PLAYER_TWO;
   const nodeWidth =
     node.size?.width ?? (compact ? NODE_DIMENSIONS_COMPACT.WIDTH : NODE_DIMENSIONS.WIDTH);
   const nodeHeight =

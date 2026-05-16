@@ -1,6 +1,7 @@
-import React from 'react';
 import { buildEdgePath } from '@graph-render/core';
 import type { EdgePathProps } from '@graph-render/types';
+import { EdgeType } from '@graph-render/types';
+import React from 'react';
 
 // Memoised so that unchanged edges are skipped during re-renders of the parent
 // Graph component (e.g. when hover/selection state changes for a different edge).
@@ -61,7 +62,7 @@ export const EdgePath = React.memo(function EdgePath({
         stroke={strokeColor}
         strokeWidth={strokeWidth}
         fill="none"
-        markerEnd={edge.type === 'directed' ? resolvedMarker : undefined}
+        markerEnd={edge.type === EdgeType.Directed ? resolvedMarker : undefined}
         pointerEvents="none"
       />
       {label && edge.labelPosition ? (

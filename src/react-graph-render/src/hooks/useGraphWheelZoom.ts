@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
+
+import type { UseGraphWheelZoomOptions } from '../models/hooks';
 import { getRelativeSvgPoint } from '../utils/pointer';
 import { clampViewportTranslation, clampZoom } from '../utils/viewport';
-import type { UseGraphWheelZoomOptions } from '../models/hooks';
 
 export const useGraphWheelZoom = ({
   getViewportDimensions,

@@ -1,14 +1,15 @@
 import { LayoutDirection, LayoutType, type PositionedNode } from '@graph-render/types';
-import { groupPositionedNodesByColumn } from './columns';
+
 import {
   LABEL_PILL_CHAR_WIDTH,
   LABEL_PILL_MAX_CHARS,
   LABEL_PILL_MIN_WIDTH,
   LABEL_PILL_PADDING_X,
 } from '../constants/labels';
+import { groupPositionedNodesByColumn } from './columns';
 
 export function getLabelPillWidth(label: string): number {
-  const charCount = Math.min(Array.from(label).length, LABEL_PILL_MAX_CHARS);
+  const charCount = Math.min([...label].length, LABEL_PILL_MAX_CHARS);
   return Math.max(
     LABEL_PILL_MIN_WIDTH,
     charCount * LABEL_PILL_CHAR_WIDTH + LABEL_PILL_PADDING_X * 2
@@ -16,16 +17,16 @@ export function getLabelPillWidth(label: string): number {
 }
 
 export function getEffectiveGraphLabels(
-  positionedNodes: PositionedNode[],
+  positionedNodes: readonly PositionedNode[],
   layout: LayoutType,
   layoutDirection: LayoutDirection,
-  labels?: string[],
+  labels?: readonly string[],
   autoLabels = false
-): { orderedXs: number[]; orderedLabels: string[] } {
+): { readonly orderedXs: readonly number[]; readonly orderedLabels: readonly string[] } {
   const columns = groupPositionedNodesByColumn(positionedNodes);
   const xs = columns.map((column) => column.centerX);
 
-  if (!xs.length) {
+  if (xs.length === 0) {
     return { orderedXs: [], orderedLabels: [] };
   }
 
@@ -36,7 +37,7 @@ export function getEffectiveGraphLabels(
     return `1/${denom}`;
   });
 
-  const effectiveLabels = labels && labels.length ? labels : autoLabels ? inferred : [];
+  const effectiveLabels = labels?.length ? labels : autoLabels ? inferred : [];
   const isRTL = layout === LayoutType.Tree && layoutDirection === LayoutDirection.RTL;
   const orderedXs = isRTL ? [...xs].reverse() : xs;
   const orderedLabels = isRTL ? [...effectiveLabels].reverse() : effectiveLabels;

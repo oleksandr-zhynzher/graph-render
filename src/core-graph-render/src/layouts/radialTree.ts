@@ -1,5 +1,7 @@
-import { EdgeData, NodeData, PositionedNode } from '@graph-render/types';
+import type { EdgeData, NodeData, PositionedNode } from '@graph-render/types';
+
 import { DEFAULT_NODE_GAP, DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
+import { centeredLayout } from './centered';
 import {
   assertHierarchicalGraph,
   assignNodesToLevels,
@@ -7,21 +9,20 @@ import {
   findRootNodes,
   groupNodesByLevel,
 } from './treeTopology';
-import { centeredLayout } from './centered';
 
 export const radialTreeLayout = (
-  nodes: NodeData[],
-  edges: EdgeData[],
+  nodes: readonly NodeData[],
+  edges: readonly EdgeData[],
   pad: number = DEFAULT_PADDING,
-  width: number = 960,
-  height: number = 720,
+  width = 960,
+  height = 720,
   gap: number = DEFAULT_NODE_GAP
-): PositionedNode[] => {
-  if (!nodes.length) {
+): readonly PositionedNode[] => {
+  if (nodes.length === 0) {
     return [];
   }
 
-  if (!edges.length) {
+  if (edges.length === 0) {
     return centeredLayout(nodes, pad, width, height);
   }
 
@@ -56,7 +57,7 @@ export const radialTreeLayout = (
       levelIndex === 0 ? 0 : Math.max(radiusStep * levelIndex, maxNodeSize + gap * 0.4);
 
     return level.map((nodeId, nodeIndex) => {
-      const node = nodeById.get(nodeId) as NodeData;
+      const node = nodeById.get(nodeId)!;
       const size = node.size ?? DEFAULT_NODE_SIZE;
       const angle =
         level.length === 1 ? -Math.PI / 2 : (2 * Math.PI * nodeIndex) / level.length - Math.PI / 2;
@@ -71,7 +72,7 @@ export const radialTreeLayout = (
       return {
         ...node,
         position,
-      } as PositionedNode;
+      };
     });
   });
 };

@@ -1,9 +1,7 @@
-import { PositionedNode } from '@graph-render/types';
-import type { NodeColumn } from '../models/utils';
-import { DEFAULT_NODE_WIDTH } from '../constants/graph';
+import type { PositionedNode } from '@graph-render/types';
 
-export { DEFAULT_NODE_WIDTH };
-export type { NodeColumn };
+import { DEFAULT_NODE_WIDTH } from '../constants/graph';
+import type { NodeColumn } from '../models/utils';
 
 const DEFAULT_COLUMN_TOLERANCE = 24;
 
@@ -12,28 +10,28 @@ const getNodeWidth = (node: PositionedNode): number => node.size?.width ?? DEFAU
 const getNodeCenterX = (node: PositionedNode): number => node.position.x + getNodeWidth(node) / 2;
 
 export const groupPositionedNodesByColumn = <TNode extends PositionedNode = PositionedNode>(
-  nodes: TNode[],
+  nodes: readonly TNode[],
   tolerance: number = DEFAULT_COLUMN_TOLERANCE
-): NodeColumn<TNode>[] => {
+): ReadonlyArray<NodeColumn<TNode>> => {
   const sortedNodes = [...nodes].sort(
     (left, right) => getNodeCenterX(left) - getNodeCenterX(right)
   );
   const columns: Array<{ centerX: number; avgWidth: number; nodes: TNode[] }> = [];
 
-  sortedNodes.forEach((node) => {
+  for (const node of sortedNodes) {
     const nodeCenterX = getNodeCenterX(node);
     const nodeWidth = getNodeWidth(node);
-    const current = columns[columns.length - 1];
+    const current = columns.at(-1);
 
     if (!current) {
       columns.push({ centerX: nodeCenterX, avgWidth: nodeWidth, nodes: [node] });
-      return;
+      continue;
     }
 
     const threshold = Math.max(tolerance, Math.min(current.avgWidth, nodeWidth) * 0.35);
     if (Math.abs(nodeCenterX - current.centerX) > threshold) {
       columns.push({ centerX: nodeCenterX, avgWidth: nodeWidth, nodes: [node] });
-      return;
+      continue;
     }
 
     current.nodes.push(node);
@@ -43,10 +41,13 @@ export const groupPositionedNodesByColumn = <TNode extends PositionedNode = Posi
     const newCount = current.nodes.length; // length after push
     current.centerX = (current.centerX * (newCount - 1) + nodeCenterX) / newCount;
     current.avgWidth = (current.avgWidth * (newCount - 1) + nodeWidth) / newCount;
-  });
+  }
 
   return columns.map((column) => ({
     centerX: column.centerX,
     nodes: [...column.nodes].sort((left, right) => left.position.y - right.position.y),
   }));
 };
+
+export { DEFAULT_NODE_WIDTH } from '../constants/graph';
+export { type NodeColumn } from '../models/utils';

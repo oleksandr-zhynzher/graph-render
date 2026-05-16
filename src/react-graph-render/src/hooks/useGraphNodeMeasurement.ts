@@ -1,13 +1,13 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
 import type { PositionedNode, Size } from '@graph-render/types';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 interface UseGraphNodeMeasurementOptions {
-  node: PositionedNode;
-  width: number;
-  height: number;
-  onNodeMeasure?: (nodeId: string, size: Size) => void;
+  readonly node: PositionedNode;
+  readonly width: number;
+  readonly height: number;
+  readonly onNodeMeasure?: ((nodeId: string, size: Size) => void) | undefined;
 }
 
 export const useGraphNodeMeasurement = ({
@@ -36,8 +36,8 @@ export const useGraphNodeMeasurement = ({
           return;
         }
 
-        const bounds = groupRef.current?.getBBox();
-        if (bounds && bounds.width > 0 && bounds.height > 0) {
+        const bounds = groupRef.current.getBBox();
+        if (bounds.width > 0 && bounds.height > 0) {
           onNodeMeasure(node.id, {
             width: Math.ceil(bounds.width),
             height: Math.ceil(bounds.height),

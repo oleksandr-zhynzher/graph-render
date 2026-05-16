@@ -1,4 +1,5 @@
 import type { SquashPlayer } from '@graph-render/types';
+
 import { DEFAULT_PLAYERS } from '../../constants';
 
 const isFiniteNumber = (value: unknown): value is number =>
@@ -26,16 +27,20 @@ export const normalizePlayer = (value: unknown, label: string): SquashPlayer => 
     );
   }
 
+  const country = player.country?.trim();
   return {
     name: player.name.trim(),
-    seed: player.seed,
-    country: player.country?.trim(),
+    ...(player.seed !== undefined ? { seed: player.seed } : {}),
+    ...(country ? { country } : {}),
   };
 };
 
-export const normalizePlayers = (value: unknown): [SquashPlayer, SquashPlayer] => {
+export const normalizePlayers = (value: unknown): readonly [SquashPlayer, SquashPlayer] => {
   if (value == null) {
-    return [DEFAULT_PLAYERS[0], DEFAULT_PLAYERS[1]];
+    return [
+      DEFAULT_PLAYERS[0] ?? { name: 'TBD', seed: 0 },
+      DEFAULT_PLAYERS[1] ?? { name: 'TBD', seed: 0 },
+    ];
   }
 
   if (!Array.isArray(value) || value.length !== 2) {

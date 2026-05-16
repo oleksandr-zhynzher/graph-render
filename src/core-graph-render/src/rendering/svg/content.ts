@@ -5,10 +5,11 @@ import type {
   PositionedNode,
   RenderTheme,
 } from '@graph-render/types';
+
 import { buildEdgePath } from '../../edges';
 
 export const renderEdgesToSvg = (
-  edges: PositionedEdge[],
+  edges: readonly PositionedEdge[],
   curveEdges: boolean,
   curveStrength: number,
   edgeRenderer: EdgeRenderer,
@@ -29,7 +30,10 @@ export const renderEdgesToSvg = (
     .join('');
 };
 
-export const renderNodesToSvg = (nodes: PositionedNode[], nodeRenderer: NodeRenderer): string => {
+export const renderNodesToSvg = (
+  nodes: readonly PositionedNode[],
+  nodeRenderer: NodeRenderer
+): string => {
   return nodes
     .map((node) => {
       const body = nodeRenderer(node);

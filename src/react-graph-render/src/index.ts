@@ -1,4 +1,15 @@
-export { EdgeType, LayoutType, LayoutDirection, NodeSide } from '@graph-render/types';
+export { EdgePath } from './components/EdgePath';
+export { Graph } from './components/Graph';
+export { groupPositionedNodesByColumn } from './utils/columns';
+export { KeyboardDirection } from './utils/keyboardNavigation';
+// Re-export core functionality
+export {
+  buildEdgePath,
+  fromNxGraph,
+  layoutNodes,
+  renderGraphToSvg,
+  routeEdges,
+} from '@graph-render/core';
 export type {
   DragState,
   EdgeComponent,
@@ -23,7 +34,6 @@ export type {
   NodeId,
   NodeMeasurementHints,
   NodeRenderer,
-  NodeSizingMode,
   NxEdgeAttrs,
   NxGraphInput,
   NxNodeAttrs,
@@ -43,15 +53,16 @@ export type {
   VertexComponent,
   VertexComponentProps,
 } from '@graph-render/types';
-export { Graph } from './components/Graph';
-export { EdgePath } from './components/EdgePath';
-export { groupPositionedNodesByColumn } from './utils/columns';
-
-// Re-export core functionality
 export {
-  renderGraphToSvg,
-  layoutNodes,
-  routeEdges,
-  fromNxGraph,
-  buildEdgePath,
-} from '@graph-render/core';
+  EdgeType,
+  GraphErrorPhase,
+  GraphFailureBehavior,
+  GraphHoverTrigger,
+  GraphInputValidationMode,
+  LayoutDirection,
+  LayoutType,
+  NodeSide,
+  NodeSizingMode,
+  RoutingStyle,
+  SelectionMode,
+} from '@graph-render/types';

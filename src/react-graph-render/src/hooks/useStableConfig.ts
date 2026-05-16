@@ -31,14 +31,14 @@ const areValuesEqual = (
       return false;
     }
 
-    if (!existing) {
-      seen.set(left, new WeakSet([right]));
-    } else {
+    if (existing) {
       existing.add(right);
+    } else {
+      seen.set(left, new WeakSet([right]));
     }
 
-    for (let index = 0; index < left.length; index += 1) {
-      if (!areValuesEqual(left[index], right[index], seen)) {
+    for (const [index, element] of left.entries()) {
+      if (!areValuesEqual(element, right[index], seen)) {
         return false;
       }
     }
@@ -50,10 +50,10 @@ const areValuesEqual = (
     return false;
   }
 
-  if (!existing) {
-    seen.set(left, new WeakSet([right]));
-  } else {
+  if (existing) {
     existing.add(right);
+  } else {
+    seen.set(left, new WeakSet([right]));
   }
 
   const leftKeys = Object.keys(left);

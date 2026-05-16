@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import { DEFAULT_THEME, normalizeGraphConfig } from '@graph-render/core';
-import {
+import type {
   EdgeData,
   GraphHandle,
   GraphProps,
@@ -10,6 +9,9 @@ import {
   PositionedEdge,
   PositionedNode,
 } from '@graph-render/types';
+import { RoutingStyle, SelectionMode } from '@graph-render/types';
+import React, { useCallback, useEffect, useId, useMemo, useRef } from 'react';
+
 import {
   DEFAULT_CONTROLS_POSITION,
   DEFAULT_MAX_ZOOM,
@@ -19,16 +21,16 @@ import {
   DEFAULT_VIEWPORT,
   DEFAULT_ZOOM_STEP,
 } from '../constants/graph';
-import { useGraphCollapseHandlers } from '../hooks/useGraphCollapseHandlers';
 import { useGraphCollapse } from '../hooks/useGraphCollapse';
+import { useGraphCollapseHandlers } from '../hooks/useGraphCollapseHandlers';
 import { useGraphHover } from '../hooks/useGraphHover';
 import { useGraphHoverHandlers } from '../hooks/useGraphHoverHandlers';
 import { useGraphKeyboardNavigation } from '../hooks/useGraphKeyboardNavigation';
 import { useGraphModel } from '../hooks/useGraphModel';
 import { useGraphPointerInteractions } from '../hooks/useGraphPointerInteractions';
 import { useGraphSelectionHandlers } from '../hooks/useGraphSelectionHandlers';
-import { useGraphViewState } from '../hooks/useGraphViewState';
 import { useGraphViewportController } from '../hooks/useGraphViewportController';
+import { useGraphViewState } from '../hooks/useGraphViewState';
 import { useGraphWheelZoom } from '../hooks/useGraphWheelZoom';
 import { useStableConfig } from '../hooks/useStableConfig';
 import { normalizeRect } from '../utils/selection';
@@ -43,7 +45,7 @@ import { GraphViewportControls } from './GraphViewportControls';
 const normalizeZoomRange = (
   minZoom: number,
   maxZoom: number
-): { minZoom: number; maxZoom: number } => {
+): { readonly minZoom: number; readonly maxZoom: number } => {
   const safeMinZoom = Number.isFinite(minZoom) && minZoom > 0 ? minZoom : DEFAULT_MIN_ZOOM;
   const safeMaxZoom = Number.isFinite(maxZoom) && maxZoom > 0 ? maxZoom : DEFAULT_MAX_ZOOM;
 
@@ -52,7 +54,7 @@ const normalizeZoomRange = (
     : { minZoom: safeMaxZoom, maxZoom: safeMinZoom };
 };
 
-const GraphInner = (
+function GraphInner(
   {
     graph,
     vertexComponent: Vertex,
@@ -97,7 +99,7 @@ const GraphInner = (
     defaultSelectedNodeIds,
     defaultSelectedEdgeIds,
     onSelectionChange,
-    selectionMode = 'single',
+    selectionMode = SelectionMode.Single,
     nodeSelectionEnabled = true,
     edgeSelectionEnabled = true,
     selectionColor = DEFAULT_SELECTION_COLOR,
@@ -111,23 +113,23 @@ const GraphInner = (
     onEdgeHoverChange,
     onNodeClick,
     onEdgeClick,
-  }: GraphProps<NxGraphInput, PositionedNode, PositionedEdge, NodeData, EdgeData>,
+  }: GraphProps,
   ref: React.ForwardedRef<GraphHandle>
-) => {
+) {
   const zoomRange = useMemo(() => normalizeZoomRange(minZoom, maxZoom), [minZoom, maxZoom]);
   const safeMinZoom = zoomRange.minZoom;
   const safeMaxZoom = zoomRange.maxZoom;
   // Stabilize the config reference so that inline object literals passed by
   // consumers do not cascade a full model recompute on every parent render.
   const stableConfig = useStableConfig(config);
-  const markerPrefix = useId().replace(/:/g, '-');
+  const markerPrefix = useId().replaceAll(':', '-');
   const svgRef = useRef<SVGSVGElement>(null);
   const contentRef = useRef<SVGGElement>(null);
 
   const cfg = useMemo(() => normalizeGraphConfig(stableConfig), [stableConfig]);
   const mergedTheme = cfg.theme;
-  const edgeColor = mergedTheme.edgeColor ?? DEFAULT_THEME.edgeColor;
-  const edgeWidth = mergedTheme.edgeWidth ?? DEFAULT_THEME.edgeWidth;
+  const edgeColor = mergedTheme.edgeColor ?? DEFAULT_THEME.edgeColor ?? '#8b9dbf';
+  const edgeWidth = mergedTheme.edgeWidth ?? DEFAULT_THEME.edgeWidth ?? 2;
   const selectionEdgeColor = edgeSelectionColor ?? selectionColor;
   // These are simple nullish-coalescing expressions on string primitives.
   // Wrapping them in useMemo adds hook overhead that costs more than the
@@ -463,7 +465,7 @@ const GraphInner = (
             EdgeComponent={EdgeComponent}
             edgeColor={edgeColor}
             edgeWidth={edgeWidth}
-            curveEdges={cfg.curveEdges && cfg.routingStyle !== 'orthogonal'}
+            curveEdges={cfg.curveEdges ? cfg.routingStyle !== RoutingStyle.Orthogonal : false}
             curveStrength={cfg.curveStrength}
             edgeLabelColor={cfg.edgeLabelColor}
             showArrows={showArrows}
@@ -532,25 +534,20 @@ const GraphInner = (
       ) : null}
     </svg>
   );
-};
+}
 
 type GraphComponent = <
   TGraph extends NxGraphInput = NxGraphInput,
-  TNode extends PositionedNode<any, any, any> = PositionedNode,
-  TEdge extends PositionedEdge<any, any> = PositionedEdge,
-  TNodeRecord extends NodeData<any, any, any> = NodeData,
-  TEdgeRecord extends EdgeData<any, any> = EdgeData,
+  TNode extends PositionedNode = PositionedNode,
+  TEdge extends PositionedEdge = PositionedEdge,
+  TNodeRecord extends NodeData = NodeData,
+  TEdgeRecord extends EdgeData = EdgeData,
 >(
   props: GraphProps<TGraph, TNode, TEdge, TNodeRecord, TEdgeRecord> &
     React.RefAttributes<GraphHandle>
 ) => React.ReactElement | null;
 
-const GraphBase = React.memo(
-  React.forwardRef<
-    GraphHandle,
-    GraphProps<NxGraphInput, PositionedNode, PositionedEdge, NodeData, EdgeData>
-  >(GraphInner)
-);
+const GraphBase = React.memo(React.forwardRef<GraphHandle, GraphProps>(GraphInner));
 
 GraphBase.displayName = 'Graph';
 

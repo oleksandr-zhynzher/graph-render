@@ -1,6 +1,6 @@
 export type {
-  GraphModelErrorPhase,
   GraphModelErrorHandler,
-  UseGraphModelOptions,
+  GraphModelErrorPhase,
   GraphModelResult,
+  UseGraphModelOptions,
 } from '../models/graph';

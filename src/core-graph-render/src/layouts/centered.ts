@@ -1,4 +1,5 @@
-import { NodeData, Point, PositionedNode } from '@graph-render/types';
+import type { NodeData, Point, PositionedNode } from '@graph-render/types';
+
 import { DEFAULT_NODE_SIZE, DEFAULT_PADDING, getMaxNodeDimensions } from '../utils';
 import { gridLayout } from './grid';
 
@@ -41,7 +42,7 @@ const positionSingleNode = (node: NodeData, centerX: number, centerY: number): P
       x: centerX - nodeWidth / 2,
       y: centerY - nodeHeight / 2,
     },
-  } as PositionedNode;
+  };
 };
 
 /**
@@ -68,11 +69,11 @@ const calculateCircularPosition = (
  * Layout nodes in a circular pattern around the center
  */
 export const centeredLayout = (
-  nodes: NodeData[],
+  nodes: readonly NodeData[],
   pad: number = DEFAULT_PADDING,
-  width: number = 960,
-  height: number = 720
-): PositionedNode[] => {
+  width = 960,
+  height = 720
+): readonly PositionedNode[] => {
   const count = nodes.length;
 
   if (count === 0) {
@@ -82,7 +83,8 @@ export const centeredLayout = (
   const { x: centerX, y: centerY } = getContainerCenter(width, height);
 
   if (count === 1) {
-    return [positionSingleNode(nodes[0], centerX, centerY)];
+    const [node] = nodes;
+    return node ? [positionSingleNode(node, centerX, centerY)] : [];
   }
 
   const { maxWidth, maxHeight } = getMaxNodeDimensions(nodes);
@@ -109,6 +111,6 @@ export const centeredLayout = (
       nodeHeight
     );
 
-    return { ...node, position } as PositionedNode;
+    return { ...node, position };
   });
 };

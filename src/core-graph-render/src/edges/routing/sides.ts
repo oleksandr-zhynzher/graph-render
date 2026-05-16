@@ -1,4 +1,10 @@
-import { EdgeRoutingContext, NodeSide, PositionedNode, Size } from '@graph-render/types';
+import {
+  type EdgeRoutingContext,
+  NodeSide,
+  type PositionedNode,
+  type Size,
+} from '@graph-render/types';
+
 import { getNodeCenter } from '../geometry';
 import {
   applyDirectionalPreference,
@@ -16,7 +22,7 @@ export const findConnectionSides = (
   targetSize: Size,
   context: EdgeRoutingContext,
   isDirected: boolean
-): { sourceSide: NodeSide; targetSide: NodeSide } => {
+): { readonly sourceSide: NodeSide; readonly targetSide: NodeSide } => {
   if (context.forceRightToLeft) {
     return { sourceSide: NodeSide.Right, targetSide: NodeSide.Left };
   }

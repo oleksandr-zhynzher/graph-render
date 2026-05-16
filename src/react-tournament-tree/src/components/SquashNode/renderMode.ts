@@ -1,5 +1,9 @@
-import type { SquashNodeRenderMode } from '@graph-render/types';
+import { SquashNodeRenderMode } from '@graph-render/types';
 
 export const isSvgCompatibleRenderMode = (renderMode: SquashNodeRenderMode): boolean => {
-  return renderMode === 'svg' || renderMode === 'export' || renderMode === 'server';
+  return (
+    renderMode === SquashNodeRenderMode.Svg ||
+    renderMode === SquashNodeRenderMode.Export ||
+    renderMode === SquashNodeRenderMode.Server
+  );
 };

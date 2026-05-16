@@ -1,4 +1,6 @@
-import React from 'react';
+import { MatchStatus } from '@graph-render/types';
+
+import { DEFAULT_PLAYERS } from '../../constants';
 import { getScoreGroupWidth, getScoreSegments, normalizePlayerKey } from '../../utils/squash';
 import { NODE_BORDER_WIDTH, SCORE_SEGMENT_GAP, SCORE_SEGMENT_WIDTH } from './constants';
 import { SquashPlayerSvgRow } from './SquashPlayerSvgRow';
@@ -6,7 +8,8 @@ import type { SquashNodeVariantProps } from './types';
 
 export function SquashNodeSvg(props: SquashNodeVariantProps) {
   const { nodeId, nodeWidth, nodeHeight, compact, colors, meta, setWins, winnerIndex } = props;
-  const [p1, p2] = meta.players;
+  const p1 = meta.players[0] ?? DEFAULT_PLAYERS[0] ?? { name: 'TBD', seed: 0 };
+  const p2 = meta.players[1] ?? DEFAULT_PLAYERS[1] ?? { name: 'TBD', seed: 0 };
   const insetX = compact ? 6 : 14;
   const rowHeight = nodeHeight / 2;
   const badgeSize = compact ? 16 : 28;
@@ -24,7 +27,7 @@ export function SquashNodeSvg(props: SquashNodeVariantProps) {
     scoreGroupRightX - scoreSectionWidth - playerTextX - 4
   );
   const maxNameLength = Math.max(compact ? 6 : 10, Math.floor(maxNameWidth / (compact ? 6 : 7)));
-  const clipId = `ds-${nodeId.replace(/[^a-z0-9]/gi, '')}`;
+  const clipId = `ds-${nodeId.replaceAll(/[^\da-z]/gi, '')}`;
 
   return (
     <g>
@@ -43,7 +46,7 @@ export function SquashNodeSvg(props: SquashNodeVariantProps) {
         strokeWidth={NODE_BORDER_WIDTH}
       />
 
-      {meta.status === 'live' ? (
+      {meta.status === MatchStatus.Live ? (
         <g transform={`translate(${nodeWidth - 18}, 14)`}>
           <circle r={4} fill={colors.LIVE_INDICATOR} />
         </g>
@@ -66,7 +69,7 @@ export function SquashNodeSvg(props: SquashNodeVariantProps) {
               playerIndex={playerIndex}
               isWinner={isWinner}
               isPlayerHovered={props.hoveredPlayerIndex === playerIndex || isPathMatch}
-              playerOpacity={meta.status === 'upcoming' ? 0.6 : 1}
+              playerOpacity={meta.status === MatchStatus.Upcoming ? 0.6 : 1}
               setCount={playerIndex === 0 ? setWins.p1 : setWins.p2}
               scoreSegments={getScoreSegments(meta.sets, meta.tiebreaks, playerIndex)}
               textColor={textColor}

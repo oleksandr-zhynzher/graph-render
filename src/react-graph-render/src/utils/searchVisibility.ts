@@ -1,12 +1,12 @@
 import type { EdgeData, NodeData } from '@graph-render/types';
 
 export const buildOutgoingBySource = <TEdge extends EdgeData>(
-  edges: TEdge[]
-): Map<string, string[]> => {
+  edges: readonly TEdge[]
+): ReadonlyMap<string, readonly string[]> => {
   const map = new Map<string, string[]>();
-  edges.forEach((edge) => {
+  for (const edge of edges) {
     map.set(edge.source, [...(map.get(edge.source) ?? []), edge.target]);
-  });
+  }
   return map;
 };
 
@@ -17,32 +17,32 @@ export const buildSearchHiddenNodeSet = <TNode extends NodeData>({
   nodes,
   searchQuery,
 }: {
-  effectiveHighlightedNodeSet: Set<string>;
-  hiddenNodeIds?: string[];
-  hideUnmatchedSearch: boolean;
-  nodes: TNode[];
-  searchQuery?: string;
-}): Set<string> => {
+  readonly effectiveHighlightedNodeSet: ReadonlySet<string>;
+  readonly hiddenNodeIds?: readonly string[] | undefined;
+  readonly hideUnmatchedSearch: boolean;
+  readonly nodes: readonly TNode[];
+  readonly searchQuery?: string | undefined;
+}): ReadonlySet<string> => {
   const hidden = new Set(hiddenNodeIds ?? []);
   if (hideUnmatchedSearch && searchQuery?.trim()) {
-    nodes.forEach((node) => {
+    for (const node of nodes) {
       if (!effectiveHighlightedNodeSet.has(node.id)) {
         hidden.add(node.id);
       }
-    });
+    }
   }
   return hidden;
 };
 
 export const buildDescendantHiddenNodeSet = (
-  collapsedIds: string[],
-  hiddenNodeSet: Set<string>,
-  outgoingBySource: Map<string, string[]>
-): Set<string> => {
+  collapsedIds: readonly string[],
+  hiddenNodeSet: ReadonlySet<string>,
+  outgoingBySource: ReadonlyMap<string, readonly string[]>
+): ReadonlySet<string> => {
   const hidden = new Set(hiddenNodeSet);
-  collapsedIds.forEach((nodeId) => {
+  for (const nodeId of collapsedIds) {
     const stack = [...(outgoingBySource.get(nodeId) ?? [])];
-    while (stack.length) {
+    while (stack.length > 0) {
       const current = stack.pop();
       if (!current || hidden.has(current)) {
         continue;
@@ -50,17 +50,17 @@ export const buildDescendantHiddenNodeSet = (
       hidden.add(current);
       stack.push(...(outgoingBySource.get(current) ?? []));
     }
-  });
+  }
   return hidden;
 };
 
 export const filterVisibleNodes = <TNode extends NodeData>(
-  nodes: TNode[],
-  hiddenNodeSet: Set<string>
-): TNode[] => nodes.filter((node) => !hiddenNodeSet.has(node.id));
+  nodes: readonly TNode[],
+  hiddenNodeSet: ReadonlySet<string>
+): readonly TNode[] => nodes.filter((node) => !hiddenNodeSet.has(node.id));
 
 export const filterVisibleEdges = <TEdge extends EdgeData>(
-  edges: TEdge[],
-  hiddenNodeSet: Set<string>
-): TEdge[] =>
+  edges: readonly TEdge[],
+  hiddenNodeSet: ReadonlySet<string>
+): readonly TEdge[] =>
   edges.filter((edge) => !hiddenNodeSet.has(edge.source) && !hiddenNodeSet.has(edge.target));

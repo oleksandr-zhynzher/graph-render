@@ -1,6 +1,9 @@
 import type { EdgeData, PositionedEdge, PositionedNode } from '@graph-render/types';
 
-export function routeBracketEdges(nodes: PositionedNode[], edges: EdgeData[]): PositionedEdge[] {
+export function routeBracketEdges(
+  nodes: readonly PositionedNode[],
+  edges: readonly EdgeData[]
+): readonly PositionedEdge[] {
   const nodeMap = new Map(nodes.map((node) => [node.id, node]));
 
   return edges.map((edge) => {

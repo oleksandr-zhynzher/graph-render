@@ -1,7 +1,9 @@
-import { useCallback } from 'react';
 import type { PositionedEdge, PositionedNode } from '@graph-render/types';
-import { toggleId } from '../utils/selection';
+import { SelectionMode } from '@graph-render/types';
+import { useCallback } from 'react';
+
 import type { UseGraphSelectionHandlersOptions } from '../models/hooks';
+import { toggleId } from '../utils/selection';
 
 export const useGraphSelectionHandlers = ({
   edgeSelectionEnabled,
@@ -22,7 +24,7 @@ export const useGraphSelectionHandlers = ({
 
       updateSelection((current) => ({
         nodeIds: toggleId(current.nodeIds, node.id, selectionMode),
-        edgeIds: selectionMode === 'single' ? [] : current.edgeIds,
+        edgeIds: selectionMode === SelectionMode.Single ? [] : current.edgeIds,
       }));
       updateFocusedNode(node.id);
       onNodeClick?.(node);
@@ -38,7 +40,7 @@ export const useGraphSelectionHandlers = ({
       }
 
       updateSelection((current) => ({
-        nodeIds: selectionMode === 'single' ? [] : current.nodeIds,
+        nodeIds: selectionMode === SelectionMode.Single ? [] : current.nodeIds,
         edgeIds: toggleId(current.edgeIds, edge.id, selectionMode),
       }));
       onEdgeClick?.(edge);

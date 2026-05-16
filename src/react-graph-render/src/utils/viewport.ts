@@ -1,8 +1,7 @@
-import { GraphViewport, PositionedNode } from '@graph-render/types';
-import type { GraphBounds } from '../models/utils';
-import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from '../constants/graph';
+import type { GraphViewport, PositionedNode } from '@graph-render/types';
 
-export type { GraphBounds };
+import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from '../constants/graph';
+import type { GraphBounds } from '../models/utils';
 
 export const clampZoom = (zoom: number, minZoom: number, maxZoom: number): number => {
   return Math.min(Math.max(zoom, minZoom), maxZoom);
@@ -24,7 +23,7 @@ export const normalizeViewport = (
  */
 export const clampViewportTranslation = (
   viewport: GraphViewport,
-  translateExtent: [[number, number], [number, number]],
+  translateExtent: readonly [readonly [number, number], readonly [number, number]],
   containerWidth: number,
   containerHeight: number
 ): GraphViewport => {
@@ -33,29 +32,25 @@ export const clampViewportTranslation = (
   const worldW = xMax - xMin;
   const worldH = yMax - yMin;
 
-  let x: number;
-  if (worldW * zoom <= containerWidth) {
-    x = containerWidth / 2 - (xMin + worldW / 2) * zoom;
-  } else {
-    x = Math.min(Math.max(viewport.x, containerWidth - xMax * zoom), -xMin * zoom);
-  }
+  const x =
+    worldW * zoom <= containerWidth
+      ? containerWidth / 2 - (xMin + worldW / 2) * zoom
+      : Math.min(Math.max(viewport.x, containerWidth - xMax * zoom), -xMin * zoom);
 
-  let y: number;
-  if (worldH * zoom <= containerHeight) {
-    y = containerHeight / 2 - (yMin + worldH / 2) * zoom;
-  } else {
-    y = Math.min(Math.max(viewport.y, containerHeight - yMax * zoom), -yMin * zoom);
-  }
+  const y =
+    worldH * zoom <= containerHeight
+      ? containerHeight / 2 - (yMin + worldH / 2) * zoom
+      : Math.min(Math.max(viewport.y, containerHeight - yMax * zoom), -yMin * zoom);
 
   return { zoom, x, y };
 };
 
-export const getGraphBounds = (nodes: PositionedNode[]): GraphBounds | null => {
-  if (!nodes.length) {
+export const getGraphBounds = (nodes: readonly PositionedNode[]): GraphBounds | null => {
+  if (nodes.length === 0) {
     return null;
   }
 
-  const bounds = nodes.reduce<GraphBounds>(
+  return nodes.reduce<GraphBounds>(
     (acc, node) => {
       const width = node.size?.width ?? DEFAULT_NODE_WIDTH;
       const height = node.size?.height ?? DEFAULT_NODE_HEIGHT;
@@ -82,8 +77,6 @@ export const getGraphBounds = (nodes: PositionedNode[]): GraphBounds | null => {
       height: 0,
     }
   );
-
-  return bounds;
 };
 
 export const getFitViewport = (
@@ -132,3 +125,5 @@ export const centerViewportOnNode = (
     zoom: currentZoom,
   };
 };
+
+export { type GraphBounds } from '../models/utils';

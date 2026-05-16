@@ -1,20 +1,19 @@
-import React from 'react';
 import { truncateText } from '../../utils/squash';
 import { SCORE_FONT_FAMILY, SCORE_SEPARATOR_HEIGHT } from './constants';
 import type { SquashThemeColors } from './types';
 
-type SquashSvgScoreSegmentsProps = {
-  nodeId: string;
-  playerIndex: number;
-  scoreSegments: string[];
-  scoreGroupLeftX: number;
-  rowHeight: number;
-  scoreSegW: number;
-  scoreSegG: number;
-  textColor: string;
-  colors: SquashThemeColors;
-  compact: boolean;
-};
+interface SquashSvgScoreSegmentsProps {
+  readonly nodeId: string;
+  readonly playerIndex: number;
+  readonly scoreSegments: readonly string[];
+  readonly scoreGroupLeftX: number;
+  readonly rowHeight: number;
+  readonly scoreSegW: number;
+  readonly scoreSegG: number;
+  readonly textColor: string;
+  readonly colors: SquashThemeColors;
+  readonly compact: boolean;
+}
 
 export function SquashSvgScoreSegments({
   nodeId,

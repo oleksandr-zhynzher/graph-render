@@ -1,4 +1,8 @@
-export { EdgeType, LayoutType, LayoutDirection, NodeSide } from '@graph-render/types';
+export * from './edges';
+export * from './layouts';
+export * from './model';
+export * from './rendering';
+export * from './utils';
 export type {
   DragState,
   EdgeComponent,
@@ -23,7 +27,6 @@ export type {
   NodeId,
   NodeMeasurementHints,
   NodeRenderer,
-  NodeSizingMode,
   NxEdgeAttrs,
   NxGraphInput,
   NxNodeAttrs,
@@ -43,9 +46,13 @@ export type {
   VertexComponent,
   VertexComponentProps,
 } from '@graph-render/types';
-
-export * from './rendering';
-export * from './layouts';
-export * from './edges';
-export * from './model';
-export * from './utils';
+export {
+  EdgeType,
+  GraphFailureBehavior,
+  GraphInputValidationMode,
+  LayoutDirection,
+  LayoutType,
+  NodeSide,
+  NodeSizingMode,
+  RoutingStyle,
+} from '@graph-render/types';

@@ -1,17 +1,22 @@
-import { PositionedNode, EdgeType } from '@graph-render/types';
-import type { NodeRenderer, EdgeRenderer } from '@graph-render/types';
-import { escapeXml } from './utils';
 import {
-  DEFAULT_NODE_WIDTH,
+  type EdgeRenderer,
+  EdgeType,
+  type NodeRenderer,
+  type PositionedNode,
+} from '@graph-render/types';
+
+import {
+  DEFAULT_NODE_FILL,
   DEFAULT_NODE_HEIGHT,
   DEFAULT_NODE_RADIUS,
-  DEFAULT_NODE_FILL,
   DEFAULT_NODE_STROKE,
+  DEFAULT_NODE_WIDTH,
   DEFAULT_TEXT_FILL,
   DEFAULT_TEXT_SIZE,
 } from '../utils';
+import { escapeXml } from './utils';
 
-const MAX_RENDER_LABEL_LENGTH = 2_000;
+const MAX_RENDER_LABEL_LENGTH = 2000;
 const MAX_RENDER_LABEL_LINES = 8;
 
 /**
@@ -24,7 +29,7 @@ const getNodeLabel = (node: PositionedNode): string => {
   return node.id;
 };
 
-const getRenderableLabelLines = (label: string): string[] => {
+const getRenderableLabelLines = (label: string): readonly string[] => {
   const truncated = label.slice(0, MAX_RENDER_LABEL_LENGTH);
   const lines = truncated
     .split(/\r?\n/)
@@ -32,13 +37,15 @@ const getRenderableLabelLines = (label: string): string[] => {
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
 
-  return lines.length ? lines : [''];
+  return lines.length > 0 ? lines : [''];
 };
 
 /**
  * Get node dimensions
  */
-const getNodeDimensions = (node: PositionedNode): { width: number; height: number } => {
+const getNodeDimensions = (
+  node: PositionedNode
+): { readonly width: number; readonly height: number } => {
   return {
     width: node.size?.width ?? DEFAULT_NODE_WIDTH,
     height: node.size?.height ?? DEFAULT_NODE_HEIGHT,

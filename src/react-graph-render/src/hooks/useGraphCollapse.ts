@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
+
 import type { UseGraphCollapseOptions, UseGraphCollapseResult } from '../models/hooks';
 
 export const useGraphCollapse = ({
@@ -6,10 +7,10 @@ export const useGraphCollapse = ({
   defaultCollapsedNodeIds,
   onCollapsedNodeIdsChange,
 }: UseGraphCollapseOptions): UseGraphCollapseResult => {
-  const [internalCollapsedNodeIds, setInternalCollapsedNodeIds] = useState<string[]>(
-    defaultCollapsedNodeIds ?? []
+  const [internalCollapsedNodeIds, setInternalCollapsedNodeIds] = useState<readonly string[]>(
+    () => defaultCollapsedNodeIds ?? []
   );
-  const [pendingExpansionNodeIds, setPendingExpansionNodeIds] = useState<string[]>([]);
+  const [pendingExpansionNodeIds, setPendingExpansionNodeIds] = useState<readonly string[]>([]);
 
   const collapsedIds = collapsedNodeIds ?? internalCollapsedNodeIds;
   const collapsedNodeSet = useMemo(() => new Set(collapsedIds), [collapsedIds]);
@@ -22,7 +23,7 @@ export const useGraphCollapse = ({
   collapsedIdsRef.current = collapsedIds;
 
   const updateCollapsedNodeIds = useCallback(
-    (next: string[] | ((current: string[]) => string[])) => {
+    (next: readonly string[] | ((current: readonly string[]) => readonly string[])) => {
       const resolved = typeof next === 'function' ? next(collapsedIdsRef.current) : next;
       if (collapsedNodeIds == null) {
         setInternalCollapsedNodeIds(resolved);

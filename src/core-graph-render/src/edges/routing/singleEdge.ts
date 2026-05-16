@@ -1,11 +1,17 @@
-import { EdgeType, PositionedEdge } from '@graph-render/types';
+import { EdgeType, type PositionedEdge } from '@graph-render/types';
+
 import { DEFAULT_NODE_SIZE } from '../../utils';
-import { calculateEdgePoints } from './edgePoints';
 import { createRoutingContext } from './context';
+import { calculateEdgePoints } from './edgePoints';
 import { calculateLabelPosition } from './label';
-import { RouteSingleEdgeInput } from './types';
 import { createSelfLoopPoints } from './selfLoop';
 import { findConnectionSides } from './sides';
+import type { RouteSingleEdgeInput } from './types';
+
+const toPositionedEdge = (edge: PositionedEdge): PositionedEdge => {
+  const labelPosition = calculateLabelPosition(edge.points);
+  return labelPosition ? { ...edge, labelPosition } : edge;
+};
 
 /**
  * Route a single edge between two nodes
@@ -42,11 +48,10 @@ export const routeSingleEdge = ({
   if (source.id === target.id) {
     const points =
       edge.points ?? createSelfLoopPoints(source, sourceSize, selfLoopRadius, parallelOffset);
-    return {
+    return toPositionedEdge({
       ...edge,
       points,
-      labelPosition: calculateLabelPosition(points),
-    };
+    });
   }
 
   const context = createRoutingContext({
@@ -90,9 +95,8 @@ export const routeSingleEdge = ({
   );
   const points = edge.points ?? defaultPoints;
 
-  return {
+  return toPositionedEdge({
     ...edge,
     points,
-    labelPosition: calculateLabelPosition(points),
-  };
+  });
 };

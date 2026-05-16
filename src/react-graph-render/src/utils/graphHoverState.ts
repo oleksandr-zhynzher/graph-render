@@ -1,7 +1,7 @@
 import type { EdgeId, PathTraversalResult, PositionedEdge } from '@graph-render/types';
-import type { HoveredNodeState, HoveredNodeStateParams } from '../models/utils';
+import { EdgeType } from '@graph-render/types';
 
-export type { HoveredNodeState };
+import type { HoveredNodeState, HoveredNodeStateParams } from '../models/utils';
 
 const addNodeState = (
   map: Map<string, HoveredNodeState>,
@@ -13,7 +13,7 @@ const addNodeState = (
 };
 
 const addEdgeNodeStates = (map: Map<string, HoveredNodeState>, edge: PositionedEdge) => {
-  if (edge.type === 'undirected') {
+  if (edge.type === EdgeType.Undirected) {
     addNodeState(map, edge.source, 'in');
     addNodeState(map, edge.source, 'out');
     addNodeState(map, edge.target, 'in');
@@ -29,10 +29,10 @@ const applyPathNodeStates = (
   map: Map<string, HoveredNodeState>,
   pathHighlight: PathTraversalResult | null
 ) => {
-  pathHighlight?.nodes.forEach((id) => {
+  for (const id of pathHighlight?.nodes ?? []) {
     const curr = map.get(id) ?? { in: false, out: false };
     map.set(id, { ...curr, in: true, out: true });
-  });
+  }
 };
 
 export const buildHoveredNodeStates = ({
@@ -49,22 +49,22 @@ export const buildHoveredNodeStates = ({
   const map = new Map<string, HoveredNodeState>();
   if (focusedPath) {
     applyPathNodeStates(map, pathHighlight);
-    return map.size ? map : null;
+    return map.size > 0 ? map : null;
   }
 
   if (hoverHighlight && hoveredEdgeId) {
     const match = edgeById.get(hoveredEdgeId);
     if (match) addEdgeNodeStates(map, match);
   } else if (hoverHighlight && hoveredNodeId) {
-    (edgesByNodeId.get(hoveredNodeId) ?? []).forEach((edge) => {
+    for (const edge of edgesByNodeId.get(hoveredNodeId) ?? []) {
       addEdgeNodeStates(map, edge);
-    });
+    }
     addNodeState(map, hoveredNodeId, 'in');
     addNodeState(map, hoveredNodeId, 'out');
   }
 
   applyPathNodeStates(map, pathHighlight);
-  return map.size ? map : null;
+  return map.size > 0 ? map : null;
 };
 
 export const getHighlightedEdgeIds = (
@@ -72,22 +72,24 @@ export const getHighlightedEdgeIds = (
   focusedPath: unknown,
   hoveredEdgeId: EdgeId | null,
   hoveredNodeId: string | null,
-  edgesByNodeId: Map<string, PositionedEdge[]>,
+  edgesByNodeId: ReadonlyMap<string, readonly PositionedEdge[]>,
   pathHighlight: PathTraversalResult | null
 ) => {
   const ids = new Set<EdgeId>();
 
   if (focusedPath && pathHighlight) {
-    pathHighlight.edges.forEach((id) => ids.add(id));
+    for (const id of pathHighlight.edges) ids.add(id);
     return ids;
   }
 
   if (hoverHighlight && hoveredEdgeId) {
     ids.add(hoveredEdgeId);
   } else if (hoverHighlight && hoveredNodeId) {
-    (edgesByNodeId.get(hoveredNodeId) ?? []).forEach((edge) => ids.add(edge.id));
+    for (const edge of edgesByNodeId.get(hoveredNodeId) ?? []) ids.add(edge.id);
   }
-  pathHighlight?.edges.forEach((id) => ids.add(id));
+  for (const id of pathHighlight?.edges ?? []) ids.add(id);
 
   return ids;
 };
+
+export { type HoveredNodeState } from '../models/utils';

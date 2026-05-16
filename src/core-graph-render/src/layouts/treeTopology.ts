@@ -1,7 +1,10 @@
-import { NodeData, EdgeData, GraphTopology } from '@graph-render/types';
+import type { EdgeData, GraphTopology, NodeData } from '@graph-render/types';
 
-export const assertHierarchicalGraph = (nodes: NodeData[], edges: EdgeData[]): void => {
-  if (!nodes.length) {
+export const assertHierarchicalGraph = (
+  nodes: readonly NodeData[],
+  edges: readonly EdgeData[]
+): void => {
+  if (nodes.length === 0) {
     return;
   }
 
@@ -19,11 +22,11 @@ export const assertHierarchicalGraph = (nodes: NodeData[], edges: EdgeData[]): v
     outgoing.set(edge.source, [...(outgoing.get(edge.source) ?? []), edge.target]);
   }
 
-  const queue = Array.from(inDegree.entries())
+  const queue = [...inDegree.entries()]
     .filter(([, degree]) => degree === 0)
     .map(([nodeId]) => nodeId);
 
-  if (!queue.length) {
+  if (queue.length === 0) {
     throw new Error(
       'Tree layout requires at least one root node and does not support cyclic graphs.'
     );
@@ -32,6 +35,9 @@ export const assertHierarchicalGraph = (nodes: NodeData[], edges: EdgeData[]): v
   let processed = 0;
   for (let index = 0; index < queue.length; index += 1) {
     const current = queue[index];
+    if (!current) {
+      continue;
+    }
     processed += 1;
 
     for (const child of outgoing.get(current) ?? []) {
@@ -53,14 +59,14 @@ export const assertHierarchicalGraph = (nodes: NodeData[], edges: EdgeData[]): v
 /**
  * Build graph topology from edges
  */
-export const buildGraphTopology = (edges: EdgeData[]): GraphTopology => {
+export const buildGraphTopology = (edges: readonly EdgeData[]): GraphTopology => {
   const incoming = new Map<string, number>();
   const outgoing = new Map<string, string[]>();
 
-  edges.forEach((e) => {
+  for (const e of edges) {
     incoming.set(e.target, (incoming.get(e.target) ?? 0) + 1);
     outgoing.set(e.source, [...(outgoing.get(e.source) ?? []), e.target]);
-  });
+  }
 
   return { incoming, outgoing };
 };
@@ -68,7 +74,10 @@ export const buildGraphTopology = (edges: EdgeData[]): GraphTopology => {
 /**
  * Find root nodes (nodes with no incoming edges)
  */
-export const findRootNodes = (nodes: NodeData[], incoming: Map<string, number>): string[] => {
+export const findRootNodes = (
+  nodes: readonly NodeData[],
+  incoming: ReadonlyMap<string, number>
+): readonly string[] => {
   const roots = nodes.filter((n) => (incoming.get(n.id) ?? 0) === 0);
   return roots.map((r) => r.id);
 };
@@ -77,16 +86,23 @@ export const findRootNodes = (nodes: NodeData[], incoming: Map<string, number>):
  * Assign nodes to levels using BFS
  */
 export const assignNodesToLevels = (
-  nodes: NodeData[],
-  rootIds: string[],
-  outgoing: Map<string, string[]>
-): Map<string, number> => {
+  nodes: readonly NodeData[],
+  rootIds: readonly string[],
+  outgoing: ReadonlyMap<string, readonly string[]>
+): ReadonlyMap<string, number> => {
+  if (nodes.length === 0) {
+    return new Map();
+  }
+
   const levelMap = new Map<string, number>();
   const queue = [...rootIds];
-  rootIds.forEach((id) => levelMap.set(id, 0));
+  for (const id of rootIds) levelMap.set(id, 0);
 
   for (let index = 0; index < queue.length; index += 1) {
     const current = queue[index];
+    if (!current) {
+      continue;
+    }
     const level = levelMap.get(current) ?? 0;
     for (const child of outgoing.get(current) ?? []) {
       if (!levelMap.has(child)) {
@@ -106,10 +122,13 @@ export const assignNodesToLevels = (
  * buildGraphTopology + an inline BFS.
  */
 export const assignDagLevels = (
-  nodes: NodeData[],
-  edges: EdgeData[]
-): { levels: Map<string, number>; outgoing: Map<string, string[]> } => {
-  if (!nodes.length) {
+  nodes: readonly NodeData[],
+  edges: readonly EdgeData[]
+): {
+  readonly levels: ReadonlyMap<string, number>;
+  readonly outgoing: ReadonlyMap<string, readonly string[]>;
+} => {
+  if (nodes.length === 0) {
     return { levels: new Map(), outgoing: new Map() };
   }
 
@@ -132,17 +151,20 @@ export const assignDagLevels = (
   const levels = new Map<string, number>();
   const queue = nodes.filter((n) => inDegree.get(n.id) === 0).map((n) => n.id);
 
-  if (!queue.length) {
+  if (queue.length === 0) {
     throw new Error(
       'DAG layout requires at least one root node and does not support cyclic graphs.'
     );
   }
 
-  queue.forEach((id) => levels.set(id, 0));
+  for (const id of queue) levels.set(id, 0);
   let processed = 0;
 
   for (let index = 0; index < queue.length; index += 1) {
     const current = queue[index];
+    if (!current) {
+      continue;
+    }
     processed += 1;
     const currentLevel = levels.get(current) ?? 0;
 
@@ -168,9 +190,12 @@ export const assignDagLevels = (
 /**
  * Group nodes by their level
  */
-export const groupNodesByLevel = (nodes: NodeData[], levelMap: Map<string, number>): string[][] => {
+export const groupNodesByLevel = (
+  nodes: readonly NodeData[],
+  levelMap: ReadonlyMap<string, number>
+): ReadonlyArray<readonly string[]> => {
   const levels: string[][] = [];
-  nodes.forEach((n) => {
+  for (const n of nodes) {
     const l = levelMap.get(n.id);
     if (l == null) {
       throw new Error(
@@ -179,6 +204,6 @@ export const groupNodesByLevel = (nodes: NodeData[], levelMap: Map<string, numbe
     }
     if (!levels[l]) levels[l] = [];
     levels[l].push(n.id);
-  });
+  }
   return levels;
 };

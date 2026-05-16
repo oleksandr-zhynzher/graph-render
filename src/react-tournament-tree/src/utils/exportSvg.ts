@@ -14,8 +14,8 @@ export function downloadSvgFromElement(rootElement: Element | null) {
 
   link.href = url;
   link.download = `tournament-bracket-${Date.now()}.svg`;
-  document.body.appendChild(link);
+  document.body.append(link);
   link.click();
-  document.body.removeChild(link);
+  link.remove();
   URL.revokeObjectURL(url);
 }

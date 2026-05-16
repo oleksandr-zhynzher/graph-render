@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "target": "ES2020",
+    "target": "ES2021",
     "module": "ES2020",
-    "lib": ["ES2020"],
+    "lib": ["ES2021"],
     "moduleResolution": "Node",
+    "types": [],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -23,9 +24,18 @@
       "@graph-render/tournament-tree": ["./src/react-tournament-tree/src"],
       "@graph-render/tournament-tree/*": ["./src/react-tournament-tree/src/*"]
     },
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "useUnknownInCatchVariables": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "moduleDetection": "force",
+    "noUncheckedSideEffectImports": true
   }
 }

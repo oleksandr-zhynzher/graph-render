@@ -17,7 +17,7 @@ export const getGraphNodeFrameState = ({
 }: GraphNodeFrameStateOptions) => {
   const isHoveredBoth = isHoveredIn && isHoveredOut;
   const isHoveredNode = isHoveredIn || isHoveredOut;
-  const hasBorder = (!!nodeBorderColor && nodeBorderWidth > 0) || isSelected;
+  const hasBorder = (Boolean(nodeBorderColor) && nodeBorderWidth > 0) || isSelected;
 
   let borderStroke = nodeBorderColor;
   if (isSelected) {

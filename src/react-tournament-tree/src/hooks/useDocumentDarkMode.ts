@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+
 import { detectDocumentDarkMode } from '../utils/documentTheme';
 
 export function useDocumentDarkMode() {

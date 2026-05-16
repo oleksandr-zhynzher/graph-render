@@ -11,139 +11,155 @@ import type {
   PositionedNode,
   RouteEdgesOptions,
 } from '@graph-render/types';
+
 import type { GraphModelErrorHandler } from './graph';
 
 // ── viewport ────────────────────────────────────────────────────────────────
 
 export interface GraphBounds {
-  minX: number;
-  minY: number;
-  maxX: number;
-  maxY: number;
-  width: number;
-  height: number;
+  readonly minX: number;
+  readonly minY: number;
+  readonly maxX: number;
+  readonly maxY: number;
+  readonly width: number;
+  readonly height: number;
 }
 
 // ── pathHighlight ────────────────────────────────────────────────────────────
 
 export interface FocusedPath {
-  nodeId: string;
-  sourceIndex: number | null;
-  pathKey?: string;
+  readonly nodeId: string;
+  readonly sourceIndex: number | null;
+  readonly pathKey?: string | undefined;
 }
 
 // ── pointer ──────────────────────────────────────────────────────────────────
 
-export type PointerState = { x: number; y: number };
+export interface PointerState {
+  readonly x: number;
+  readonly y: number;
+}
 
-export type PinchState = {
-  active: boolean;
-  startDistance: number;
-  startZoom: number;
-  worldX: number;
-  worldY: number;
-};
+export interface PinchState {
+  readonly active: boolean;
+  readonly startDistance: number;
+  readonly startZoom: number;
+  readonly worldX: number;
+  readonly worldY: number;
+}
 
-export type SelectionBox = {
-  startX: number;
-  startY: number;
-  endX: number;
-  endY: number;
-};
+export interface SelectionBox {
+  readonly startX: number;
+  readonly startY: number;
+  readonly endX: number;
+  readonly endY: number;
+}
 
 // ── graphHoverState ──────────────────────────────────────────────────────────
 
-export type HoveredNodeState = { in: boolean; out: boolean };
+export interface HoveredNodeState {
+  readonly in: boolean;
+  readonly out: boolean;
+}
 
-export type HoveredNodeStateParams = {
-  hoverHighlight: boolean;
-  focusedPath: unknown;
-  hoveredEdgeId: EdgeId | null;
-  hoveredNodeId: string | null;
-  edgeById: Map<EdgeId, PositionedEdge>;
-  edgesByNodeId: Map<string, PositionedEdge[]>;
-  pathHighlight: PathTraversalResult | null;
-};
+export interface HoveredNodeStateParams {
+  readonly hoverHighlight: boolean;
+  readonly focusedPath: unknown;
+  readonly hoveredEdgeId: EdgeId | null;
+  readonly hoveredNodeId: string | null;
+  readonly edgeById: ReadonlyMap<EdgeId, PositionedEdge>;
+  readonly edgesByNodeId: ReadonlyMap<string, readonly PositionedEdge[]>;
+  readonly pathHighlight: PathTraversalResult | null;
+}
 
 // ── graphHoverMaps ───────────────────────────────────────────────────────────
 
-export type PositionedHoverNode = {
-  id: string;
-  position: { x: number; y: number };
-  meta?: Record<string, unknown>;
-};
+export interface PositionedHoverNode {
+  readonly id: string;
+  readonly position: { readonly x: number; readonly y: number };
+  readonly meta?: Record<string, unknown> | undefined;
+}
 
 // ── columns ──────────────────────────────────────────────────────────────────
 
 export interface NodeColumn<TNode extends PositionedNode = PositionedNode> {
-  centerX: number;
-  nodes: TNode[];
+  readonly centerX: number;
+  readonly nodes: readonly TNode[];
 }
 
 // ── keyboardNavigation ───────────────────────────────────────────────────────
 
-export type KeyboardDirection = 'left' | 'right' | 'up' | 'down';
+export enum KeyboardDirection {
+  Left = 'left',
+  Right = 'right',
+  Up = 'up',
+  Down = 'down',
+}
 
 // ── graphModelLayout ─────────────────────────────────────────────────────────
 
 export interface ResolvePositionedNodesOptions {
-  allowDegradedGraph: boolean;
-  graph: NxGraphInput;
-  layoutNodesOverride?: (options: LayoutOptions) => PositionedNode[];
-  layoutOptions: LayoutOptions;
-  onError?: GraphModelErrorHandler;
-  visibleNodes: NodeData[];
+  readonly allowDegradedGraph: boolean;
+  readonly graph: NxGraphInput;
+  readonly layoutNodesOverride?:
+    | ((options: LayoutOptions) => readonly PositionedNode[])
+    | undefined;
+  readonly layoutOptions: LayoutOptions;
+  readonly onError?: GraphModelErrorHandler | undefined;
+  readonly visibleNodes: readonly NodeData[];
 }
 
 // ── graphModelOptions ────────────────────────────────────────────────────────
 
 export interface GraphLayoutOptionsInput {
-  config: NormalizedGraphConfig;
-  edges: EdgeData[];
-  mergedTheme: NonNullable<GraphConfig['theme']>;
-  nodes: NodeData[];
+  readonly config: NormalizedGraphConfig;
+  readonly edges: readonly EdgeData[];
+  readonly mergedTheme: NonNullable<GraphConfig['theme']>;
+  readonly nodes: readonly NodeData[];
 }
 
 // ── graphModelRouting ────────────────────────────────────────────────────────
 
 export interface ResolvePositionedEdgesOptions {
-  allowDegradedGraph: boolean;
-  edgeRoutingOptions: RouteEdgesOptions;
-  graph: NxGraphInput;
-  onError?: GraphModelErrorHandler;
-  positionedNodes: PositionedNode[];
-  routeEdgesOverride?: (
-    nodes: PositionedNode[],
-    edges: EdgeData[],
-    options?: RouteEdgesOptions
-  ) => PositionedEdge[];
-  visibleEdges: EdgeData[];
+  readonly allowDegradedGraph: boolean;
+  readonly edgeRoutingOptions: RouteEdgesOptions;
+  readonly graph: NxGraphInput;
+  readonly onError?: GraphModelErrorHandler | undefined;
+  readonly positionedNodes: readonly PositionedNode[];
+  readonly routeEdgesOverride?:
+    | ((
+        nodes: readonly PositionedNode[],
+        edges: readonly EdgeData[],
+        options?: RouteEdgesOptions
+      ) => readonly PositionedEdge[])
+    | undefined;
+  readonly visibleEdges: readonly EdgeData[];
 }
 
 // ── graphNodeFrame ───────────────────────────────────────────────────────────
 
 export interface GraphNodeFrameStateOptions {
-  isSelected: boolean;
-  isHighlighted: boolean;
-  highlightColor: string;
-  selectionColor: string;
-  nodeBorderColor?: string;
-  nodeBorderWidth: number;
-  hoverNodeBorderColor: string;
-  hoverNodeBothColor: string;
-  hoverNodeInColor: string;
-  hoverNodeOutColor: string;
-  hoverNodeHighlight: boolean;
-  isHoveredIn: boolean;
-  isHoveredOut: boolean;
+  readonly isSelected: boolean;
+  readonly isHighlighted: boolean;
+  readonly highlightColor: string;
+  readonly selectionColor: string;
+  readonly nodeBorderColor?: string | undefined;
+  readonly nodeBorderWidth: number;
+  readonly hoverNodeBorderColor: string;
+  readonly hoverNodeBothColor: string;
+  readonly hoverNodeInColor: string;
+  readonly hoverNodeOutColor: string;
+  readonly hoverNodeHighlight: boolean;
+  readonly isHoveredIn: boolean;
+  readonly isHoveredOut: boolean;
 }
 
 // ── pathKeys ─────────────────────────────────────────────────────────────────
 
-export type NodeWithPathMeta = {
-  id: string;
-  meta?: Record<string, unknown>;
-};
+export interface NodeWithPathMeta {
+  readonly id: string;
+  readonly meta?: Record<string, unknown> | undefined;
+}
 
 // ── searchMatching ───────────────────────────────────────────────────────────
 
@@ -151,13 +167,18 @@ export interface HighlightContext<
   TNode extends NodeData = NodeData,
   TEdge extends EdgeData = EdgeData,
 > {
-  edges: TEdge[];
-  matchedEdgeIds: string[];
-  matchedNodeIds: string[];
-  nodes: TNode[];
-  query: string;
+  readonly edges: readonly TEdge[];
+  readonly matchedEdgeIds: readonly string[];
+  readonly matchedNodeIds: readonly string[];
+  readonly nodes: readonly TNode[];
+  readonly query: string;
 }
 
 // ── selection ────────────────────────────────────────────────────────────────
 
-export type Rect = { x: number; y: number; width: number; height: number };
+export interface Rect {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}

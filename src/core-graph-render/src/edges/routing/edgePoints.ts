@@ -1,4 +1,6 @@
-import { NodeSide, Point, PositionedNode, Size } from '@graph-render/types';
+import type { NodeSide, Point, PositionedNode, Size } from '@graph-render/types';
+import { RoutingStyle } from '@graph-render/types';
+
 import { getAnchorPoint, getNodeCenter, getSideInwardNormal, getSideNormal } from '../geometry';
 import {
   calculateControlPoints,
@@ -6,14 +8,13 @@ import {
   getLeadOutDistance,
 } from '../pathCalculation';
 import { calculateOrthogonalPoints } from './orthogonal';
-import { RoutingStyle } from './types';
 
 const applyParallelOffset = (
-  points: Point[],
+  points: readonly Point[],
   sourceCenter: Point,
   targetCenter: Point,
   offset: number
-): Point[] => {
+): readonly Point[] => {
   if (Math.abs(offset) < 0.01) {
     return points;
   }
@@ -44,14 +45,14 @@ export const calculateEdgePoints = (
   straight: boolean,
   routingStyle: RoutingStyle,
   parallelOffset: number
-): Point[] => {
+): readonly Point[] => {
   const targetInset = isUndirected ? 0 : arrowPadding;
   const startPoint = getAnchorPoint(source, sourceSize, sourceSide, 0, 0);
   const endPoint = getAnchorPoint(target, targetSize, targetSide, 0, targetInset);
   const sourceCenter = getNodeCenter(source, sourceSize);
   const targetCenter = getNodeCenter(target, targetSize);
 
-  if (routingStyle === 'orthogonal' || routingStyle === 'bundled') {
+  if (routingStyle === RoutingStyle.Orthogonal || routingStyle === RoutingStyle.Bundled) {
     return calculateOrthogonalPoints(
       startPoint,
       endPoint,

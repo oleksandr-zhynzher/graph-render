@@ -1,6 +1,8 @@
-import React, { useMemo, useRef, useState } from 'react';
 import type { GraphHandle, StageView, TournamentBracketProps } from '@graph-render/types';
-import { BracketThemeProvider } from '../contexts/BracketThemeContext';
+import { SquashNodeRenderMode } from '@graph-render/types';
+import React, { useMemo, useRef, useState } from 'react';
+
+import { BracketThemeProvider, ThemeMode } from '../contexts/BracketThemeContext';
 import { useBracketSvgExport } from '../hooks/useBracketSvgExport';
 import { useBracketVertexComponents } from '../hooks/useBracketVertexComponents';
 import { useDocumentDarkMode } from '../hooks/useDocumentDarkMode';
@@ -20,7 +22,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   config,
   defaultViewport,
   vertexComponent,
-  nodeRenderMode = 'export',
+  nodeRenderMode = SquashNodeRenderMode.Export,
   title = 'Tournament Bracket',
   badgeText,
   showToolbar = true,
@@ -37,7 +39,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   const graphRef = useRef<GraphHandle>(null);
   const contentViewportRef = useRef<HTMLDivElement>(null);
   const { isDarkMode, toggleDarkMode } = useDocumentDarkMode();
-  const [stageViews, setStageViews] = useState<StageView[]>([]);
+  const [stageViews, setStageViews] = useState<readonly StageView[]>([]);
 
   const labels = useMemo(
     () => config?.labels ?? roundLabelsForGraph(graph),
@@ -83,7 +85,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   });
 
   return (
-    <BracketThemeProvider mode={isDarkMode ? 'dark' : 'light'}>
+    <BracketThemeProvider mode={isDarkMode ? ThemeMode.Dark : ThemeMode.Light}>
       <BracketFrame
         title={title}
         badgeText={resolvedBadgeText}

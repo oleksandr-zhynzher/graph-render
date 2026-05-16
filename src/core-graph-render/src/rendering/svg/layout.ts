@@ -1,15 +1,21 @@
-import { LayoutDirection } from '@graph-render/types';
-import type { EdgeData, NodeData, PositionedEdge, PositionedNode } from '@graph-render/types';
-import type { RenderConfig } from '@graph-render/types';
+import type {
+  EdgeData,
+  NodeData,
+  PositionedEdge,
+  PositionedNode,
+  RenderConfig,
+} from '@graph-render/types';
+import { GraphFailureBehavior, LayoutDirection, RoutingStyle } from '@graph-render/types';
+
 import { routeEdges } from '../../edges';
 import { layoutNodes } from '../../layouts';
 import { buildFallbackEdges, buildFallbackLayout, isFinitePoint, toError } from '../../model';
 
 export const getPositionedNodesWithFallback = (
-  sourceNodes: NodeData[],
-  normalizedEdges: EdgeData[],
+  sourceNodes: readonly NodeData[],
+  normalizedEdges: readonly EdgeData[],
   config: RenderConfig
-): PositionedNode[] => {
+): readonly PositionedNode[] => {
   try {
     return layoutNodes({
       nodes: sourceNodes,
@@ -28,7 +34,7 @@ export const getPositionedNodesWithFallback = (
       labelMeasurementLineHeight: config.labelMeasurementLineHeight,
     });
   } catch (error) {
-    if (config.failureBehavior !== 'degrade') {
+    if (config.failureBehavior !== GraphFailureBehavior.Degrade) {
       throw toError(error);
     }
 
@@ -52,14 +58,14 @@ export const getPositionedNodesWithFallback = (
 };
 
 export const getPositionedEdgesWithFallback = (
-  positionedNodes: PositionedNode[],
-  normalizedEdges: EdgeData[],
+  positionedNodes: readonly PositionedNode[],
+  normalizedEdges: readonly EdgeData[],
   config: RenderConfig
-): PositionedEdge[] => {
+): readonly PositionedEdge[] => {
   try {
     const routedEdges = routeEdges(positionedNodes, normalizedEdges, {
       arrowPadding: config.arrowPadding,
-      straight: !config.curveEdges || config.routingStyle === 'orthogonal',
+      straight: !config.curveEdges || config.routingStyle === RoutingStyle.Orthogonal,
       layoutDirection: config.layoutDirection,
       forceRightToLeft: config.forceRightToLeft ?? false,
       routingStyle: config.routingStyle,
@@ -71,7 +77,7 @@ export const getPositionedEdgesWithFallback = (
       (edge) => edge.points.length >= 2 && edge.points.every((point) => isFinitePoint(point))
     );
   } catch (error) {
-    if (config.failureBehavior !== 'degrade') {
+    if (config.failureBehavior !== GraphFailureBehavior.Degrade) {
       throw toError(error);
     }
 

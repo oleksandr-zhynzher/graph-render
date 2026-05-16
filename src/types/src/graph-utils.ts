@@ -1,20 +1,20 @@
-import { PositionedEdge, EdgeId } from './edge';
+import type { EdgeId, PositionedEdge } from './edge';
 
 /**
  * Options for traversing a highlighted path from a starting node.
  */
 export interface PathTraversalOptions {
-  startNodeId: string;
-  sourceIndex?: number | null;
-  pathKey?: string;
-  incomingEdgesByTarget: Map<string, PositionedEdge[]>;
-  pathKeysByNode?: Map<string, string[]>;
+  readonly startNodeId: string;
+  readonly sourceIndex?: number | null;
+  readonly pathKey?: string;
+  readonly incomingEdgesByTarget: ReadonlyMap<string, readonly PositionedEdge[]>;
+  readonly pathKeysByNode?: ReadonlyMap<string, readonly string[]>;
 }
 
 /**
  * Result of graph path traversal
  */
 export interface PathTraversalResult {
-  nodes: Set<string>;
-  edges: Set<EdgeId>;
+  readonly nodes: ReadonlySet<string>;
+  readonly edges: ReadonlySet<EdgeId>;
 }

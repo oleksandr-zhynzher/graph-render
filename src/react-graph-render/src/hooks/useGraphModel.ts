@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import { fromTypedNxGraph, normalizeEdges } from '@graph-render/core';
 import type { PositionedEdge, PositionedNode, Size } from '@graph-render/types';
-import type { GraphModelResult, UseGraphModelOptions } from './graphModelTypes';
-import { useGraphSearchState } from './useGraphSearchState';
-import { buildEdgeRoutingOptions, buildGraphLayoutOptions } from '../utils/graphModelOptions';
+import { GraphFailureBehavior, NodeSizingMode } from '@graph-render/types';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import { resolvePositionedNodes } from '../utils/graphModelLayout';
+import { buildEdgeRoutingOptions, buildGraphLayoutOptions } from '../utils/graphModelOptions';
 import { resolvePositionedEdges } from '../utils/graphModelRouting';
 import { applyMeasuredNodeSizes, pruneMeasuredNodeSizes } from '../utils/graphNodeMeasurements';
+import type { GraphModelResult, UseGraphModelOptions } from './graphModelTypes';
+import { useGraphSearchState } from './useGraphSearchState';
 
 export type { GraphModelResult } from './graphModelTypes';
 
@@ -37,7 +39,7 @@ export const useGraphModel = ({
     [config.defaultEdgeType, config.inputValidationMode, graph]
   );
 
-  const allowDegradedGraph = config.failureBehavior === 'degrade';
+  const allowDegradedGraph = config.failureBehavior === GraphFailureBehavior.Degrade;
 
   const nodesWithMeasuredSize = useMemo(
     () => applyMeasuredNodeSizes(sourceNodes, measuredNodeSizes),
@@ -66,7 +68,13 @@ export const useGraphModel = ({
     highlightStrategy,
     onSearchResultsChange,
   });
-  const { visibleEdges, visibleNodes } = searchState;
+  const {
+    childNodeIdsByParent,
+    effectiveHighlightedEdgeSet,
+    effectiveHighlightedNodeSet,
+    visibleEdges,
+    visibleNodes,
+  } = searchState;
 
   const layoutOptions = useMemo(
     () =>
@@ -81,7 +89,7 @@ export const useGraphModel = ({
 
   const handleNodeMeasure = useCallback(
     (nodeId: string, size: Size) => {
-      if (config.nodeSizing !== 'measured') {
+      if (config.nodeSizing !== NodeSizingMode.Measured) {
         return;
       }
 
@@ -97,7 +105,7 @@ export const useGraphModel = ({
     [config.nodeSizing]
   );
 
-  const positionedNodes: PositionedNode[] = useMemo(
+  const positionedNodes: readonly PositionedNode[] = useMemo(
     () =>
       resolvePositionedNodes({
         allowDegradedGraph,
@@ -112,7 +120,7 @@ export const useGraphModel = ({
 
   const edgeRoutingOptions = useMemo(() => buildEdgeRoutingOptions(config), [config]);
 
-  const positionedEdges: PositionedEdge[] = useMemo(
+  const positionedEdges: readonly PositionedEdge[] = useMemo(
     () =>
       resolvePositionedEdges({
         allowDegradedGraph,
@@ -135,9 +143,9 @@ export const useGraphModel = ({
   );
 
   return {
-    childNodeIdsByParent: searchState.childNodeIdsByParent,
-    effectiveHighlightedEdgeSet: searchState.effectiveHighlightedEdgeSet,
-    effectiveHighlightedNodeSet: searchState.effectiveHighlightedNodeSet,
+    childNodeIdsByParent,
+    effectiveHighlightedEdgeSet,
+    effectiveHighlightedNodeSet,
     handleNodeMeasure,
     positionedEdges,
     positionedNodes,

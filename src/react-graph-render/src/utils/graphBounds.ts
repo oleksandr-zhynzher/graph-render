@@ -4,10 +4,11 @@ import {
   type PositionedEdge,
   type PositionedNode,
 } from '@graph-render/types';
+
 import { EDGE_LABEL_HEIGHT, EDGE_LABEL_WIDTH } from '../constants/graph';
+import { LABEL_PILL_HEIGHT } from '../constants/labels';
 import { groupPositionedNodesByColumn } from './columns';
 import { getEffectiveGraphLabels, getLabelPillWidth } from './graphLabels';
-import { LABEL_PILL_HEIGHT } from '../constants/labels';
 import type { GraphBounds } from './viewport';
 
 export const expandBounds = (bounds: GraphBounds, margin: number): GraphBounds => ({
@@ -47,19 +48,19 @@ export const mergeBounds = (
 };
 
 export const getLabelBounds = (
-  nodes: PositionedNode[],
+  nodes: readonly PositionedNode[],
   layout: LayoutType,
   layoutDirection: LayoutDirection,
-  labels: string[] | undefined,
+  labels: readonly string[] | undefined,
   autoLabels: boolean,
   labelOffset: number
 ): GraphBounds | null => {
-  if (!nodes.length || (!autoLabels && !(labels && labels.length))) {
+  if (nodes.length === 0 || (!autoLabels && !labels?.length)) {
     return null;
   }
 
   const columns = groupPositionedNodesByColumn(nodes);
-  if (!columns.length) {
+  if (columns.length === 0) {
     return null;
   }
 
@@ -95,7 +96,7 @@ export const getLabelBounds = (
   }, null);
 };
 
-export const getEdgeLabelBounds = (edges: PositionedEdge[]): GraphBounds | null => {
+export const getEdgeLabelBounds = (edges: readonly PositionedEdge[]): GraphBounds | null => {
   return edges.reduce<GraphBounds | null>((bounds, edge) => {
     if (!edge.labelPosition) {
       return bounds;

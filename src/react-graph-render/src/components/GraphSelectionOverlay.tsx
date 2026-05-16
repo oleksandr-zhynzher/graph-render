@@ -1,7 +1,12 @@
 import React from 'react';
 
 interface GraphSelectionOverlayProps {
-  rect: { x: number; y: number; width: number; height: number } | null;
+  readonly rect: {
+    readonly x: number;
+    readonly y: number;
+    readonly width: number;
+    readonly height: number;
+  } | null;
 }
 
 export const GraphSelectionOverlay = React.memo(function GraphSelectionOverlay({

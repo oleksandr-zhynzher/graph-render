@@ -95,7 +95,7 @@ export const THEME_COLORS_DARK = {
 // Default to light theme
 export const THEME_COLORS = THEME_COLORS_LIGHT;
 
-export const DEFAULT_PLAYERS: SquashPlayer[] = [
+export const DEFAULT_PLAYERS: readonly SquashPlayer[] = [
   { name: 'TBD', seed: 0 },
   { name: 'TBD', seed: 0 },
 ];

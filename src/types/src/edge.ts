@@ -1,23 +1,22 @@
-import { NodeId } from './node';
-import { Point } from './node';
-import { EdgeType } from './config';
+import type { EdgeType } from './config';
+import type { NodeId, Point } from './node';
 
 export type EdgeId = string;
 
 export interface EdgeData<TMeta extends object = Record<string, unknown>, TLabel = unknown> {
-  id: EdgeId;
-  source: NodeId;
-  target: NodeId;
-  type?: EdgeType;
-  label?: TLabel;
-  points?: Point[];
-  meta?: TMeta;
+  readonly id: EdgeId;
+  readonly source: NodeId;
+  readonly target: NodeId;
+  readonly type?: EdgeType | undefined;
+  readonly label?: TLabel | undefined;
+  readonly points?: readonly Point[] | undefined;
+  readonly meta?: TMeta | undefined;
 }
 
 export interface PositionedEdge<
   TMeta extends object = Record<string, unknown>,
   TLabel = unknown,
 > extends EdgeData<TMeta, TLabel> {
-  points: Point[];
-  labelPosition?: Point;
+  readonly points: readonly Point[];
+  readonly labelPosition?: Point | undefined;
 }

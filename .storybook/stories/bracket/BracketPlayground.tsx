@@ -1,6 +1,20 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { fromNxGraph, layoutNodes } from '@graph-render/core';
 import { Graph } from '@graph-render/react';
+import type { StageView } from '@graph-render/tournament-tree';
+import {
+  BracketThemeProvider,
+  buildStageViews,
+  getStageViewport,
+  injectTournamentPathKeys,
+  NODE_DIMENSIONS,
+  NODE_DIMENSIONS_COMPACT,
+  roundLabelsForGraph,
+  routeBracketEdges,
+  SquashNode,
+  SquashNodeRenderMode,
+  ThemeMode,
+  VerticalStagePosition,
+} from '@graph-render/tournament-tree';
 import type {
   EdgeType,
   GraphConfig,
@@ -16,29 +30,14 @@ import type {
   VertexComponent,
   VertexComponentProps,
 } from '@graph-render/types';
-import {
-  buildStageViews,
-  BracketThemeProvider,
-  getStageViewport,
-  injectTournamentPathKeys,
-  SquashNode,
-  routeBracketEdges,
-  roundLabelsForGraph,
-  NODE_DIMENSIONS,
-  NODE_DIMENSIONS_COMPACT,
-} from '@graph-render/tournament-tree';
-import type {
-  SquashNodeRenderMode,
-  StageView,
-  VerticalStagePosition,
-} from '@graph-render/tournament-tree';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 export interface BracketPlaygroundProps {
-  graph: NxGraphInput;
+  readonly graph: NxGraphInput;
 }
 
 type HighlightMode = 'match' | 'ancestry';
-type HoverState = { kind: 'node' | 'edge'; id: string } | null;
+type HoverState = { readonly kind: 'node' | 'edge'; readonly id: string } | null;
 const LIGHT_THEME: NonNullable<GraphConfig['theme']> = {
   background: '#ffffff',
   edgeColor: '#d9d6cf',
@@ -135,99 +134,117 @@ const toggleRowStyle: React.CSSProperties = {
 
 const iconSize = 18;
 
-const ZoomInIcon = () => (
-  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
-    <path
-      d="M11 8.25v5.5M8.25 11h5.5"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-    />
-    <path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
-
-const ZoomOutIcon = () => (
-  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
-    <path d="M8.25 11h5.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
-    <path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
-
-const FitViewIcon = () => (
-  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path
-      d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 20h-4v-4"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <rect x="8" y="8" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="2" />
-  </svg>
-);
-
-const DownloadIcon = () => (
-  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M12 4v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    <path
-      d="m8 10 4 4 4-4"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path d="M5 19h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-  </svg>
-);
-
-const DarkModeIcon = ({ active }: { active: boolean }) => (
-  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    {active ? (
-      <>
-        <path
-          d="M12 3v2M12 19v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M3 12h2M19 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
-        <circle cx="12" cy="12" r="4.5" stroke="currentColor" strokeWidth="2" />
-      </>
-    ) : (
+function ZoomInIcon() {
+  return (
+    <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
       <path
-        d="M20 15.5A8.5 8.5 0 0 1 8.5 4a8.5 8.5 0 1 0 11.5 11.5Z"
+        d="M11 8.25v5.5M8.25 11h5.5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ZoomOutIcon() {
+  return (
+    <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+      <path d="M8.25 11h5.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <path d="m20 20-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function FitViewIcon() {
+  return (
+    <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 20h-4v-4"
         stroke="currentColor"
         strokeWidth="2"
+        strokeLinecap="round"
         strokeLinejoin="round"
       />
-    )}
-  </svg>
-);
+      <rect x="8" y="8" width="8" height="8" rx="1.5" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
+}
 
-const SettingsIcon = () => (
-  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" stroke="currentColor" strokeWidth="2" />
-    <path
-      d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 0 1 0 2.8 2 2 0 0 1-2.8 0l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.2a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a2 2 0 0 1-2.8 0 2 2 0 0 1 0-2.8l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.2a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 0 1 0-2.8 2 2 0 0 1 2.8 0l.1.1a1 1 0 0 0 1.1.2 1 1 0 0 0 .6-.9V4a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.2a1 1 0 0 0 .6.9 1 1 0 0 0 1.1-.2l.1-.1a2 2 0 0 1 2.8 0 2 2 0 0 1 0 2.8l-.1.1a1 1 0 0 0-.2 1.1 1 1 0 0 0 .9.6H20a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.2a1 1 0 0 0-.9.6Z"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+function DownloadIcon() {
+  return (
+    <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 4v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="m8 10 4 4 4-4"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M5 19h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
 
-const StageNavigationIcon = () => (
-  <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <rect x="3.5" y="5" width="17" height="14" rx="3" stroke="currentColor" strokeWidth="1.8" />
-    <path d="M8.5 5v14M15.5 5v14" stroke="currentColor" strokeWidth="1.4" opacity="0.72" />
-    <circle cx="12" cy="12" r="2.2" fill="currentColor" />
-  </svg>
-);
+function DarkModeIcon({ active }: { readonly active: boolean }) {
+  return (
+    <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      {active ? (
+        <>
+          <path
+            d="M12 3v2M12 19v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M3 12h2M19 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
+          <circle cx="12" cy="12" r="4.5" stroke="currentColor" strokeWidth="2" />
+        </>
+      ) : (
+        <path
+          d="M20 15.5A8.5 8.5 0 0 1 8.5 4a8.5 8.5 0 1 0 11.5 11.5Z"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+      )}
+    </svg>
+  );
+}
 
-const areStringArraysEqual = (left: string[], right: string[]): boolean => {
+function SettingsIcon() {
+  return (
+    <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+      <path
+        d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 0 1 0 2.8 2 2 0 0 1-2.8 0l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.2a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a2 2 0 0 1-2.8 0 2 2 0 0 1 0-2.8l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.2a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 0 1 0-2.8 2 2 0 0 1 2.8 0l.1.1a1 1 0 0 0 1.1.2 1 1 0 0 0 .6-.9V4a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.2a1 1 0 0 0 .6.9 1 1 0 0 0 1.1-.2l.1-.1a2 2 0 0 1 2.8 0 2 2 0 0 1 0 2.8l-.1.1a1 1 0 0 0-.2 1.1 1 1 0 0 0 .9.6H20a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.2a1 1 0 0 0-.9.6Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function StageNavigationIcon() {
+  return (
+    <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3.5" y="5" width="17" height="14" rx="3" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8.5 5v14M15.5 5v14" stroke="currentColor" strokeWidth="1.4" opacity="0.72" />
+      <circle cx="12" cy="12" r="2.2" fill="currentColor" />
+    </svg>
+  );
+}
+
+const areStringArraysEqual = (left: readonly string[], right: readonly string[]): boolean => {
   if (left.length !== right.length) {
     return false;
   }
@@ -251,38 +268,38 @@ const getAncestryHighlight = (
   results: GraphSearchResults
 ): GraphSearchResults => {
   const reverse = new Map<string, Array<{ source: string; edgeId: string }>>();
-  Object.entries(graph.adj).forEach(([source, targets]) => {
-    Object.entries(targets).forEach(([target, rawAttrs]) => {
+  for (const [source, targets] of Object.entries(graph.adj)) {
+    for (const [target, rawAttrs] of Object.entries(targets)) {
       const edgeList = Array.isArray(rawAttrs) ? rawAttrs : [rawAttrs];
-      edgeList.forEach((attrs, index) => {
+      for (const [index, attrs] of edgeList.entries()) {
         const edgeId = attrs?.id ?? `${source}-${target}-${index}`;
         reverse.set(target, [...(reverse.get(target) ?? []), { source, edgeId }]);
-      });
-    });
-  });
+      }
+    }
+  }
 
   const nodeIds = new Set(results.nodeIds);
   const edgeIds = new Set(results.edgeIds);
   const stack = [...results.nodeIds];
 
-  while (stack.length) {
+  while (stack.length > 0) {
     const current = stack.pop();
     if (!current) {
       continue;
     }
 
-    (reverse.get(current) ?? []).forEach(({ source, edgeId }) => {
+    for (const { source, edgeId } of reverse.get(current) ?? []) {
       if (!nodeIds.has(source)) {
         nodeIds.add(source);
         stack.push(source);
       }
       edgeIds.add(edgeId);
-    });
+    }
   }
 
   return {
-    nodeIds: Array.from(nodeIds),
-    edgeIds: Array.from(edgeIds),
+    nodeIds: [...nodeIds],
+    edgeIds: [...edgeIds],
   };
 };
 
@@ -307,28 +324,28 @@ const serializeSvg = (container: HTMLDivElement | null): void => {
   const link = document.createElement('a');
   link.href = url;
   link.download = `tournament-bracket-${Date.now()}.svg`;
-  document.body.appendChild(link);
+  document.body.append(link);
   link.click();
-  document.body.removeChild(link);
+  link.remove();
   URL.revokeObjectURL(url);
 };
 
 const mergeBounds = (
   current: {
-    minX: number;
-    minY: number;
-    maxX: number;
-    maxY: number;
-    width: number;
-    height: number;
+    readonly minX: number;
+    readonly minY: number;
+    readonly maxX: number;
+    readonly maxY: number;
+    readonly width: number;
+    readonly height: number;
   } | null,
   next: {
-    minX: number;
-    minY: number;
-    maxX: number;
-    maxY: number;
-    width: number;
-    height: number;
+    readonly minX: number;
+    readonly minY: number;
+    readonly maxX: number;
+    readonly maxY: number;
+    readonly width: number;
+    readonly height: number;
   } | null
 ) => {
   if (!current) {
@@ -355,24 +372,24 @@ const mergeBounds = (
 };
 
 const getLabelBounds = (
-  nodes: PositionedNode[],
-  labels: string[],
+  nodes: readonly PositionedNode[],
+  labels: readonly string[],
   labelOffset: number,
   layout: GraphConfig['layout'],
   layoutDirection: GraphConfig['layoutDirection']
 ) => {
-  if (!nodes.length || !labels.length) {
+  if (nodes.length === 0 || labels.length === 0) {
     return null;
   }
 
   const columns = new Map<number, PositionedNode[]>();
-  nodes.forEach((node) => {
+  for (const node of nodes) {
     const column = columns.get(node.position.x) ?? [];
     column.push(node);
     columns.set(node.position.x, column);
-  });
+  }
 
-  const xs = Array.from(columns.keys()).sort((a, b) => a - b);
+  const xs = [...columns.keys()].sort((a, b) => a - b);
   const orderedXs =
     layout === LayoutType.Tree && layoutDirection === LayoutDirection.RTL ? [...xs].reverse() : xs;
   const minY = Math.min(...nodes.map((node) => node.position.y));
@@ -395,7 +412,7 @@ const getLabelBounds = (
 const getFitViewportForStory = (
   graph: NxGraphInput,
   config: GraphConfig,
-  labels: string[],
+  labels: readonly string[],
   width: number,
   height: number,
   minZoom: number,
@@ -483,8 +500,8 @@ const getFitViewportForStory = (
 const getStageViewsForStory = (
   graph: NxGraphInput,
   config: GraphConfig,
-  labels: string[]
-): StageView[] => {
+  labels: readonly string[]
+): readonly StageView[] => {
   const { nodes, edges } = fromNxGraph(graph, config.defaultEdgeType);
   const positionedNodes = layoutNodes({
     nodes,
@@ -506,7 +523,7 @@ const getStageViewsForStory = (
   return buildStageViews(positionedNodes, labels, config.labelOffset ?? 40);
 };
 
-export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
+export function BracketPlayground({ graph }: BracketPlaygroundProps) {
   const graphRef = useRef<GraphHandle | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -528,7 +545,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   const [routingStyle, setRoutingStyle] = useState<GraphConfig['routingStyle']>('orthogonal');
   const [nodeSizing, setNodeSizing] = useState<GraphConfig['nodeSizing']>('fixed');
   const [selectionMode, setSelectionMode] = useState<'single' | 'multiple'>('multiple');
-  const [renderMode, setRenderMode] = useState<SquashNodeRenderMode>('export');
+  const [renderMode, setRenderMode] = useState<SquashNodeRenderMode>(SquashNodeRenderMode.Export);
   const [isCompact, setIsCompact] = useState(true);
   const [highlightMode, setHighlightMode] = useState<HighlightMode>('ancestry');
   const [showViewportControls, setShowViewportControls] = useState(true);
@@ -540,7 +557,9 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     'Double-click a match to collapse or expand its subtree.'
   );
   const [activeStageIndex, setActiveStageIndex] = useState(0);
-  const [verticalStagePosition, setVerticalStagePosition] = useState<VerticalStagePosition>('top');
+  const [verticalStagePosition, setVerticalStagePosition] = useState<VerticalStagePosition>(
+    VerticalStagePosition.Top
+  );
   const [canPagePlayersVertically, setCanPagePlayersVertically] = useState(false);
   const previousViewportRef = useRef<GraphViewport | null>(null);
   /** Always-up-to-date viewport for use in event handlers (avoids stale closures). */
@@ -658,7 +677,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   );
 
   const translateExtent = useMemo((): [[number, number], [number, number]] | undefined => {
-    if (!stageViews.length) return undefined;
+    if (stageViews.length === 0) return undefined;
     const pad = 64;
     const minX = Math.min(...stageViews.map((s) => s.bounds.minX)) - pad;
     const minY = Math.min(...stageViews.map((s) => s.bounds.minY)) - pad;
@@ -671,7 +690,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   }, [stageViews]);
 
   const computedMinZoom = useMemo(() => {
-    if (!stageViews.length || !canvasSize.width || !canvasSize.height) return 0.05;
+    if (stageViews.length === 0 || !canvasSize.width || !canvasSize.height) return 0.05;
     // Use the same computation as getFitViewportForStory so minZoom == fit zoom.
     // This prevents normalizeViewport from clamping the fit viewport's zoom.
     const fitViewport = getFitViewportForStory(
@@ -797,7 +816,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
     }
 
     previousViewportRef.current = viewport;
-    setVerticalStagePosition('top');
+    setVerticalStagePosition(VerticalStagePosition.Top);
     setActiveStageIndex(0);
     setIsStageNavigationMode(true);
     setStatusMessage(
@@ -810,7 +829,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   }, [stageViews.length]);
 
   useEffect(() => {
-    if (!isStageNavigationMode || !stageViews.length) {
+    if (!isStageNavigationMode || stageViews.length === 0) {
       return;
     }
 
@@ -818,21 +837,21 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   }, [activeStageIndex, focusStage, isStageNavigationMode, stageViews.length]);
 
   const handlePreviousStage = useCallback(() => {
-    setVerticalStagePosition('top');
+    setVerticalStagePosition(VerticalStagePosition.Top);
     setActiveStageIndex((current) => Math.max(current - 1, 0));
   }, []);
 
   const handleNextStage = useCallback(() => {
-    setVerticalStagePosition('top');
+    setVerticalStagePosition(VerticalStagePosition.Top);
     setActiveStageIndex((current) => Math.min(current + 1, stageViews.length - 1));
   }, [stageViews.length]);
 
   const handlePagePlayersUp = useCallback(() => {
-    setVerticalStagePosition('top');
+    setVerticalStagePosition(VerticalStagePosition.Top);
   }, []);
 
   const handlePagePlayersDown = useCallback(() => {
-    setVerticalStagePosition('bottom');
+    setVerticalStagePosition(VerticalStagePosition.Bottom);
   }, []);
 
   // ── Vertical scroll (mouse wheel) in slide mode ────────────────────────────
@@ -955,7 +974,7 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
   }, [isStageNavigationMode]);
 
   return (
-    <BracketThemeProvider mode={isDarkMode ? 'dark' : 'light'}>
+    <BracketThemeProvider mode={isDarkMode ? ThemeMode.Dark : ThemeMode.Light}>
       <div
         style={{
           display: 'flex',
@@ -1683,15 +1702,18 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                       type="button"
                       aria-label="Show upper players"
                       onClick={handlePagePlayersUp}
-                      disabled={verticalStagePosition === 'top'}
+                      disabled={verticalStagePosition === VerticalStagePosition.Top}
                       style={{
                         ...iconButtonBaseStyle,
                         background: isDarkMode
                           ? 'rgba(30, 41, 59, 0.96)'
                           : 'rgba(255, 255, 255, 0.96)',
                         color: isDarkMode ? '#e2e8f0' : '#0f172a',
-                        opacity: verticalStagePosition === 'top' ? 0.45 : 1,
-                        cursor: verticalStagePosition === 'top' ? 'default' : 'pointer',
+                        opacity: verticalStagePosition === VerticalStagePosition.Top ? 0.45 : 1,
+                        cursor:
+                          verticalStagePosition === VerticalStagePosition.Top
+                            ? 'default'
+                            : 'pointer',
                       }}
                     >
                       ↑
@@ -1700,15 +1722,18 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
                       type="button"
                       aria-label="Show lower players"
                       onClick={handlePagePlayersDown}
-                      disabled={verticalStagePosition === 'bottom'}
+                      disabled={verticalStagePosition === VerticalStagePosition.Bottom}
                       style={{
                         ...iconButtonBaseStyle,
                         background: isDarkMode
                           ? 'rgba(30, 41, 59, 0.96)'
                           : 'rgba(255, 255, 255, 0.96)',
                         color: isDarkMode ? '#e2e8f0' : '#0f172a',
-                        opacity: verticalStagePosition === 'bottom' ? 0.45 : 1,
-                        cursor: verticalStagePosition === 'bottom' ? 'default' : 'pointer',
+                        opacity: verticalStagePosition === VerticalStagePosition.Bottom ? 0.45 : 1,
+                        cursor:
+                          verticalStagePosition === VerticalStagePosition.Bottom
+                            ? 'default'
+                            : 'pointer',
                       }}
                     >
                       ↓
@@ -1722,6 +1747,6 @@ export const BracketPlayground = ({ graph }: BracketPlaygroundProps) => {
       </div>
     </BracketThemeProvider>
   );
-};
+}
 
 export default BracketPlayground;

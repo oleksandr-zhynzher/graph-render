@@ -1,11 +1,14 @@
-import { PositionedNode } from './node';
-import { PositionedEdge } from './edge';
+import type { PositionedEdge } from './edge';
+import type { PositionedNode } from './node';
 
-export type NodeRenderer<TNode extends PositionedNode<any, any, any> = PositionedNode> = (
-  node: TNode
-) => string;
-export type EdgeRenderer<TEdge extends PositionedEdge<any, any> = PositionedEdge> = (
+export type NodeRenderer<TNode extends PositionedNode = PositionedNode> = (node: TNode) => string;
+export type EdgeRenderer<TEdge extends PositionedEdge = PositionedEdge> = (
   edge: TEdge,
   pathD: string,
-  theme: { edgeColor: string; edgeWidth: number; markerId: string; edgeLabelColor: string }
+  theme: {
+    readonly edgeColor: string;
+    readonly edgeWidth: number;
+    readonly markerId: string;
+    readonly edgeLabelColor: string;
+  }
 ) => string;

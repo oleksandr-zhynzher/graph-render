@@ -6,10 +6,10 @@ export function useStageSwipeNavigation({
   onNextStage,
   onPreviousStage,
 }: {
-  contentViewportRef: React.RefObject<HTMLDivElement | null>;
-  isNavigationMode: boolean;
-  onNextStage: () => void;
-  onPreviousStage: () => void;
+  readonly contentViewportRef: React.RefObject<HTMLDivElement | null>;
+  readonly isNavigationMode: boolean;
+  readonly onNextStage: () => void;
+  readonly onPreviousStage: () => void;
 }) {
   useEffect(() => {
     const container = contentViewportRef.current;
@@ -18,12 +18,16 @@ export function useStageSwipeNavigation({
     let startX = 0;
     let startY = 0;
     const onTouchStart = (event: TouchEvent) => {
-      startX = event.touches[0].clientX;
-      startY = event.touches[0].clientY;
+      const touch = event.touches[0];
+      if (!touch) return;
+      startX = touch.clientX;
+      startY = touch.clientY;
     };
     const onTouchEnd = (event: TouchEvent) => {
-      const dx = event.changedTouches[0].clientX - startX;
-      const dy = event.changedTouches[0].clientY - startY;
+      const touch = event.changedTouches[0];
+      if (!touch) return;
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
       if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
         if (dx < 0) onNextStage();
         else onPreviousStage();

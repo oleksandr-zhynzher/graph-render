@@ -1,20 +1,21 @@
+import type { EdgeId, PositionedEdge } from '@graph-render/types';
 import { useMemo, useState } from 'react';
-import type { PositionedEdge, EdgeId } from '@graph-render/types';
-import { traverseHighlightedPath } from '../utils/pathHighlight';
-import type { FocusedPath } from '../utils/pathHighlight';
-import { extractPathKeysFromNodes } from '../utils/pathKeys';
+
+import type { PositionedHoverNode } from '../utils/graphHoverMaps';
 import {
   buildEdgeById,
   buildEdgesByNodeId,
   buildIncomingEdgesByTarget,
   buildNodePositionMap,
 } from '../utils/graphHoverMaps';
-import type { PositionedHoverNode } from '../utils/graphHoverMaps';
 import { buildHoveredNodeStates, getHighlightedEdgeIds } from '../utils/graphHoverState';
+import type { FocusedPath } from '../utils/pathHighlight';
+import { traverseHighlightedPath } from '../utils/pathHighlight';
+import { extractPathKeysFromNodes } from '../utils/pathKeys';
 
 export function useGraphHover(
-  positionedNodes: PositionedHoverNode[],
-  positionedEdges: PositionedEdge[],
+  positionedNodes: readonly PositionedHoverNode[],
+  positionedEdges: readonly PositionedEdge[],
   hoverHighlight: boolean
 ) {
   const [hoveredEdgeId, setHoveredEdgeId] = useState<EdgeId | null>(null);
@@ -75,14 +76,14 @@ export function useGraphHover(
       pathHighlight
     );
 
-    if (!highlightIds.size) return positionedEdges;
+    if (highlightIds.size === 0) return positionedEdges;
 
     const front: PositionedEdge[] = [];
     const back: PositionedEdge[] = [];
-    positionedEdges.forEach((e) => {
+    for (const e of positionedEdges) {
       if (highlightIds.has(e.id)) front.push(e);
       else back.push(e);
-    });
+    }
     return [...back, ...front];
   }, [
     edgesByNodeId,

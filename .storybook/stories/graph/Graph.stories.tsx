@@ -1,35 +1,36 @@
-import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
 import { Graph } from '@graph-render/react';
 import type { NxGraphInput, VertexComponentProps } from '@graph-render/types';
+import type { Meta, StoryObj } from '@storybook/react';
 
-const DemoNode = ({ node }: VertexComponentProps) => (
-  <foreignObject
-    width={node.size?.width ?? 180}
-    height={node.size?.height ?? 72}
-    requiredExtensions="http://www.w3.org/1999/xhtml"
-  >
-    <div
-      style={{
-        boxSizing: 'border-box',
-        width: '100%',
-        height: '100%',
-        padding: 12,
-        borderRadius: 8,
-        background: '#1b1f2a',
-        color: '#e5ecff',
-        border: '1px solid #324569',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 4,
-        justifyContent: 'center',
-      }}
+function DemoNode({ node }: VertexComponentProps) {
+  return (
+    <foreignObject
+      width={node.size?.width ?? 180}
+      height={node.size?.height ?? 72}
+      requiredExtensions="http://www.w3.org/1999/xhtml"
     >
-      <strong style={{ fontSize: 14 }}>{node.label ?? node.id}</strong>
-      <small style={{ opacity: 0.8 }}>({node.id})</small>
-    </div>
-  </foreignObject>
-);
+      <div
+        style={{
+          boxSizing: 'border-box',
+          width: '100%',
+          height: '100%',
+          padding: 12,
+          borderRadius: 8,
+          background: '#1b1f2a',
+          color: '#e5ecff',
+          border: '1px solid #324569',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+          justifyContent: 'center',
+        }}
+      >
+        <strong style={{ fontSize: 14 }}>{node.label ?? node.id}</strong>
+        <small style={{ opacity: 0.8 }}>({node.id})</small>
+      </div>
+    </foreignObject>
+  );
+}
 
 const graphSimple: NxGraphInput = {
   nodes: {

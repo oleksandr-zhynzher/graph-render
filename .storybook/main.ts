@@ -1,4 +1,5 @@
-import path from 'path';
+import path from 'node:path';
+
 import type { StorybookConfig } from '@storybook/react-vite';
 
 const config: StorybookConfig = {
@@ -14,7 +15,7 @@ const config: StorybookConfig = {
   viteFinal: async (config) => {
     config.resolve = config.resolve || {};
     config.resolve.alias = {
-      ...(config.resolve.alias || {}),
+      ...config.resolve.alias,
       '@graph-render/types': path.resolve(__dirname, '../src/types/src'),
       '@graph-render/core': path.resolve(__dirname, '../src/core-graph-render/src'),
       '@graph-render/react': path.resolve(__dirname, '../src/react-graph-render/src'),

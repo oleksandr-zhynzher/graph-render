@@ -1,48 +1,49 @@
-import {
+import type {
   EdgeData,
   LayoutDirection,
   PositionedNode,
-  RouteEdgesOptions,
+  RoutingStyle,
   Size,
 } from '@graph-render/types';
 
-export type RoutingStyle = NonNullable<RouteEdgesOptions['routingStyle']>;
-export type OrthogonalRoutingStyle = Extract<RoutingStyle, 'orthogonal' | 'bundled'>;
+export { RoutingStyle } from '@graph-render/types';
 
-export type ParallelEdgeMeta = {
-  index: number;
-  total: number;
-  centeredOffset: number;
-};
+export type OrthogonalRoutingStyle = RoutingStyle.Orthogonal | RoutingStyle.Bundled;
 
-export type RoutingContextInput = {
-  source: PositionedNode;
-  target: PositionedNode;
-  sourceSize: Size;
-  targetSize: Size;
-  nodes: PositionedNode[];
-  useObstacleAvoidance: boolean;
-  isUndirected: boolean;
-  arrowPadding: number;
-  straight: boolean;
-  forceRightToLeft: boolean;
-  layoutDirection: LayoutDirection;
-  routingStyle: RoutingStyle;
-  edgeSeparation: number;
-  selfLoopRadius: number;
-};
+export interface ParallelEdgeMeta {
+  readonly index: number;
+  readonly total: number;
+  readonly centeredOffset: number;
+}
 
-export type RouteSingleEdgeInput = {
-  edge: EdgeData;
-  nodeMap: Map<string, PositionedNode>;
-  nodes: PositionedNode[];
-  useObstacleAvoidance: boolean;
-  arrowPadding: number;
-  straight: boolean;
-  forceRightToLeft: boolean;
-  layoutDirection: LayoutDirection;
-  routingStyle: RoutingStyle;
-  edgeSeparation: number;
-  selfLoopRadius: number;
-  parallelMeta: ParallelEdgeMeta;
-};
+export interface RoutingContextInput {
+  readonly source: PositionedNode;
+  readonly target: PositionedNode;
+  readonly sourceSize: Size;
+  readonly targetSize: Size;
+  readonly nodes: readonly PositionedNode[];
+  readonly useObstacleAvoidance: boolean;
+  readonly isUndirected: boolean;
+  readonly arrowPadding: number;
+  readonly straight: boolean;
+  readonly forceRightToLeft: boolean;
+  readonly layoutDirection: LayoutDirection;
+  readonly routingStyle: RoutingStyle;
+  readonly edgeSeparation: number;
+  readonly selfLoopRadius: number;
+}
+
+export interface RouteSingleEdgeInput {
+  readonly edge: EdgeData;
+  readonly nodeMap: ReadonlyMap<string, PositionedNode>;
+  readonly nodes: readonly PositionedNode[];
+  readonly useObstacleAvoidance: boolean;
+  readonly arrowPadding: number;
+  readonly straight: boolean;
+  readonly forceRightToLeft: boolean;
+  readonly layoutDirection: LayoutDirection;
+  readonly routingStyle: RoutingStyle;
+  readonly edgeSeparation: number;
+  readonly selfLoopRadius: number;
+  readonly parallelMeta: ParallelEdgeMeta;
+}

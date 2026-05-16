@@ -1,32 +1,33 @@
-import React from 'react';
 import type { EdgeComponent, PositionedEdge } from '@graph-render/types';
+import React from 'react';
+
 import { getEdgeRenderState } from '../utils/edgeRenderState';
 
 interface GraphEdgesLayerProps {
-  edges: PositionedEdge[];
-  EdgeComponent: EdgeComponent;
-  edgeColor: string;
-  edgeWidth: number;
-  curveEdges: boolean;
-  curveStrength: number;
-  edgeLabelColor?: string;
-  showArrows: boolean;
-  arrowMarkerId: string;
-  hoverArrowMarkerId: string;
-  hoverIncomingArrowMarkerId: string;
-  selectionArrowMarkerId: string;
-  hoverHighlight: boolean;
-  hoveredEdgeId: string | null;
-  hoveredNodeId: string | null;
-  pathHighlightEdges?: Set<string>;
-  selectedEdgeSet: Set<string>;
-  highlightedEdgeSet: Set<string>;
-  hoverEdgeColor: string;
-  hoverNodeOutColor: string;
-  selectionEdgeColor: string;
-  highlightColor: string;
-  onEdgeHoverChange: (edgeId: string, hovered: boolean) => void;
-  onEdgeSelection: (edge: PositionedEdge) => void;
+  readonly edges: readonly PositionedEdge[];
+  readonly EdgeComponent: EdgeComponent;
+  readonly edgeColor: string;
+  readonly edgeWidth: number;
+  readonly curveEdges: boolean;
+  readonly curveStrength: number;
+  readonly edgeLabelColor?: string | undefined;
+  readonly showArrows: boolean;
+  readonly arrowMarkerId: string;
+  readonly hoverArrowMarkerId: string;
+  readonly hoverIncomingArrowMarkerId: string;
+  readonly selectionArrowMarkerId: string;
+  readonly hoverHighlight: boolean;
+  readonly hoveredEdgeId: string | null;
+  readonly hoveredNodeId: string | null;
+  readonly pathHighlightEdges?: ReadonlySet<string> | undefined;
+  readonly selectedEdgeSet: ReadonlySet<string>;
+  readonly highlightedEdgeSet: ReadonlySet<string>;
+  readonly hoverEdgeColor: string;
+  readonly hoverNodeOutColor: string;
+  readonly selectionEdgeColor: string;
+  readonly highlightColor: string;
+  readonly onEdgeHoverChange: (edgeId: string, hovered: boolean) => void;
+  readonly onEdgeSelection: (edge: PositionedEdge) => void;
 }
 
 export const GraphEdgesLayer = React.memo(function GraphEdgesLayer({

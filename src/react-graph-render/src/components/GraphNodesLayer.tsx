@@ -1,33 +1,36 @@
-import React from 'react';
 import type { PositionedNode, Size, VertexComponent } from '@graph-render/types';
+import React from 'react';
+
 import { GraphNode } from './GraphNode';
 
 interface GraphNodesLayerProps {
-  nodes: PositionedNode[];
-  Vertex: VertexComponent;
-  selectedNodeSet: Set<string>;
-  focusedNodeId: string | null;
-  highlightedNodeSet: Set<string>;
-  activePathKey?: string;
-  activePathNodeIds?: Set<string>;
-  highlightColor: string;
-  selectionColor: string;
-  nodeBorderColor?: string;
-  nodeBorderWidth: number;
-  hoverNodeBorderColor: string;
-  hoverNodeBothColor: string;
-  hoverNodeInColor: string;
-  hoverNodeOutColor: string;
-  hoverNodeHighlight: boolean;
-  hoveredNodeStates: Map<string, { in?: boolean; out?: boolean }> | undefined;
-  onNodeMeasure?: (nodeId: string, size: Size) => void;
-  onNodeFocus: (nodeId: string) => void;
-  onNodeClick: (node: PositionedNode) => void;
-  onNodeDoubleClick: (node: PositionedNode) => void;
-  onNodeMouseEnter: (nodeId: string) => void;
-  onNodeMouseLeave: () => void;
-  onPathHover: (nodeId: string, sourceIndex: number, pathKey?: string) => void;
-  onPathLeave: () => void;
+  readonly nodes: readonly PositionedNode[];
+  readonly Vertex: VertexComponent;
+  readonly selectedNodeSet: ReadonlySet<string>;
+  readonly focusedNodeId: string | null;
+  readonly highlightedNodeSet: ReadonlySet<string>;
+  readonly activePathKey?: string | undefined;
+  readonly activePathNodeIds?: ReadonlySet<string> | undefined;
+  readonly highlightColor: string;
+  readonly selectionColor: string;
+  readonly nodeBorderColor?: string | undefined;
+  readonly nodeBorderWidth: number;
+  readonly hoverNodeBorderColor: string;
+  readonly hoverNodeBothColor: string;
+  readonly hoverNodeInColor: string;
+  readonly hoverNodeOutColor: string;
+  readonly hoverNodeHighlight: boolean;
+  readonly hoveredNodeStates:
+    | ReadonlyMap<string, { readonly in?: boolean; readonly out?: boolean }>
+    | undefined;
+  readonly onNodeMeasure?: ((nodeId: string, size: Size) => void) | undefined;
+  readonly onNodeFocus: (nodeId: string) => void;
+  readonly onNodeClick: (node: PositionedNode) => void;
+  readonly onNodeDoubleClick: (node: PositionedNode) => void;
+  readonly onNodeMouseEnter: (nodeId: string) => void;
+  readonly onNodeMouseLeave: () => void;
+  readonly onPathHover: (nodeId: string, sourceIndex: number, pathKey?: string | undefined) => void;
+  readonly onPathLeave: () => void;
 }
 
 export const GraphNodesLayer = React.memo(function GraphNodesLayer({

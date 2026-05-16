@@ -1,9 +1,9 @@
 import type { NodeData, Size } from '@graph-render/types';
 
 export const applyMeasuredNodeSizes = (
-  sourceNodes: NodeData[],
+  sourceNodes: readonly NodeData[],
   measuredNodeSizes: Record<string, Size>
-): NodeData[] =>
+): readonly NodeData[] =>
   sourceNodes.map((node) => ({
     ...node,
     measuredSize: measuredNodeSizes[node.id] ?? node.measuredSize,
@@ -11,7 +11,7 @@ export const applyMeasuredNodeSizes = (
 
 export const pruneMeasuredNodeSizes = (
   current: Record<string, Size>,
-  sourceNodes: NodeData[]
+  sourceNodes: readonly NodeData[]
 ): Record<string, Size> => {
   const validNodeIds = new Set(sourceNodes.map((node) => node.id));
   const nextEntries = Object.entries(current).filter(([nodeId]) => validNodeIds.has(nodeId));

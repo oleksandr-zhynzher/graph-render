@@ -1,12 +1,11 @@
-import React from 'react';
 import { getPlayerBadgeText } from '../../utils/squash';
 import { BODY_FONT_FAMILY } from './constants';
 import { SquashHtmlScoreSegments } from './SquashHtmlScoreSegments';
 import type { SquashPlayerRowProps } from './types';
 
 type SquashPlayerHtmlRowProps = SquashPlayerRowProps & {
-  nodeHeight: number;
-  scoreGroupWidth: number;
+  readonly nodeHeight: number;
+  readonly scoreGroupWidth: number;
 };
 
 export function SquashPlayerHtmlRow(props: SquashPlayerHtmlRowProps) {

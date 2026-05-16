@@ -1,20 +1,25 @@
-import { EdgeData, NodeData, Point, PositionedNode } from '@graph-render/types';
+import type { EdgeData, NodeData, Point, PositionedNode } from '@graph-render/types';
+
 import { DEFAULT_NODE_GAP, DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
 import { gridLayout } from './grid';
 
 const FORCE_LAYOUT_CACHE_LIMIT = 24;
 const MAX_SYNC_FORCE_NODES = 250;
+interface MutablePoint {
+  x: number;
+  y: number;
+}
 // NOTE: this cache is intentionally module-level so warm hits persist across
 // sequential renders of the same graph (common during viewport-only updates).
 // Trade-off: all <Graph> instances in the same JS bundle share the same 24-slot
 // LRU.  Keys include the full node/edge topology, so stale hits are extremely
 // unlikely.  If you mount many independent graphs with similar-but-distinct
 // topologies and see layout lag, increase FORCE_LAYOUT_CACHE_LIMIT.
-const forceLayoutCache = new Map<string, PositionedNode[]>();
+const forceLayoutCache = new Map<string, readonly PositionedNode[]>();
 
 const buildForceLayoutCacheKey = (
-  nodes: NodeData[],
-  edges: EdgeData[],
+  nodes: readonly NodeData[],
+  edges: readonly EdgeData[],
   pad: number,
   width: number,
   height: number,
@@ -43,7 +48,7 @@ const buildForceLayoutCacheKey = (
   }
 };
 
-const getCachedForceLayout = (cacheKey: string | null): PositionedNode[] | undefined => {
+const getCachedForceLayout = (cacheKey: string | null): readonly PositionedNode[] | undefined => {
   if (!cacheKey) {
     return undefined;
   }
@@ -55,14 +60,17 @@ const getCachedForceLayout = (cacheKey: string | null): PositionedNode[] | undef
 
   forceLayoutCache.delete(cacheKey);
   forceLayoutCache.set(cacheKey, cached);
-  return cached.map((node) => ({
-    ...node,
-    position: { ...node.position },
-    size: node.size ? { ...node.size } : undefined,
-  }));
+  return cached.map((node) => {
+    const size = node.size ? { ...node.size } : undefined;
+    return {
+      ...node,
+      position: { ...node.position },
+      ...(size ? { size } : {}),
+    };
+  });
 };
 
-const setCachedForceLayout = (cacheKey: string | null, nodes: PositionedNode[]): void => {
+const setCachedForceLayout = (cacheKey: string | null, nodes: readonly PositionedNode[]): void => {
   if (!cacheKey) {
     return;
   }
@@ -76,11 +84,14 @@ const setCachedForceLayout = (cacheKey: string | null, nodes: PositionedNode[]):
 
   forceLayoutCache.set(
     cacheKey,
-    nodes.map((node) => ({
-      ...node,
-      position: { ...node.position },
-      size: node.size ? { ...node.size } : undefined,
-    }))
+    nodes.map((node) => {
+      const size = node.size ? { ...node.size } : undefined;
+      return {
+        ...node,
+        position: { ...node.position },
+        ...(size ? { size } : {}),
+      };
+    })
   );
 };
 
@@ -100,7 +111,10 @@ const clampPoint = (
   };
 };
 
-const getRequiredPoint = (points: Map<string, Point>, nodeId: string): Point => {
+const getRequiredPoint = <TPoint extends Point>(
+  points: ReadonlyMap<string, TPoint>,
+  nodeId: string
+): TPoint => {
   const point = points.get(nodeId);
 
   if (!point) {
@@ -111,14 +125,14 @@ const getRequiredPoint = (points: Map<string, Point>, nodeId: string): Point => 
 };
 
 export const forceDirectedLayout = (
-  nodes: NodeData[],
-  edges: EdgeData[],
+  nodes: readonly NodeData[],
+  edges: readonly EdgeData[],
   pad: number = DEFAULT_PADDING,
-  width: number = 960,
-  height: number = 720,
+  width = 960,
+  height = 720,
   gap: number = DEFAULT_NODE_GAP
-): PositionedNode[] => {
-  if (!nodes.length) {
+): readonly PositionedNode[] => {
+  if (nodes.length === 0) {
     return [];
   }
 
@@ -134,30 +148,33 @@ export const forceDirectedLayout = (
 
   const area = Math.max((width - pad * 2) * (height - pad * 2), 1);
   const k = Math.sqrt(area / Math.max(nodes.length, 1));
-  const positions = new Map<string, Point>();
+  const positions = new Map<string, MutablePoint>();
   // FIX: removed the `adjacency` Map that was built here but never read by the
   // algorithm.  Repulsion iterates node pairs directly; attraction iterates the
   // `edges` array directly.  Building the map was O(e) wasted work per layout call.
 
-  nodes.forEach((node, index) => {
+  for (const [index, node] of nodes.entries()) {
     const angle = (2 * Math.PI * index) / Math.max(nodes.length, 1);
     const radius = Math.min(width, height) * 0.25;
     positions.set(node.id, {
       x: width / 2 + radius * Math.cos(angle),
       y: height / 2 + radius * Math.sin(angle),
     });
-  });
+  }
 
   // FIX: removed the edges.forEach that populated `adjacency` (now deleted).
   // The attraction-force loop below already iterates `edges` directly.
   for (let iteration = 0; iteration < 80; iteration += 1) {
-    const displacement = new Map<string, Point>();
-    nodes.forEach((node) => displacement.set(node.id, { x: 0, y: 0 }));
+    const displacement = new Map<string, MutablePoint>();
+    for (const node of nodes) displacement.set(node.id, { x: 0, y: 0 });
 
     for (let i = 0; i < nodes.length; i += 1) {
       for (let j = i + 1; j < nodes.length; j += 1) {
         const source = nodes[i];
         const target = nodes[j];
+        if (!source || !target) {
+          continue;
+        }
         const sourcePos = getRequiredPoint(positions, source.id);
         const targetPos = getRequiredPoint(positions, target.id);
         const dx = sourcePos.x - targetPos.x;
@@ -175,7 +192,7 @@ export const forceDirectedLayout = (
       }
     }
 
-    edges.forEach((edge) => {
+    for (const edge of edges) {
       const sourcePos = getRequiredPoint(positions, edge.source);
       const targetPos = getRequiredPoint(positions, edge.target);
       const dx = sourcePos.x - targetPos.x;
@@ -190,10 +207,10 @@ export const forceDirectedLayout = (
       sourceDisp.y -= offsetY;
       targetDisp.x += offsetX;
       targetDisp.y += offsetY;
-    });
+    }
 
     const temperature = Math.max(2, gap * (1 - iteration / 80));
-    nodes.forEach((node) => {
+    for (const node of nodes) {
       const point = getRequiredPoint(positions, node.id);
       const disp = getRequiredPoint(displacement, node.id);
       const magnitude = Math.max(1, Math.hypot(disp.x, disp.y));
@@ -202,7 +219,7 @@ export const forceDirectedLayout = (
         y: point.y + (disp.y / magnitude) * Math.min(magnitude, temperature),
       };
       positions.set(node.id, clampPoint(nextPoint, width, height, pad, node));
-    });
+    }
   }
 
   const positionedNodes = nodes.map((node) => {
@@ -215,7 +232,7 @@ export const forceDirectedLayout = (
         x: point.x - size.width / 2,
         y: point.y - size.height / 2,
       },
-    } as PositionedNode;
+    };
   });
 
   setCachedForceLayout(cacheKey, positionedNodes);

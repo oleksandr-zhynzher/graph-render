@@ -1,15 +1,15 @@
 import React from 'react';
 
 interface GraphNodeFrameProps {
-  width: number;
-  height: number;
-  radius: number;
-  borderStroke?: string;
-  borderOpacity: number;
-  borderWidth: number;
-  isFocused: boolean;
-  selectionColor: string;
-  focusStrokeWidth: number;
+  readonly width: number;
+  readonly height: number;
+  readonly radius: number;
+  readonly borderStroke?: string | undefined;
+  readonly borderOpacity: number;
+  readonly borderWidth: number;
+  readonly isFocused: boolean;
+  readonly selectionColor: string;
+  readonly focusStrokeWidth: number;
 }
 
 export const GraphNodeFrame = React.memo(function GraphNodeFrame({

@@ -1,18 +1,19 @@
 import { BracketToolbar } from '../BracketToolbar';
 import { TrophyIcon } from '../icons';
+import type { SquashThemeColors } from '../SquashNode/types';
 
-type BracketHeaderProps = {
-  title: string;
-  badgeText: string;
-  compact: boolean;
-  isDarkMode: boolean;
-  isNavigationMode: boolean;
-  showToolbar: boolean;
-  colors: Record<string, string>;
-  onToggleNavigationMode: () => void;
-  onToggleDarkMode: () => void;
-  onExportSVG: () => void;
-};
+interface BracketHeaderProps {
+  readonly title: string;
+  readonly badgeText: string;
+  readonly compact: boolean;
+  readonly isDarkMode: boolean;
+  readonly isNavigationMode: boolean;
+  readonly showToolbar: boolean;
+  readonly colors: SquashThemeColors;
+  readonly onToggleNavigationMode: () => void;
+  readonly onToggleDarkMode: () => void;
+  readonly onExportSVG: () => void;
+}
 
 export function BracketHeader({
   title,

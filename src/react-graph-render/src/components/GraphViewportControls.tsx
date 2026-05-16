@@ -1,5 +1,6 @@
+import { GraphControlsPosition } from '@graph-render/types';
 import React, { useMemo } from 'react';
-import type { GraphControlsPosition } from '@graph-render/types';
+
 import {
   CONTROL_BUTTON_GAP,
   CONTROL_BUTTON_SIZE,
@@ -7,34 +8,37 @@ import {
 } from '../constants/graph';
 
 interface GraphViewportControlsProps {
-  width: number;
-  height: number;
-  position: GraphControlsPosition;
-  zoomIn: () => void;
-  zoomOut: () => void;
-  fitView: () => void;
-  resetViewport: () => void;
+  readonly width: number;
+  readonly height: number;
+  readonly position: GraphControlsPosition;
+  readonly zoomIn: () => void;
+  readonly zoomOut: () => void;
+  readonly fitView: () => void;
+  readonly resetViewport: () => void;
 }
 
 const getControlPosition = (
   width: number,
   height: number,
   position: GraphControlsPosition
-): { x: number; y: number } => {
+): { readonly x: number; readonly y: number } => {
   const controlsWidth =
     2 * CONTROL_BUTTON_SIZE + 2 * CONTROL_LABEL_BUTTON_WIDTH + CONTROL_BUTTON_GAP * 3;
   const inset = 12;
 
   switch (position) {
-    case 'top-right':
+    case GraphControlsPosition.TopRight: {
       return { x: width - controlsWidth - inset, y: inset };
-    case 'bottom-left':
+    }
+    case GraphControlsPosition.BottomLeft: {
       return { x: inset, y: height - CONTROL_BUTTON_SIZE - inset };
-    case 'bottom-right':
+    }
+    case GraphControlsPosition.BottomRight: {
       return { x: width - controlsWidth - inset, y: height - CONTROL_BUTTON_SIZE - inset };
-    case 'top-left':
-    default:
+    }
+    default: {
       return { x: inset, y: inset };
+    }
   }
 };
 
@@ -45,8 +49,10 @@ const CONTROL_DEFS = [
   { key: 'reset-view', label: '1:1', width: CONTROL_LABEL_BUTTON_WIDTH },
 ] as const;
 
-const CONTROL_X_POSITIONS = CONTROL_DEFS.reduce<number[]>((acc, def, i) => {
-  acc.push(i === 0 ? 0 : acc[i - 1] + CONTROL_DEFS[i - 1].width + CONTROL_BUTTON_GAP);
+const CONTROL_X_POSITIONS = CONTROL_DEFS.reduce<number[]>((acc, _def, i) => {
+  const previousX = acc[i - 1] ?? 0;
+  const previousWidth = CONTROL_DEFS[i - 1]?.width ?? 0;
+  acc.push(i === 0 ? 0 : previousX + previousWidth + CONTROL_BUTTON_GAP);
   return acc;
 }, []);
 
@@ -73,6 +79,9 @@ export const GraphViewportControls = React.memo(function GraphViewportControls({
       {CONTROL_DEFS.map((def, i) => {
         const x = CONTROL_X_POSITIONS[i];
         const onClick = callbacks[i];
+        if (x === undefined || !onClick) {
+          return null;
+        }
         return (
           <g
             key={def.key}

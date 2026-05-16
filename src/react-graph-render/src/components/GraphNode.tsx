@@ -1,36 +1,43 @@
-import React, { useCallback } from 'react';
 import type { PositionedNode, Size, VertexComponent } from '@graph-render/types';
+import React, { useCallback } from 'react';
+
+import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_RADIUS, DEFAULT_NODE_WIDTH } from '../constants/graph';
 import { useGraphNodeMeasurement } from '../hooks/useGraphNodeMeasurement';
 import { getGraphNodeFrameState } from '../utils/graphNodeFrame';
 import { GraphNodeFrame } from './GraphNodeFrame';
-import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_RADIUS, DEFAULT_NODE_WIDTH } from '../constants/graph';
 
 interface GraphNodeProps {
-  node: PositionedNode;
-  Vertex: VertexComponent;
-  isSelected: boolean;
-  isFocused: boolean;
-  isHighlighted: boolean;
-  activePathKey?: string;
-  activePathNodeIds?: Set<string>;
-  highlightColor: string;
-  selectionColor: string;
-  nodeBorderColor?: string;
-  nodeBorderWidth: number;
-  hoverNodeBorderColor: string;
-  hoverNodeBothColor: string;
-  hoverNodeInColor: string;
-  hoverNodeOutColor: string;
-  hoverNodeHighlight: boolean;
-  hoveredNodeStates: Map<string, { in?: boolean; out?: boolean }> | undefined;
-  onNodeMeasure?: (nodeId: string, size: Size) => void;
-  onNodeFocus?: (nodeId: string) => void;
-  onNodeClick?: (node: PositionedNode) => void;
-  onNodeDoubleClick?: (node: PositionedNode) => void;
-  onNodeMouseEnter: (nodeId: string) => void;
-  onNodeMouseLeave: () => void;
-  onPathHover: (nodeId: string, sourceIndex: number, playerKey?: string) => void;
-  onPathLeave: () => void;
+  readonly node: PositionedNode;
+  readonly Vertex: VertexComponent;
+  readonly isSelected: boolean;
+  readonly isFocused: boolean;
+  readonly isHighlighted: boolean;
+  readonly activePathKey?: string | undefined;
+  readonly activePathNodeIds?: ReadonlySet<string> | undefined;
+  readonly highlightColor: string;
+  readonly selectionColor: string;
+  readonly nodeBorderColor?: string | undefined;
+  readonly nodeBorderWidth: number;
+  readonly hoverNodeBorderColor: string;
+  readonly hoverNodeBothColor: string;
+  readonly hoverNodeInColor: string;
+  readonly hoverNodeOutColor: string;
+  readonly hoverNodeHighlight: boolean;
+  readonly hoveredNodeStates:
+    | ReadonlyMap<string, { readonly in?: boolean; readonly out?: boolean }>
+    | undefined;
+  readonly onNodeMeasure?: ((nodeId: string, size: Size) => void) | undefined;
+  readonly onNodeFocus?: ((nodeId: string) => void) | undefined;
+  readonly onNodeClick?: ((node: PositionedNode) => void) | undefined;
+  readonly onNodeDoubleClick?: ((node: PositionedNode) => void) | undefined;
+  readonly onNodeMouseEnter: (nodeId: string) => void;
+  readonly onNodeMouseLeave: () => void;
+  readonly onPathHover: (
+    nodeId: string,
+    sourceIndex: number,
+    playerKey?: string | undefined
+  ) => void;
+  readonly onPathLeave: () => void;
 }
 
 export const GraphNode = React.memo<GraphNodeProps>(
@@ -117,7 +124,10 @@ export const GraphNode = React.memo<GraphNodeProps>(
     );
 
     const handlePathHover = useCallback(
-      (sourceIndex: number | null, opts?: { pathKey?: string; playerKey?: string }) => {
+      (
+        sourceIndex: number | null,
+        opts?: { pathKey?: string | undefined; playerKey?: string | undefined }
+      ) => {
         if (sourceIndex !== null) {
           onPathHover(node.id, sourceIndex, opts?.pathKey ?? opts?.playerKey);
         }
@@ -132,7 +142,7 @@ export const GraphNode = React.memo<GraphNodeProps>(
         data-graph-node-interactive="true"
         role="button"
         tabIndex={0}
-        aria-selected={isSelected}
+        aria-pressed={isSelected}
         onMouseDown={handleMouseDown}
         onFocus={handleFocus}
         onClick={handleClick}

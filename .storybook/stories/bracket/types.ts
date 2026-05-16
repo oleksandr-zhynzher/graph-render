@@ -4,21 +4,21 @@ export type Stage32 = 'R32' | 'R16' | 'QF' | 'SF' | 'Final';
 export type Stage16 = 'R16' | 'QF' | 'SF' | 'Final';
 
 export interface Player {
-  name: string;
-  seed: number;
-  country?: string;
+  readonly name: string;
+  readonly seed: number;
+  readonly country?: string;
 }
 
 export interface MatchMeta<S extends string = Stage16 | Stage32> {
-  stage: S;
-  players: [Player, Player];
-  sets?: Array<[number, number]>;
-  score?: string;
+  readonly stage: S;
+  readonly players: readonly [Player, Player];
+  readonly sets?: ReadonlyArray<readonly [number, number]>;
+  readonly score?: string;
 }
 
 export interface MatchNode<S extends string = Stage16 | Stage32> extends NxNodeAttrs {
-  label: string;
-  position?: { x: number; y: number };
-  size?: { width: number; height: number };
-  meta?: MatchMeta<S>;
+  readonly label: string;
+  readonly position?: { readonly x: number; readonly y: number };
+  readonly size?: { readonly width: number; readonly height: number };
+  readonly meta?: MatchMeta<S>;
 }

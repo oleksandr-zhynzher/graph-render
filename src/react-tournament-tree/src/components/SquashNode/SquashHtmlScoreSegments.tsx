@@ -1,15 +1,16 @@
 import React from 'react';
+
 import { truncateText } from '../../utils/squash';
 import { SCORE_FONT_FAMILY, SCORE_SEGMENT_WIDTH, SCORE_SEPARATOR_HEIGHT } from './constants';
 import type { SquashThemeColors } from './types';
 
-type SquashHtmlScoreSegmentsProps = {
-  nodeId: string;
-  playerIndex: number;
-  scoreSegments: string[];
-  textColor: string;
-  colors: SquashThemeColors;
-};
+interface SquashHtmlScoreSegmentsProps {
+  readonly nodeId: string;
+  readonly playerIndex: number;
+  readonly scoreSegments: readonly string[];
+  readonly textColor: string;
+  readonly colors: SquashThemeColors;
+}
 
 export function SquashHtmlScoreSegments({
   nodeId,
