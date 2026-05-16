@@ -10,20 +10,27 @@ import {
   NAVIGATION_STAGE_PADDING_Y,
 } from '../constants/stageNavigation';
 
+/**
+ * @param targetWorldHeight - optional world-space height to fit into the viewport instead of the
+ *   full stage bounds height. Use this to zoom in closer, e.g. to show only a few items at once.
+ *   When provided the vertical axis zoom is computed as `viewportHeight / targetWorldHeight`
+ *   (still clamped to min/max zoom).
+ */
 export function getStageViewport(
   bounds: StageBounds,
   width: number,
   height: number,
-  verticalPosition: VerticalStagePosition = VerticalStagePosition.Top
+  verticalPosition: VerticalStagePosition = VerticalStagePosition.Top,
+  targetWorldHeight?: number
 ): StageViewportResult {
   const targetWidth = Math.max(
     bounds.width + NAVIGATION_STAGE_PADDING_X * 2,
     NAVIGATION_STAGE_MIN_WIDTH
   );
-  const targetHeight = Math.max(
-    bounds.height + NAVIGATION_STAGE_PADDING_Y * 2,
-    NAVIGATION_STAGE_MIN_HEIGHT
-  );
+  const targetHeight =
+    targetWorldHeight !== undefined
+      ? targetWorldHeight
+      : Math.max(bounds.height + NAVIGATION_STAGE_PADDING_Y * 2, NAVIGATION_STAGE_MIN_HEIGHT);
   const zoom = Math.min(
     NAVIGATION_MAX_ZOOM,
     Math.max(NAVIGATION_MIN_ZOOM, Math.min(width / targetWidth, height / targetHeight))

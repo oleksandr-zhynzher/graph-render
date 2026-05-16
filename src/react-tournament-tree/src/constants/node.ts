@@ -10,6 +10,11 @@ export const NODE_DIMENSIONS_COMPACT = {
   HEIGHT: 56,
 } as const;
 
+export const NODE_DIMENSIONS_STAGE_NAV = {
+  WIDTH: 160,
+  HEIGHT: 44,
+} as const;
+
 export const THEME_COLORS_LIGHT = {
   BASE_BG: '#ffffff',
   SURFACE_BG: '#f7f6f3',

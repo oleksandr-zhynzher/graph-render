@@ -8,6 +8,7 @@ export {
   DEFAULT_TOURNAMENT_CONFIG,
   NODE_DIMENSIONS,
   NODE_DIMENSIONS_COMPACT,
+  NODE_DIMENSIONS_STAGE_NAV,
 } from './constants';
 export { ThemeMode } from './contexts/BracketThemeContext';
 export { BracketThemeProvider, useBracketTheme } from './contexts/BracketThemeContext';

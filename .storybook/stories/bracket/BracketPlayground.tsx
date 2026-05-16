@@ -7,7 +7,7 @@ import {
   getStageViewport,
   injectTournamentPathKeys,
   NODE_DIMENSIONS,
-  NODE_DIMENSIONS_COMPACT,
+  NODE_DIMENSIONS_STAGE_NAV,
   roundLabelsForGraph,
   routeBracketEdges,
   SquashNode,
@@ -16,20 +16,18 @@ import {
   VerticalStagePosition,
 } from '@graph-render/tournament-tree';
 import type {
-  EdgeType,
   GraphConfig,
   GraphHandle,
   GraphSearchResults,
   GraphSelection,
   GraphViewport,
-  LayoutDirection,
   NxGraphInput,
   PositionedEdge,
   PositionedNode,
   VertexComponent,
   VertexComponentProps,
 } from '@graph-render/types';
-import { LayoutType } from '@graph-render/types';
+import { EdgeType, LayoutDirection, LayoutType } from '@graph-render/types';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 export interface BracketPlaygroundProps {
@@ -565,21 +563,23 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
   /** Always-up-to-date viewport for use in event handlers (avoids stale closures). */
   const liveViewportRef = useRef<GraphViewport>(INITIAL_VIEWPORT);
 
+  const activeNodeSize = useMemo(
+    () => ({ width: NODE_DIMENSIONS_STAGE_NAV.WIDTH, height: NODE_DIMENSIONS_STAGE_NAV.HEIGHT }),
+    []
+  );
+
   const enrichedGraph = useMemo(() => {
     const withPaths = injectTournamentPathKeys(graph);
-    const targetSize = isCompact
-      ? { width: NODE_DIMENSIONS_COMPACT.WIDTH, height: NODE_DIMENSIONS_COMPACT.HEIGHT }
-      : { width: NODE_DIMENSIONS.WIDTH, height: NODE_DIMENSIONS.HEIGHT };
     return {
       ...withPaths,
       nodes: Object.fromEntries(
         Object.entries(withPaths.nodes ?? {}).map(([id, attrs]) => [
           id,
-          { ...attrs, size: targetSize },
+          { ...attrs, size: activeNodeSize },
         ])
       ),
     };
-  }, [graph, isCompact]);
+  }, [graph, activeNodeSize]);
   const labels = useMemo(() => roundLabelsForGraph(graph), [graph]);
 
   useEffect(() => {
@@ -624,12 +624,13 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
 
   const config = useMemo<GraphConfig>(() => {
     const dark = isDarkMode;
+    const baseTheme = dark ? DARK_THEME : LIGHT_THEME;
     return {
       layout,
       layoutDirection,
       width: canvasSize.width,
       height: canvasSize.height,
-      padding: isCompact ? 8 : 24,
+      padding: 8,
       defaultEdgeType: EdgeType.Undirected,
       curveEdges,
       curveStrength: 0.2,
@@ -639,30 +640,29 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
       hoverNodeInColor: dark ? '#9ab08d' : '#7c9070',
       hoverNodeOutColor: dark ? '#9ab08d' : '#7c9070',
       hoverNodeBothColor: dark ? '#9ab08d' : '#7c9070',
-      theme: dark
-        ? { ...DARK_THEME, nodeGap: isCompact ? 16 : DARK_THEME.nodeGap }
-        : { ...LIGHT_THEME, nodeGap: isCompact ? 16 : LIGHT_THEME.nodeGap },
+      theme: {
+        ...baseTheme,
+        nodeGap: 8,
+      },
       labelOffset: 40,
       labels: isStageNavigationMode ? undefined : labels,
       routingStyle,
-      edgeSeparation: isCompact ? 8 : 20,
+      edgeSeparation: 8,
       selfLoopRadius: 34,
       nodeSizing,
-      fixedNodeSize: isCompact
-        ? { width: NODE_DIMENSIONS_COMPACT.WIDTH, height: NODE_DIMENSIONS_COMPACT.HEIGHT }
-        : { width: NODE_DIMENSIONS.WIDTH, height: NODE_DIMENSIONS.HEIGHT },
+      fixedNodeSize: activeNodeSize,
       edgeLabelColor: dark ? '#e2e8f0' : '#334155',
       labelPillBackground: 'transparent',
       labelPillBorderColor: 'transparent',
       labelPillTextColor: dark ? '#d8d2c7' : '#444b55',
     };
   }, [
+    activeNodeSize,
     canvasSize.height,
     canvasSize.width,
     curveEdges,
     hoverHighlight,
     isDarkMode,
-    isCompact,
     isStageNavigationMode,
     labels,
     layout,
@@ -785,11 +785,17 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
       }
 
       const isLastStage = stageIndex === stageViews.length - 1;
+      // Show only 3 items vertically so the zoom is tight on mobile.
+      const visibleItems = 3;
+      const itemH = NODE_DIMENSIONS_STAGE_NAV.HEIGHT;
+      const gap = 8;
+      const targetWorldHeight = visibleItems * itemH + (visibleItems - 1) * gap;
       const nextStageViewport = getStageViewport(
         stage.bounds,
         Math.max(1, element.clientWidth),
         Math.max(1, element.clientHeight),
-        isLastStage ? 'center' : verticalStagePosition
+        isLastStage ? VerticalStagePosition.Center : verticalStagePosition,
+        targetWorldHeight
       );
 
       setCanPagePlayersVertically(nextStageViewport.canPageVertically);
@@ -1340,7 +1346,7 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
               onViewportChange={handleViewportChange}
               fitViewPadding={12}
               minZoom={computedMinZoom}
-              maxZoom={3}
+              maxZoom={isStageNavigationMode ? 5 : 3}
               zoomStep={0.12}
               translateExtent={isStageNavigationMode ? undefined : translateExtent}
               panEnabled={!isStageNavigationMode}
