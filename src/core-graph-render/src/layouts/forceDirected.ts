@@ -1,10 +1,9 @@
 import type { EdgeData, NodeData, Point, PositionedNode } from '@graph-render/types';
 
 import { DEFAULT_NODE_GAP, DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
+import { FORCE_LAYOUT_CACHE_LIMIT, MAX_SYNC_FORCE_NODES } from '../utils/constants';
 import { gridLayout } from './grid';
 
-const FORCE_LAYOUT_CACHE_LIMIT = 24;
-const MAX_SYNC_FORCE_NODES = 250;
 interface MutablePoint {
   x: number;
   y: number;

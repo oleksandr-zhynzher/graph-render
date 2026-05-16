@@ -1,9 +1,7 @@
 import type { PositionedNode } from '@graph-render/types';
 
-import { DEFAULT_NODE_WIDTH } from '../constants/graph';
+import { DEFAULT_COLUMN_TOLERANCE, DEFAULT_NODE_WIDTH } from '../constants/graph';
 import type { NodeColumn } from '../models/utils';
-
-const DEFAULT_COLUMN_TOLERANCE = 24;
 
 const getNodeWidth = (node: PositionedNode): number => node.size?.width ?? DEFAULT_NODE_WIDTH;
 

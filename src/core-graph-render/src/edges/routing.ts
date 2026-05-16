@@ -7,10 +7,9 @@ import {
   RoutingStyle,
 } from '@graph-render/types';
 
+import { MAX_COLLISION_SCAN_WORK } from '../utils/constants';
 import { buildParallelEdgeIndex, DEFAULT_PARALLEL_EDGE_META } from './routing/parallel';
 import { routeSingleEdge } from './routing/singleEdge';
-
-const MAX_COLLISION_SCAN_WORK = 20_000;
 
 /**
  * Route edges between nodes, calculating the path points for each edge

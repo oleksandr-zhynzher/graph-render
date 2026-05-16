@@ -1,10 +1,9 @@
 import type { NodeSide, Point } from '@graph-render/types';
 import { RoutingStyle } from '@graph-render/types';
 
+import { ORTHOGONAL_TERMINAL_SEGMENT } from '../../utils/constants';
 import { getSideNormal } from '../geometry';
 import type { OrthogonalRoutingStyle } from './types';
-
-const ORTHOGONAL_TERMINAL_SEGMENT = 20;
 
 export const calculateOrthogonalPoints = (
   startPoint: Point,

@@ -4,7 +4,9 @@ import React, { useMemo } from 'react';
 import {
   CONTROL_BUTTON_GAP,
   CONTROL_BUTTON_SIZE,
+  CONTROL_DEFS,
   CONTROL_LABEL_BUTTON_WIDTH,
+  CONTROL_X_POSITIONS,
 } from '../constants/graph';
 
 interface GraphViewportControlsProps {
@@ -41,20 +43,6 @@ const getControlPosition = (
     }
   }
 };
-
-const CONTROL_DEFS = [
-  { key: 'zoom-in', label: '+', width: CONTROL_BUTTON_SIZE },
-  { key: 'zoom-out', label: '−', width: CONTROL_BUTTON_SIZE },
-  { key: 'fit-view', label: 'Fit', width: CONTROL_LABEL_BUTTON_WIDTH },
-  { key: 'reset-view', label: '1:1', width: CONTROL_LABEL_BUTTON_WIDTH },
-] as const;
-
-const CONTROL_X_POSITIONS = CONTROL_DEFS.reduce<number[]>((acc, _def, i) => {
-  const previousX = acc[i - 1] ?? 0;
-  const previousWidth = CONTROL_DEFS[i - 1]?.width ?? 0;
-  acc.push(i === 0 ? 0 : previousX + previousWidth + CONTROL_BUTTON_GAP);
-  return acc;
-}, []);
 
 export const GraphViewportControls = React.memo(function GraphViewportControls({
   width,

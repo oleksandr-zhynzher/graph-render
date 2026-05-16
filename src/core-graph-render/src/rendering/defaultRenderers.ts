@@ -14,10 +14,8 @@ import {
   DEFAULT_TEXT_FILL,
   DEFAULT_TEXT_SIZE,
 } from '../utils';
+import { MAX_RENDER_LABEL_LENGTH, MAX_RENDER_LABEL_LINES } from '../utils/constants';
 import { escapeXml } from './utils';
-
-const MAX_RENDER_LABEL_LENGTH = 2000;
-const MAX_RENDER_LABEL_LINES = 8;
 
 /**
  * Extract label from node data

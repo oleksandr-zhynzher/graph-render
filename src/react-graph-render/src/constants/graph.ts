@@ -17,3 +17,19 @@ export const FIT_BOUNDS_MARGIN = 8;
 export const DEFAULT_NODE_HEIGHT = 72;
 export const DEFAULT_NODE_RADIUS = 8;
 export const DEFAULT_NODE_WIDTH = 180;
+
+export const DEFAULT_COLUMN_TOLERANCE = 24;
+
+export const CONTROL_DEFS = [
+  { key: 'zoom-in', label: '+', width: CONTROL_BUTTON_SIZE },
+  { key: 'zoom-out', label: '−', width: CONTROL_BUTTON_SIZE },
+  { key: 'fit-view', label: 'Fit', width: CONTROL_LABEL_BUTTON_WIDTH },
+  { key: 'reset-view', label: '1:1', width: CONTROL_LABEL_BUTTON_WIDTH },
+] as const;
+
+export const CONTROL_X_POSITIONS = CONTROL_DEFS.reduce<number[]>((acc, _def, i) => {
+  const previousX = acc[i - 1] ?? 0;
+  const previousWidth = CONTROL_DEFS[i - 1]?.width ?? 0;
+  acc.push(i === 0 ? 0 : previousX + previousWidth + CONTROL_BUTTON_GAP);
+  return acc;
+}, []);

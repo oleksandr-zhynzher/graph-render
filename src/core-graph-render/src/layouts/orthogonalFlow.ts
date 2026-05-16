@@ -6,13 +6,14 @@ import {
 } from '@graph-render/types';
 
 import { DEFAULT_NODE_GAP, DEFAULT_NODE_SIZE, DEFAULT_PADDING } from '../utils';
+import {
+  DEFAULT_HEIGHT,
+  DEFAULT_WIDTH,
+  VERTICAL_GAP_HEIGHT_RATIO,
+  VERTICAL_GAP_MIN,
+  VERTICAL_GAP_RATIO,
+} from '../utils/constants';
 import { assignDagLevels } from './treeTopology';
-
-const VERTICAL_GAP_RATIO = 0.45;
-const VERTICAL_GAP_MIN = 20;
-const VERTICAL_GAP_HEIGHT_RATIO = 0.3;
-const DEFAULT_WIDTH = 960;
-const DEFAULT_HEIGHT = 720;
 
 export const orthogonalFlowLayout = (
   nodes: readonly NodeData[],

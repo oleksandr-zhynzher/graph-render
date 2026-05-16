@@ -1,15 +1,16 @@
 import type { LayoutOptions, NodeData, Size } from '@graph-render/types';
 import { NodeSizingMode } from '@graph-render/types';
 
-import { DEFAULT_NODE_SIZE } from './constants';
-
-const DEFAULT_PADDING_X = 18;
-const DEFAULT_PADDING_Y = 12;
-const DEFAULT_CHAR_WIDTH = 8;
-const DEFAULT_LINE_HEIGHT = 18;
-const MAX_MEASUREMENT_TEXT_LENGTH = 4000;
-const MAX_MEASUREMENT_LINES = 200;
-const MAX_MEASUREMENT_CHARS_PER_LINE = 400;
+import {
+  DEFAULT_LABEL_CHAR_WIDTH,
+  DEFAULT_LABEL_LINE_HEIGHT,
+  DEFAULT_LABEL_PADDING_X,
+  DEFAULT_LABEL_PADDING_Y,
+  DEFAULT_NODE_SIZE,
+  MAX_MEASUREMENT_CHARS_PER_LINE,
+  MAX_MEASUREMENT_LINES,
+  MAX_MEASUREMENT_TEXT_LENGTH,
+} from './constants';
 
 const clampSize = (value: Size, fallback: Size): Size => ({
   width: Number.isFinite(value.width) && value.width > 0 ? value.width : fallback.width,
@@ -53,15 +54,17 @@ const estimateLabelSize = (node: NodeData, options: LayoutOptions): Size => {
   const label = getNodeLabel(node);
   const lines = getMeasuredLines(label);
   const paddingX =
-    node.measurementHints?.paddingX ?? options.labelMeasurementPaddingX ?? DEFAULT_PADDING_X;
+    node.measurementHints?.paddingX ?? options.labelMeasurementPaddingX ?? DEFAULT_LABEL_PADDING_X;
   const paddingY =
-    node.measurementHints?.paddingY ?? options.labelMeasurementPaddingY ?? DEFAULT_PADDING_Y;
+    node.measurementHints?.paddingY ?? options.labelMeasurementPaddingY ?? DEFAULT_LABEL_PADDING_Y;
   const charWidth =
     node.measurementHints?.estimatedCharWidth ??
     options.labelMeasurementCharWidth ??
-    DEFAULT_CHAR_WIDTH;
+    DEFAULT_LABEL_CHAR_WIDTH;
   const lineHeight =
-    node.measurementHints?.lineHeight ?? options.labelMeasurementLineHeight ?? DEFAULT_LINE_HEIGHT;
+    node.measurementHints?.lineHeight ??
+    options.labelMeasurementLineHeight ??
+    DEFAULT_LABEL_LINE_HEIGHT;
   let maxChars = 1;
   for (const line of lines) {
     const lineLength = [...line].length;

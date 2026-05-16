@@ -1,3 +1,5 @@
+import { CSS_COLOR_PATTERN, FONT_FAMILY_PATTERN } from '../utils/constants';
+
 export const escapeXml = (input: unknown): string => {
   const str = String(input ?? '');
   return str
@@ -7,11 +9,6 @@ export const escapeXml = (input: unknown): string => {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
 };
-
-const CSS_COLOR_PATTERN =
-  /^(#[\dA-Fa-f]{3,8}|(?:rgb|hsl)a?\([\d\s%+,.-]+\)|[A-Za-z][\dA-Za-z-]*|var\(--[\w-]+\))$/;
-
-const FONT_FAMILY_PATTERN = /^[\d\s"',a-z-]+$/i;
 
 export const sanitizeSvgId = (input: unknown, fallback: string): string => {
   const normalized = String(input ?? '')
