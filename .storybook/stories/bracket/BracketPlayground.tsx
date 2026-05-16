@@ -23,13 +23,13 @@ import type {
   GraphSelection,
   GraphViewport,
   LayoutDirection,
-  LayoutType,
   NxGraphInput,
   PositionedEdge,
   PositionedNode,
   VertexComponent,
   VertexComponentProps,
 } from '@graph-render/types';
+import { LayoutType } from '@graph-render/types';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 export interface BracketPlaygroundProps {
