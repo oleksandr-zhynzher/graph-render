@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { SCORE_FONT_FAMILY, SCORE_SEGMENT_WIDTH, SCORE_SEPARATOR_HEIGHT } from '../../constants';
+import type { SquashThemeColors } from '../../types/squashNode';
 import { truncateText } from '../../utils/squash';
-import { SCORE_FONT_FAMILY, SCORE_SEGMENT_WIDTH, SCORE_SEPARATOR_HEIGHT } from './constants';
-import type { SquashThemeColors } from './types';
 
 interface SquashHtmlScoreSegmentsProps {
   readonly nodeId: string;

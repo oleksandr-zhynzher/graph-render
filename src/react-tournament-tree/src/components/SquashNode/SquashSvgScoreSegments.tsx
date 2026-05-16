@@ -1,6 +1,6 @@
+import { SCORE_FONT_FAMILY, SCORE_SEPARATOR_HEIGHT } from '../../constants';
+import type { SquashThemeColors } from '../../types/squashNode';
 import { truncateText } from '../../utils/squash';
-import { SCORE_FONT_FAMILY, SCORE_SEPARATOR_HEIGHT } from './constants';
-import type { SquashThemeColors } from './types';
 
 interface SquashSvgScoreSegmentsProps {
   readonly nodeId: string;

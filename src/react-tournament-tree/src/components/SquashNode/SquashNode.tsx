@@ -2,9 +2,9 @@ import { SquashNodeRenderMode } from '@graph-render/types';
 import React from 'react';
 
 import { NODE_DIMENSIONS, NODE_DIMENSIONS_COMPACT } from '../../constants';
+import type { SquashNodeProps } from '../../types/squashNode';
 import { SquashNodeContent } from './SquashNodeContent';
 import { SquashNodeErrorBoundary } from './SquashNodeErrorBoundary';
-import type { SquashNodeProps } from './types';
 
 export const SquashNode = React.memo<SquashNodeProps>(function SquashNode({
   node,

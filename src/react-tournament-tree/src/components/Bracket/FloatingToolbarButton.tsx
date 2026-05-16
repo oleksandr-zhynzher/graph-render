@@ -1,5 +1,5 @@
+import type { SquashThemeColors } from '../../types/squashNode';
 import { StageNavigationIcon } from '../icons';
-import type { SquashThemeColors } from '../SquashNode/types';
 
 interface FloatingToolbarButtonProps {
   readonly isDarkMode: boolean;

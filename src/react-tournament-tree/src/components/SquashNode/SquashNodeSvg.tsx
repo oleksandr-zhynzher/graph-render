@@ -1,10 +1,14 @@
 import { MatchStatus } from '@graph-render/types';
 
-import { DEFAULT_PLAYERS } from '../../constants';
+import {
+  DEFAULT_PLAYERS,
+  NODE_BORDER_WIDTH,
+  SCORE_SEGMENT_GAP,
+  SCORE_SEGMENT_WIDTH,
+} from '../../constants';
+import type { SquashNodeVariantProps } from '../../types/squashNode';
 import { getScoreGroupWidth, getScoreSegments, normalizePlayerKey } from '../../utils/squash';
-import { NODE_BORDER_WIDTH, SCORE_SEGMENT_GAP, SCORE_SEGMENT_WIDTH } from './constants';
 import { SquashPlayerSvgRow } from './SquashPlayerSvgRow';
-import type { SquashNodeVariantProps } from './types';
 
 export function SquashNodeSvg(props: SquashNodeVariantProps) {
   const { nodeId, nodeWidth, nodeHeight, compact, colors, meta, setWins, winnerIndex } = props;

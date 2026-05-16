@@ -1,6 +1,6 @@
+import type { SquashThemeColors } from '../../types/squashNode';
 import { BracketToolbar } from '../BracketToolbar';
 import { TrophyIcon } from '../icons';
-import type { SquashThemeColors } from '../SquashNode/types';
 
 interface BracketHeaderProps {
   readonly title: string;

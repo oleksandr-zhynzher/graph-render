@@ -1,5 +1,5 @@
+import type { SquashThemeColors } from '../../types/squashNode';
 import { ChevronLeftIcon, ChevronRightIcon } from '../icons';
-import type { SquashThemeColors } from '../SquashNode/types';
 import { StageLabelGrid } from './stage-labels/StageLabelGrid';
 import { StageStepButton } from './stage-labels/StageStepButton';
 

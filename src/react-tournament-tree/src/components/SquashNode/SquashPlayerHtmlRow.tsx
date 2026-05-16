@@ -1,7 +1,7 @@
+import { BODY_FONT_FAMILY } from '../../constants';
+import type { SquashPlayerRowProps } from '../../types/squashNode';
 import { getPlayerBadgeText } from '../../utils/squash';
-import { BODY_FONT_FAMILY } from './constants';
 import { SquashHtmlScoreSegments } from './SquashHtmlScoreSegments';
-import type { SquashPlayerRowProps } from './types';
 
 type SquashPlayerHtmlRowProps = SquashPlayerRowProps & {
   readonly nodeHeight: number;

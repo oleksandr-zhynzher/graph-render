@@ -1,9 +1,9 @@
 import type { SquashNodeRenderMode } from '@graph-render/types';
 import type React from 'react';
 
+import { BODY_FONT_FAMILY } from '../../constants';
+import { isSvgCompatibleRenderMode } from '../../utils/renderMode';
 import { truncateText } from '../../utils/squash';
-import { BODY_FONT_FAMILY } from './constants';
-import { isSvgCompatibleRenderMode } from './renderMode';
 
 interface InvalidSquashNodeProps {
   readonly width: number;

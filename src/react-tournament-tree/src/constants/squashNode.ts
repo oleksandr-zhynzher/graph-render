@@ -1,6 +1,6 @@
 import type { SquashPlayer } from '@graph-render/types';
 
-import { DEFAULT_PLAYERS } from '../../constants';
+import { DEFAULT_PLAYERS } from './node';
 
 export const SCORE_FONT_FAMILY = '"Space Mono", "SFMono-Regular", ui-monospace, monospace';
 export const BODY_FONT_FAMILY = '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif';

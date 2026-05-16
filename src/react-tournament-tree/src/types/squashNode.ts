@@ -1,7 +1,7 @@
 import type { SquashNodeRenderMode, SquashPlayer, VertexComponentProps } from '@graph-render/types';
 
-import type { THEME_COLORS_DARK, THEME_COLORS_LIGHT } from '../../constants';
-import type { NormalizedSquashMatchMeta, SetWins } from '../../utils/squash';
+import type { THEME_COLORS_DARK, THEME_COLORS_LIGHT } from '../constants';
+import type { NormalizedSquashMatchMeta, SetWins } from '../utils/squash';
 
 export interface SquashNodeProps extends VertexComponentProps {
   readonly renderMode?: SquashNodeRenderMode | undefined;

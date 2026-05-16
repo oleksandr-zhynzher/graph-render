@@ -1,20 +1,24 @@
 import { SquashNodeRenderMode } from '@graph-render/types';
 import React, { useEffect, useState } from 'react';
 
-import { NODE_DIMENSIONS, NODE_DIMENSIONS_COMPACT } from '../../constants';
+import {
+  DEFAULT_PLAYER_ONE,
+  DEFAULT_PLAYER_TWO,
+  NODE_DIMENSIONS,
+  NODE_DIMENSIONS_COMPACT,
+} from '../../constants';
 import { useBracketTheme } from '../../contexts/BracketThemeContext';
+import type { SquashNodeProps } from '../../types/squashNode';
+import { ensureSquashNodeAnimations } from '../../utils/animations';
+import { isSvgCompatibleRenderMode } from '../../utils/renderMode';
 import {
   getCompletedWinnerIndex,
   getSetWins,
   normalizeMatchMeta,
   normalizePlayerKey,
 } from '../../utils/squash';
-import { ensureSquashNodeAnimations } from './animations';
-import { DEFAULT_PLAYER_ONE, DEFAULT_PLAYER_TWO } from './constants';
-import { isSvgCompatibleRenderMode } from './renderMode';
 import { SquashNodeHtml } from './SquashNodeHtml';
 import { SquashNodeSvg } from './SquashNodeSvg';
-import type { SquashNodeProps } from './types';
 
 export const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNodeContent({
   node,
