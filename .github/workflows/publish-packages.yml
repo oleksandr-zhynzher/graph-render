@@ -1,0 +1,36 @@
+name: Publish GitHub Packages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Publish to GitHub Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+          registry-url: https://npm.pkg.github.com
+          scope: '@graph-render'
+
+      - name: Install dependencies
+        run: HUSKY=0 yarn install --frozen-lockfile
+
+      - name: Build all packages
+        run: yarn build
+
+      - name: Publish packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+        run: node scripts/publish-github-packages.mjs

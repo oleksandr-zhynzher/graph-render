@@ -1,10 +1,10 @@
 ## @graph-render/types 1.2.0 (2026-05-17)
 
-* feat(tournament-tree): add configurable bracket appearance API (#10) ([b9e8adc](https://github.com/oleksandr-zhynzher/graph-render/commit/b9e8adc)), closes [#10](https://github.com/oleksandr-zhynzher/graph-render/issues/10)
-* docs: refocus READMEs on adopters and quick starts ([a8309aa](https://github.com/oleksandr-zhynzher/graph-render/commit/a8309aa))
-* refactor: graph rendering components ([35afb51](https://github.com/oleksandr-zhynzher/graph-render/commit/35afb51))
-* refactor: replace all hardcoded string literal types with enums ([65f5a6e](https://github.com/oleksandr-zhynzher/graph-render/commit/65f5a6e))
-* style: apply prettier formatting to changelogs ([f245bfe](https://github.com/oleksandr-zhynzher/graph-render/commit/f245bfe))
+- feat(tournament-tree): add configurable bracket appearance API (#10) ([b9e8adc](https://github.com/oleksandr-zhynzher/graph-render/commit/b9e8adc)), closes [#10](https://github.com/oleksandr-zhynzher/graph-render/issues/10)
+- docs: refocus READMEs on adopters and quick starts ([a8309aa](https://github.com/oleksandr-zhynzher/graph-render/commit/a8309aa))
+- refactor: graph rendering components ([35afb51](https://github.com/oleksandr-zhynzher/graph-render/commit/35afb51))
+- refactor: replace all hardcoded string literal types with enums ([65f5a6e](https://github.com/oleksandr-zhynzher/graph-render/commit/65f5a6e))
+- style: apply prettier formatting to changelogs ([f245bfe](https://github.com/oleksandr-zhynzher/graph-render/commit/f245bfe))
 
 ## @graph-render/types [1.1.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/types@1.0.2...@graph-render/types@1.1.0) (2026-05-13)
 

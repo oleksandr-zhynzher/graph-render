@@ -12,7 +12,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     # Prevent running on the version-bump commit that semantic-release itself pushes
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip ci]')
     permissions:
       contents: write
       packages: write
@@ -61,7 +61,15 @@ jobs:
           -p @semantic-release/release-notes-generator@14.0.0
           multi-semantic-release
 
+      - name: Setup Node.js for GitHub Packages
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: https://npm.pkg.github.com
+          scope: '@graph-render'
+
       - name: Publish to GitHub Packages
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
         run: node scripts/publish-github-packages.mjs

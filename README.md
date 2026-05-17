@@ -147,19 +147,23 @@ On every push to `main` or `master` (with a [Conventional Commit](https://www.co
 
 - **GitHub Releases** — one release per published package (`@graph-render/types`, `core`, `react`, `tournament-tree`)
 - **npm** — published to [npmjs.com](https://www.npmjs.com/org/graph-render) when `NPM_TOKEN` is configured in repo secrets
-- **GitHub Packages** — the same versions are published to `https://npm.pkg.github.com`
+- **GitHub Packages** — the same versions are published to `https://npm.pkg.github.com` (see note on scope below)
 
-Install from GitHub Packages:
+Install from GitHub Packages (personal repo — packages use the GitHub owner as scope):
 
 ```bash
 # ~/.npmrc
-@graph-render:registry=https://npm.pkg.github.com
+@oleksandr-zhynzher:registry=https://npm.pkg.github.com
 //npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
 ```
 
 ```bash
-yarn add @graph-render/tournament-tree
+yarn add @oleksandr-zhynzher/tournament-tree
 ```
+
+> **Scope note:** npm packages stay `@graph-render/*` on [npmjs.com](https://www.npmjs.com/org/graph-render). On GitHub Packages they are published as `@<github-owner>/*` (e.g. `@oleksandr-zhynzher/tournament-tree`) because GitHub requires the scope to match the repository owner. To use `@graph-render/*` on GitHub Packages, move the repo under a [GitHub organization](https://github.com/graph-render) named `graph-render`.
+
+To backfill packages without a new release, run the **Publish GitHub Packages** workflow under Actions.
 
 Storybook is deployed to GitHub Pages on the same branches via the **Deploy Storybook** workflow.
 

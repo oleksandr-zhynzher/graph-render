@@ -143,3 +143,4 @@ tmp/
 
 # Ephemeral auth config created by scripts/publish-github-packages.mjs
 **/.npmrc.publish
+**/*.gpr-backup

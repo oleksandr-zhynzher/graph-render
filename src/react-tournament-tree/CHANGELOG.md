@@ -1,16 +1,12 @@
 ## @graph-render/tournament-tree 1.5.0 (2026-05-17)
 
-* feat(tournament-tree): add configurable bracket appearance API (#10) ([b9e8adc](https://github.com/oleksandr-zhynzher/graph-render/commit/b9e8adc)), closes [#10](https://github.com/oleksandr-zhynzher/graph-render/issues/10)
-* docs: refocus READMEs on adopters and quick starts ([a8309aa](https://github.com/oleksandr-zhynzher/graph-render/commit/a8309aa))
-
-
-
-
+- feat(tournament-tree): add configurable bracket appearance API (#10) ([b9e8adc](https://github.com/oleksandr-zhynzher/graph-render/commit/b9e8adc)), closes [#10](https://github.com/oleksandr-zhynzher/graph-render/issues/10)
+- docs: refocus READMEs on adopters and quick starts ([a8309aa](https://github.com/oleksandr-zhynzher/graph-render/commit/a8309aa))
 
 ### Dependencies
 
-* **@graph-render/react:** upgraded to 1.4.0
-* **@graph-render/types:** upgraded to 1.2.0
+- **@graph-render/react:** upgraded to 1.4.0
+- **@graph-render/types:** upgraded to 1.2.0
 
 ## @graph-render/tournament-tree [1.4.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/tournament-tree@1.3.0...@graph-render/tournament-tree@1.4.0) (2026-05-16)
 
