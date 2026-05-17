@@ -1,20 +1,16 @@
 ## @graph-render/react 1.4.0 (2026-05-17)
 
-* feat(tournament-tree): add configurable bracket appearance API (#10) ([b9e8adc](https://github.com/oleksandr-zhynzher/graph-render/commit/b9e8adc)), closes [#10](https://github.com/oleksandr-zhynzher/graph-render/issues/10)
-* docs: refocus READMEs on adopters and quick starts ([a8309aa](https://github.com/oleksandr-zhynzher/graph-render/commit/a8309aa))
-* refactor: graph rendering components ([35afb51](https://github.com/oleksandr-zhynzher/graph-render/commit/35afb51))
-* refactor: move inline constants to constants files ([7fcaaa6](https://github.com/oleksandr-zhynzher/graph-render/commit/7fcaaa6))
-* refactor: replace all hardcoded string literal types with enums ([65f5a6e](https://github.com/oleksandr-zhynzher/graph-render/commit/65f5a6e))
-* style: apply prettier formatting to changelogs ([f245bfe](https://github.com/oleksandr-zhynzher/graph-render/commit/f245bfe))
-
-
-
-
+- feat(tournament-tree): add configurable bracket appearance API (#10) ([b9e8adc](https://github.com/oleksandr-zhynzher/graph-render/commit/b9e8adc)), closes [#10](https://github.com/oleksandr-zhynzher/graph-render/issues/10)
+- docs: refocus READMEs on adopters and quick starts ([a8309aa](https://github.com/oleksandr-zhynzher/graph-render/commit/a8309aa))
+- refactor: graph rendering components ([35afb51](https://github.com/oleksandr-zhynzher/graph-render/commit/35afb51))
+- refactor: move inline constants to constants files ([7fcaaa6](https://github.com/oleksandr-zhynzher/graph-render/commit/7fcaaa6))
+- refactor: replace all hardcoded string literal types with enums ([65f5a6e](https://github.com/oleksandr-zhynzher/graph-render/commit/65f5a6e))
+- style: apply prettier formatting to changelogs ([f245bfe](https://github.com/oleksandr-zhynzher/graph-render/commit/f245bfe))
 
 ### Dependencies
 
-* **@graph-render/core:** upgraded to 1.3.0
-* **@graph-render/types:** upgraded to 1.2.0
+- **@graph-render/core:** upgraded to 1.3.0
+- **@graph-render/types:** upgraded to 1.2.0
 
 ## @graph-render/react [1.3.0](https://github.com/oleksandr-zhynzher/graph-render/compare/@graph-render/react@1.2.0...@graph-render/react@1.3.0) (2026-05-13)
 
