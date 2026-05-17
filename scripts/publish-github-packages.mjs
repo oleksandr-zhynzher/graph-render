@@ -3,6 +3,7 @@ import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const REGISTRY = 'https://npm.pkg.github.com';
+const EXPECTED_SCOPE = '@graph-render';
 const token = process.env.GITHUB_TOKEN ?? process.env.NODE_AUTH_TOKEN;
 
 if (!token) {
@@ -14,7 +15,7 @@ const rootPkg = JSON.parse(readFileSync('package.json', 'utf8'));
 const workspaceDirs = rootPkg.workspaces ?? [];
 
 const npmrcContents = [
-  '@graph-render:registry=https://npm.pkg.github.com',
+  `${EXPECTED_SCOPE}:registry=${REGISTRY}`,
   `//npm.pkg.github.com/:_authToken=${token}`,
   'always-auth=true',
 ].join('\n');
@@ -25,9 +26,17 @@ let failed = 0;
 
 for (const dir of workspaceDirs) {
   const packageJsonPath = join(dir, 'package.json');
-  const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf8'));
+  const originalContents = readFileSync(packageJsonPath, 'utf8');
+  const pkg = JSON.parse(originalContents);
 
   if (pkg.private === true) {
+    continue;
+  }
+
+  if (!pkg.name?.startsWith(`${EXPECTED_SCOPE}/`)) {
+    console.error(`\n→ ${pkg.name ?? dir}`);
+    console.error(`  expected name to start with ${EXPECTED_SCOPE}/`);
+    failed += 1;
     continue;
   }
 
@@ -43,7 +52,21 @@ for (const dir of workspaceDirs) {
   }
 
   const npmrcPath = join(dir, '.npmrc.publish');
+  const backupPath = `${packageJsonPath}.gpr-backup`;
+
+  // package.json publishConfig.registry points at npmjs for semantic-release; override for GPR.
+  const publishPkg = {
+    ...pkg,
+    publishConfig: {
+      ...pkg.publishConfig,
+      access: 'public',
+      registry: REGISTRY,
+    },
+  };
+
   writeFileSync(npmrcPath, `${npmrcContents}\n`);
+  writeFileSync(backupPath, originalContents);
+  writeFileSync(packageJsonPath, `${JSON.stringify(publishPkg, null, 2)}\n`);
 
   console.log(`\n→ ${pkg.name}@${pkg.version}`);
 
@@ -72,6 +95,9 @@ for (const dir of workspaceDirs) {
       failed += 1;
     }
   } finally {
+    writeFileSync(packageJsonPath, readFileSync(backupPath, 'utf8'));
+    unlinkSync(backupPath);
+
     try {
       unlinkSync(npmrcPath);
     } catch {
