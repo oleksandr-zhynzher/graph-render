@@ -10,43 +10,14 @@ if (!token) {
   process.exit(1);
 }
 
-const repository = process.env.GITHUB_REPOSITORY ?? '';
-const repositoryOwner = repository.split('/')[0] ?? process.env.GITHUB_REPOSITORY_OWNER ?? '';
-
-if (!repositoryOwner) {
-  console.error('GITHUB_REPOSITORY or GITHUB_REPOSITORY_OWNER is required.');
-  process.exit(1);
-}
-
 const rootPkg = JSON.parse(readFileSync('package.json', 'utf8'));
 const workspaceDirs = rootPkg.workspaces ?? [];
 
 const npmrcContents = [
-  `@graph-render:registry=${REGISTRY}`,
-  `@${repositoryOwner}:registry=${REGISTRY}`,
+  '@graph-render:registry=https://npm.pkg.github.com',
   `//npm.pkg.github.com/:_authToken=${token}`,
   'always-auth=true',
 ].join('\n');
-
-const scopedNamePattern = /^@([^/]+)\/(.+)$/;
-
-const resolveGithubPackageName = (packageName) => {
-  const match = scopedNamePattern.exec(packageName);
-  if (!match) {
-    return packageName;
-  }
-
-  const [, scope, shortName] = match;
-  if (scope.toLowerCase() === repositoryOwner.toLowerCase()) {
-    return packageName;
-  }
-
-  const githubName = `@${repositoryOwner}/${shortName}`;
-  console.log(
-    `  scope @${scope} does not match GitHub owner ${repositoryOwner}; publishing as ${githubName}`
-  );
-  return githubName;
-};
 
 let published = 0;
 let skipped = 0;
@@ -71,19 +42,10 @@ for (const dir of workspaceDirs) {
     }
   }
 
-  const publishName = resolveGithubPackageName(pkg.name);
   const npmrcPath = join(dir, '.npmrc.publish');
-  const backupPath = `${packageJsonPath}.gpr-backup`;
-  const needsNamePatch = publishName !== pkg.name;
-
   writeFileSync(npmrcPath, `${npmrcContents}\n`);
 
-  if (needsNamePatch) {
-    writeFileSync(backupPath, readFileSync(packageJsonPath, 'utf8'));
-    writeFileSync(packageJsonPath, `${JSON.stringify({ ...pkg, name: publishName }, null, 2)}\n`);
-  }
-
-  console.log(`\n→ ${publishName}@${pkg.version}`);
+  console.log(`\n→ ${pkg.name}@${pkg.version}`);
 
   try {
     execSync(`npm publish --registry ${REGISTRY} --access public`, {
@@ -110,11 +72,6 @@ for (const dir of workspaceDirs) {
       failed += 1;
     }
   } finally {
-    if (needsNamePatch && existsSync(backupPath)) {
-      writeFileSync(packageJsonPath, readFileSync(backupPath, 'utf8'));
-      unlinkSync(backupPath);
-    }
-
     try {
       unlinkSync(npmrcPath);
     } catch {

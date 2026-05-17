@@ -1,15 +1,11 @@
 ## <small>1.4.1 (2026-05-17)</small>
 
-* fix(release): publish packages to GitHub Packages under repo owner scope (#11) ([98c8d69](https://github.com/oleksandr-zhynzher/graph-render/commit/98c8d69)), closes [#11](https://github.com/oleksandr-zhynzher/graph-render/issues/11)
-
-
-
-
+- fix(release): publish packages to GitHub Packages under repo owner scope (#11) ([98c8d69](https://github.com/oleksandr-zhynzher/graph-render/commit/98c8d69)), closes [#11](https://github.com/oleksandr-zhynzher/graph-render/issues/11)
 
 ### Dependencies
 
-* **@graph-render/core:** upgraded to 1.3.1
-* **@graph-render/types:** upgraded to 1.2.1
+- **@graph-render/core:** upgraded to 1.3.1
+- **@graph-render/types:** upgraded to 1.2.1
 
 ## @graph-render/react 1.4.0 (2026-05-17)
 
