@@ -1,15 +1,11 @@
 ## <small>1.5.2 (2026-05-17)</small>
 
-* fix(release): publish @graph-render packages without scope remapping (#12) ([19b35c6](https://github.com/oleksandr-zhynzher/graph-render/commit/19b35c6)), closes [#12](https://github.com/oleksandr-zhynzher/graph-render/issues/12)
-
-
-
-
+- fix(release): publish @graph-render packages without scope remapping (#12) ([19b35c6](https://github.com/oleksandr-zhynzher/graph-render/commit/19b35c6)), closes [#12](https://github.com/oleksandr-zhynzher/graph-render/issues/12)
 
 ### Dependencies
 
-* **@graph-render/react:** upgraded to 1.4.2
-* **@graph-render/types:** upgraded to 1.2.2
+- **@graph-render/react:** upgraded to 1.4.2
+- **@graph-render/types:** upgraded to 1.2.2
 
 ## <small>1.5.1 (2026-05-17)</small>
 
