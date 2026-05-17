@@ -1,180 +1,139 @@
-# Graph Render Monorepo
+# Graph Render
 
 [![Release](https://github.com/oleksandr-zhynzher/graph-render/actions/workflows/release.yml/badge.svg)](https://github.com/oleksandr-zhynzher/graph-render/actions/workflows/release.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178c6.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18%20%7C%2019-61dafb.svg)](https://react.dev/)
 
-A TypeScript monorepo for graph rendering and tournament bracket visualization, built with React and Vite.
+**Render interactive graphs and tournament brackets in React.**
 
-## 📦 Packages
+Graph Render gives you a composable set of packages — from a framework-agnostic layout engine to a full squash tournament bracket component — all fully typed in TypeScript and ready to drop into any React app.
 
-This monorepo contains the following packages:
+---
 
-- **`@graph-render/types`** - Core type definitions for graph rendering
-- **`@graph-render/core`** - Core graph rendering logic and algorithms
-- **`@graph-render/react`** - React components for graph visualization
-- **`@graph-render/tournament-tree`** - Tournament bracket and tree visualization components
+## What You Can Build
 
-## 🚀 Getting Started
+- **Tournament brackets** with round labels, live scores, stage navigation, and mobile-friendly zoom
+- **Dependency graphs**, DAGs, and trees with interactive pan, zoom, and selection
+- **Custom graph UIs** using your own React node components plugged into a layout engine
 
-### Prerequisites
+---
 
-Before you begin, ensure you have the following installed:
+## Packages
 
-- **Node.js** (v18 or higher recommended)
-- **Yarn** (v1.22 or higher)
+| Package                                                      | Version                                                                                                                               | Description                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| [`@graph-render/tournament-tree`](src/react-tournament-tree) | [![npm](https://img.shields.io/npm/v/@graph-render/tournament-tree.svg)](https://www.npmjs.com/package/@graph-render/tournament-tree) | Ready-made tournament bracket UI for React   |
+| [`@graph-render/react`](src/react-graph-render)              | [![npm](https://img.shields.io/npm/v/@graph-render/react.svg)](https://www.npmjs.com/package/@graph-render/react)                     | Interactive graph canvas for React           |
+| [`@graph-render/core`](src/core-graph-render)                | [![npm](https://img.shields.io/npm/v/@graph-render/core.svg)](https://www.npmjs.com/package/@graph-render/core)                       | Framework-agnostic layout and routing engine |
+| [`@graph-render/types`](src/types)                           | [![npm](https://img.shields.io/npm/v/@graph-render/types.svg)](https://www.npmjs.com/package/@graph-render/types)                     | Shared TypeScript types for all packages     |
 
-Check your versions:
+---
 
-```bash
-node --version
-yarn --version
-```
-
-### Installation
-
-1. **Clone the repository** (if you haven't already):
-
-   ```bash
-   git clone <repository-url>
-   cd graph-render
-   ```
-
-2. **Install dependencies**:
-
-   ```bash
-   yarn install
-   ```
-
-3. **Build all packages**:
-
-   ```bash
-   yarn build:all
-   ```
-
-   This will compile all TypeScript packages in the correct dependency order.
-
-   > **Note**: The build system uses TypeScript path mappings that reference the compiled `dist` folders. The types package must be built first, followed by core, then the React packages. The `yarn build:all` command handles this automatically using Nx.
-
-### Running the Development Environment
-
-Start Storybook to explore and develop components interactively:
+## Tournament Bracket in 30 Seconds
 
 ```bash
-yarn storybook
+yarn add @graph-render/tournament-tree react react-dom
 ```
 
-This will start the Storybook development server at **http://localhost:6006**
+```tsx
+import { MatchStatus, TournamentBracket } from '@graph-render/tournament-tree';
 
-## 🛠️ Available Scripts
+const graph = {
+  nodes: {
+    qf1: {
+      meta: {
+        players: [
+          { name: 'Paul Coll', seed: 1 },
+          { name: 'Richie Fallows', seed: 8 },
+        ],
+        sets: [
+          [11, 5],
+          [11, 7],
+        ],
+        status: MatchStatus.Completed,
+      },
+    },
+  },
+  adj: { qf1: {} },
+};
 
-### Build Commands
-
-- `yarn build:all` - Build all packages in the monorepo
-- `yarn build` - Alias for `build:all`
-- `yarn build:affected` - Build only affected packages (Nx)
-
-### Development
-
-- `yarn storybook` - Start Storybook development server on port 6006
-- `yarn build-storybook` - Build Storybook for production
-
-### Testing & Quality
-
-- `yarn test` - Run tests across all packages
-- `yarn test:affected` - Run tests for affected packages only
-- `yarn lint` - Run linting across all packages
-- `yarn lint:affected` - Lint affected packages only
-
-### Code Formatting
-
-- `yarn format:all` - Format all files with Prettier
-- `yarn format:check` - Check formatting without making changes
-- `yarn format` - Format changed files
-- `yarn format:affected` - Format affected files only
-
-### Visualization
-
-- `yarn graph` - View the dependency graph of the monorepo (Nx)
-
-## 📁 Project Structure
-
-```
-graph-render/
-├── src/
-│   ├── types/                    # Core type definitions
-│   │   ├── src/
-│   │   └── dist/                 # Compiled output
-│   │
-│   ├── core-graph-render/        # Core rendering logic
-│   │   ├── src/
-│   │   │   ├── edges/            # Edge routing & collision detection
-│   │   │   ├── layouts/          # Layout algorithms (tree, grid, etc.)
-│   │   │   ├── rendering/        # SVG rendering utilities
-│   │   │   └── utils/            # Graph utilities & parsers
-│   │   └── dist/                 # Compiled output
-│   │
-│   ├── react-graph-render/       # React components for graphs
-│   │   ├── src/
-│   │   │   ├── components/       # Graph, Node, Edge components
-│   │   │   └── hooks/            # React hooks
-│   │   └── dist/                 # Compiled output
-│   │
-│   └── react-tournament-tree/    # Tournament bracket components
-│       ├── src/
-│       │   ├── components/       # Bracket & node components
-│       │   ├── contexts/         # React contexts
-│       │   ├── types/            # Tournament-specific types
-│       │   └── utils/            # Helper utilities
-│       └── dist/                 # Compiled output
-│
-├── .storybook/                   # Storybook configuration
-│   └── stories/                  # Component stories
-├── package.json                  # Root package.json with workspaces
-├── nx.json                       # Nx configuration
-└── tsconfig.base.json           # Base TypeScript configuration
+export default function App() {
+  return <TournamentBracket graph={graph} title="Open Championship" />;
+}
 ```
 
-## 🔧 Building Individual Packages
+That's it. You get match cards, winner highlighting, round labels, stage navigation, dark mode, and SVG export out of the box.
 
-If you need to build packages individually:
+---
+
+## Interactive Graph Canvas
 
 ```bash
-# Build types (required first, as other packages depend on it)
-cd src/types && yarn build
-
-# Build core
-cd src/core-graph-render && yarn build
-
-# Build React packages
-cd src/react-graph-render && yarn build
-cd src/react-tournament-tree && yarn build
+yarn add @graph-render/react react react-dom
 ```
 
-## 🏗️ Development Workflow
+```tsx
+import { Graph } from '@graph-render/react';
+import { EdgeType, LayoutType } from '@graph-render/types';
 
-1. **Make changes** to the source code in any package
-2. **Rebuild the package** using `yarn build` in that package's directory, or `yarn build:all` from the root
-3. **View changes** in Storybook (it will auto-reload)
-4. **Run tests and linting** before committing:
-   ```bash
-   yarn lint
-   yarn test
-   yarn format:check
-   ```
+const graph = {
+  nodes: {
+    api: { label: 'API' },
+    db: { label: 'Database' },
+    cache: { label: 'Cache' },
+  },
+  adj: {
+    api: {
+      db: { id: 'api-db', type: 'directed' },
+      cache: { id: 'api-cache', type: 'directed' },
+    },
+    db: {},
+    cache: {},
+  },
+};
 
-## 📝 Notes
+export default function App() {
+  return (
+    <Graph
+      graph={graph}
+      config={{
+        layout: LayoutType.Tree,
+        defaultEdgeType: EdgeType.Directed,
+        width: 900,
+        height: 500,
+      }}
+    />
+  );
+}
+```
 
-- **Build Order Matters**: The `types` package must be built before other packages since they depend on it
-- **Dist Folders**: All compiled output goes to `dist/` folders which are gitignored
-- **Monorepo Management**: This project uses Yarn Workspaces and Nx for efficient monorepo management
+---
 
-## 🤝 Contributing
+## Highlights
 
-1. Make your changes
-2. Ensure all packages build successfully: `yarn build:all`
-3. Run linting and formatting: `yarn lint && yarn format:all`
-4. Test your changes in Storybook: `yarn storybook`
-5. Commit your changes
+- **Zero config to start** — sane defaults for layout, zoom, and sizing
+- **Fully typed** — every prop, event, and data shape has a TypeScript type
+- **Custom node renderers** — replace any node with your own React component
+- **Stage navigation** — mobile-first round-by-round swiping for tournament brackets
+- **Dark mode** — built-in light/dark theme for all components
+- **SVG export** — render any graph to a static SVG file
+- **React 18 & 19** — peer dependency supports both versions
 
-## 📄 License
+---
 
-MIT License - see LICENSE file for details
+## Try It Live
+
+```bash
+git clone https://github.com/oleksandr-zhynzher/graph-render.git
+cd graph-render
+yarn install && yarn storybook
+```
+
+Open [http://localhost:6006](http://localhost:6006) to explore live bracket and graph demos.
+
+---
+
+## License
+
+MIT — free for personal and commercial use.
