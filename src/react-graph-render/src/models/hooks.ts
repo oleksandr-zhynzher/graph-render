@@ -14,7 +14,7 @@ import type {
   SelectionMode,
   Size,
 } from '@graph-render/types';
-import type { MutableRefObject } from 'react';
+import type { RefObject } from 'react';
 
 import type { FocusedPath } from './utils';
 
@@ -215,9 +215,9 @@ export interface UseGraphViewStateOptions {
 
 export interface UseGraphViewStateResult {
   readonly viewport: GraphViewport;
-  readonly viewportRef: MutableRefObject<GraphViewport>;
+  readonly viewportRef: RefObject<GraphViewport>;
   readonly selection: GraphSelection;
-  readonly selectionRef: MutableRefObject<GraphSelection>;
+  readonly selectionRef: RefObject<GraphSelection>;
   readonly focusedNodeId: string | null;
   readonly updateViewport: GraphHandle['setViewport'];
   readonly updateSelection: (
@@ -237,7 +237,7 @@ export interface UseGraphWheelZoomOptions {
     | readonly [readonly [number, number], readonly [number, number]]
     | undefined;
   readonly updateViewport: GraphHandle['setViewport'];
-  readonly viewportRef: React.MutableRefObject<GraphViewport>;
+  readonly viewportRef: React.RefObject<GraphViewport>;
   readonly zoomEnabled: boolean;
   readonly zoomStep: number;
 }

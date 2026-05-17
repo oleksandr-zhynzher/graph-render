@@ -2,7 +2,7 @@ import type { SquashPlayer } from '@graph-render/types';
 
 export const NODE_DIMENSIONS = {
   WIDTH: 280,
-  HEIGHT: 112,
+  HEIGHT: 100,
 } as const;
 
 export const NODE_DIMENSIONS_COMPACT = {

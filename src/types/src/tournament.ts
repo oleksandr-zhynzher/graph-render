@@ -1,3 +1,4 @@
+import type { TournamentBracketAppearance } from './bracketAppearance';
 import type { GraphConfig } from './config';
 import type { NxGraphInput } from './graph';
 import type { NodeData, PositionedNode } from './node';
@@ -63,7 +64,14 @@ export interface StageViewportResult {
 
 export interface TournamentBracketProps {
   readonly graph: NxGraphInput;
+  /**
+   * Graph layout, routing, and canvas options (merged with tournament defaults).
+   */
   readonly config?: Partial<GraphConfig> | undefined;
+  /**
+   * Match-card, header, stage-label, frame, color, and typography overrides.
+   */
+  readonly appearance?: TournamentBracketAppearance | undefined;
   readonly defaultViewport?: Partial<GraphViewport> | undefined;
   readonly vertexComponent?: VertexComponent | undefined;
   readonly nodeRenderMode?: SquashNodeRenderMode | undefined;

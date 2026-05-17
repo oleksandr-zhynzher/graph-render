@@ -1,7 +1,7 @@
 import type { NxGraphInput } from '@graph-render/types';
 
-const defaultSize = { width: 280, height: 112 };
-const finalSize = { width: 280, height: 112 };
+const defaultSize = { width: 280, height: 100 };
+const finalSize = { width: 280, height: 100 };
 
 // Tournament with live matches and tiebreaks
 export const bracketGraphLive: NxGraphInput = {

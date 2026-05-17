@@ -32,11 +32,7 @@ interface GraphNodeProps {
   readonly onNodeDoubleClick?: ((node: PositionedNode) => void) | undefined;
   readonly onNodeMouseEnter: (nodeId: string) => void;
   readonly onNodeMouseLeave: () => void;
-  readonly onPathHover: (
-    nodeId: string,
-    sourceIndex: number,
-    playerKey?: string | undefined
-  ) => void;
+  readonly onPathHover: (nodeId: string, sourceIndex: number, playerKey?: string) => void;
   readonly onPathLeave: () => void;
 }
 

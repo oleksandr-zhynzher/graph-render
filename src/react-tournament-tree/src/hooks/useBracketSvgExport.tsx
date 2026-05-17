@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 
-import { BracketThemeProvider, ThemeMode } from '../contexts/BracketThemeContext';
+import { BracketAppearanceProvider } from '../contexts/BracketAppearanceContext';
 import { routeBracketEdges } from '../utils/bracketRouting';
 import { downloadSvgFromElement } from '../utils/exportSvg';
 
@@ -17,6 +17,8 @@ interface UseBracketSvgExportParams {
   readonly enrichedGraph: TournamentBracketProps['graph'];
   readonly exportVertexComponent: VertexComponent;
   readonly mergedConfig: GraphConfig;
+  readonly appearance?: TournamentBracketProps['appearance'];
+  readonly compact: boolean;
 }
 
 export function useBracketSvgExport({
@@ -27,6 +29,8 @@ export function useBracketSvgExport({
   enrichedGraph,
   exportVertexComponent,
   mergedConfig,
+  appearance,
+  compact,
 }: UseBracketSvgExportParams) {
   return useCallback(() => {
     if (nodeRenderMode !== SquashNodeRenderMode.Html || vertexComponent) {
@@ -48,14 +52,18 @@ export function useBracketSvgExport({
     try {
       flushSync(() => {
         exportRoot.render(
-          <BracketThemeProvider mode={isDarkMode ? ThemeMode.Dark : ThemeMode.Light}>
+          <BracketAppearanceProvider
+            appearance={appearance}
+            isDarkMode={isDarkMode}
+            compact={compact}
+          >
             <Graph
               graph={enrichedGraph}
               vertexComponent={exportVertexComponent}
               config={mergedConfig}
               routeEdgesOverride={routeBracketEdges}
             />
-          </BracketThemeProvider>
+          </BracketAppearanceProvider>
         );
       });
 
@@ -67,6 +75,8 @@ export function useBracketSvgExport({
   }, [
     enrichedGraph,
     exportVertexComponent,
+    appearance,
+    compact,
     isDarkMode,
     mergedConfig,
     nodeRenderMode,

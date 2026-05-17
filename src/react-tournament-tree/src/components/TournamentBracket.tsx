@@ -2,7 +2,7 @@ import type { GraphHandle, StageView, TournamentBracketProps } from '@graph-rend
 import { SquashNodeRenderMode } from '@graph-render/types';
 import React, { useMemo, useRef, useState } from 'react';
 
-import { BracketThemeProvider, ThemeMode } from '../contexts/BracketThemeContext';
+import { BracketAppearanceProvider } from '../contexts/BracketAppearanceContext';
 import { useBracketSvgExport } from '../hooks/useBracketSvgExport';
 import { useBracketVertexComponents } from '../hooks/useBracketVertexComponents';
 import { useDocumentDarkMode } from '../hooks/useDocumentDarkMode';
@@ -13,6 +13,7 @@ import {
   getTranslateExtent,
   resolveBadgeText,
 } from '../utils/bracketGraph';
+import { resolveBracketAppearance } from '../utils/resolveBracketAppearance';
 import { roundLabelsForGraph } from '../utils/roundLabels';
 import { BracketFrame } from './Bracket/BracketFrame';
 import { BracketGraphCanvas } from './Bracket/BracketGraphCanvas';
@@ -20,6 +21,7 @@ import { BracketGraphCanvas } from './Bracket/BracketGraphCanvas';
 export const TournamentBracket = React.memo<TournamentBracketProps>(function TournamentBracket({
   graph,
   config,
+  appearance,
   defaultViewport,
   vertexComponent,
   nodeRenderMode = SquashNodeRenderMode.Export,
@@ -45,13 +47,17 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
     () => config?.labels ?? roundLabelsForGraph(graph),
     [config?.labels, graph]
   );
+  const resolvedAppearance = useMemo(
+    () => resolveBracketAppearance(appearance, isDarkMode, compact),
+    [appearance, compact, isDarkMode]
+  );
   const mergedConfig = useMemo(
-    () => buildGraphConfig(config, isDarkMode, compact),
-    [compact, config, isDarkMode]
+    () => buildGraphConfig(config, isDarkMode, compact, resolvedAppearance.matchCard),
+    [compact, config, isDarkMode, resolvedAppearance.matchCard]
   );
   const enrichedGraph = useMemo(
-    () => buildBracketGraph(graph, Boolean(vertexComponent), compact),
-    [compact, graph, vertexComponent]
+    () => buildBracketGraph(graph, Boolean(vertexComponent), resolvedAppearance.matchCard),
+    [graph, resolvedAppearance.matchCard, vertexComponent]
   );
   const resolvedBadgeText = useMemo(
     () => resolveBadgeText(badgeText, enrichedGraph, labels),
@@ -82,10 +88,12 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
     enrichedGraph,
     exportVertexComponent,
     mergedConfig,
+    appearance,
+    compact,
   });
 
   return (
-    <BracketThemeProvider mode={isDarkMode ? ThemeMode.Dark : ThemeMode.Light}>
+    <BracketAppearanceProvider appearance={appearance} isDarkMode={isDarkMode} compact={compact}>
       <BracketFrame
         title={title}
         badgeText={resolvedBadgeText}
@@ -125,7 +133,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
           onMatchClick={onMatchClick}
         />
       </BracketFrame>
-    </BracketThemeProvider>
+    </BracketAppearanceProvider>
   );
 });
 

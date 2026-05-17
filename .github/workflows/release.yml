@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - master
+  workflow_dispatch:
 
 jobs:
   release:
@@ -14,6 +15,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     permissions:
       contents: write
+      packages: write
       issues: write
       pull-requests: write
       id-token: write
@@ -42,9 +44,24 @@ jobs:
       - name: Build all packages
         run: yarn build
 
-      - name: Release
+      - name: Release to npm and GitHub Releases
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           HUSKY: '0'
-        run: npx multi-semantic-release
+        run: >-
+          npx --yes
+          -p multi-semantic-release@3.0.2
+          -p semantic-release@24.2.0
+          -p @semantic-release/changelog@6.0.3
+          -p @semantic-release/commit-analyzer@13.0.0
+          -p @semantic-release/git@10.0.1
+          -p @semantic-release/github@11.0.0
+          -p @semantic-release/npm@12.0.2
+          -p @semantic-release/release-notes-generator@14.0.0
+          multi-semantic-release
+
+      - name: Publish to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/publish-github-packages.mjs

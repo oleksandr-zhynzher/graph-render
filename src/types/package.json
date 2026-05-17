@@ -2,8 +2,14 @@
   "name": "@graph-render/types",
   "version": "1.1.0",
   "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oleksandr-zhynzher/graph-render.git",
+    "directory": "src/types"
+  },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "type": "module",
   "main": "dist/index.js",

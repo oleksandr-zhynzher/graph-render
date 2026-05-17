@@ -1,4 +1,4 @@
-import type { SquashThemeColors } from '../../types/squashNode';
+import { useBracketAppearance } from '../../contexts/BracketAppearanceContext';
 import { BracketToolbar } from '../BracketToolbar';
 import { TrophyIcon } from '../icons';
 
@@ -9,7 +9,6 @@ interface BracketHeaderProps {
   readonly isDarkMode: boolean;
   readonly isNavigationMode: boolean;
   readonly showToolbar: boolean;
-  readonly colors: SquashThemeColors;
   readonly onToggleNavigationMode: () => void;
   readonly onToggleDarkMode: () => void;
   readonly onExportSVG: () => void;
@@ -22,28 +21,29 @@ export function BracketHeader({
   isDarkMode,
   isNavigationMode,
   showToolbar,
-  colors,
   onToggleNavigationMode,
   onToggleDarkMode,
   onExportSVG,
 }: BracketHeaderProps) {
+  const { colors, header, typography } = useBracketAppearance();
+
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 14,
-        minHeight: compact ? 40 : 72,
-        padding: compact ? '0 12px' : '0 32px',
+        gap: header.gap,
+        minHeight: header.minHeight,
+        padding: header.padding,
         background: colors.HEADER_BG,
         borderBottom: `1px solid ${colors.HEADER_BORDER}`,
       }}
     >
       <div
         style={{
-          width: compact ? 18 : 30,
-          height: compact ? 18 : 30,
-          borderRadius: compact ? 4 : 8,
+          width: header.iconSize,
+          height: header.iconSize,
+          borderRadius: header.iconRadius,
           display: 'grid',
           placeItems: 'center',
           background: colors.ICON_BG,
@@ -55,8 +55,8 @@ export function BracketHeader({
       </div>
       <div
         style={{
-          fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
-          fontSize: compact ? 13 : 18,
+          fontFamily: typography.bodyFontFamily,
+          fontSize: header.titleFontSize,
           fontWeight: 600,
           color: colors.HEADER_TITLE,
         }}
@@ -70,12 +70,12 @@ export function BracketHeader({
           alignItems: 'center',
           gap: 6,
           minHeight: compact ? 18 : 28,
-          padding: compact ? '0 7px' : '0 14px',
+          padding: header.badgePadding,
           borderRadius: 999,
           background: colors.BADGE_BG,
           color: colors.BADGE_TEXT,
-          fontFamily: '"Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif',
-          fontSize: compact ? 9 : 11,
+          fontFamily: typography.bodyFontFamily,
+          fontSize: header.badgeFontSize,
           fontWeight: 600,
           letterSpacing: '0.02em',
           whiteSpace: 'nowrap',
@@ -83,8 +83,8 @@ export function BracketHeader({
       >
         <span
           style={{
-            width: 6,
-            height: 6,
+            width: header.badgeDotSize,
+            height: header.badgeDotSize,
             borderRadius: '50%',
             background: colors.BADGE_DOT,
             flexShrink: 0,

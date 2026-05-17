@@ -1,33 +1,41 @@
 import { MatchStatus } from '@graph-render/types';
 
-import {
-  DEFAULT_PLAYERS,
-  NODE_BORDER_WIDTH,
-  SCORE_SEGMENT_GAP,
-  SCORE_SEGMENT_WIDTH,
-} from '../../constants';
+import { DEFAULT_PLAYERS, NODE_BORDER_WIDTH, NODE_DIMENSIONS } from '../../constants';
+import { getSquashScoreLayout } from '../../constants/squashNode';
+import { useBracketAppearance } from '../../contexts/BracketAppearanceContext';
 import type { SquashNodeVariantProps } from '../../types/squashNode';
 import { getScoreGroupWidth, getScoreSegments, normalizePlayerKey } from '../../utils/squash';
 import { SquashPlayerSvgRow } from './SquashPlayerSvgRow';
 
 export function SquashNodeSvg(props: SquashNodeVariantProps) {
   const { nodeId, nodeWidth, nodeHeight, compact, colors, meta, setWins, winnerIndex } = props;
+  const { matchCard: defaultMatchCard, typography } = useBracketAppearance();
+  const scoreLayout = layoutUsesCompactMetrics(compact, nodeWidth, nodeHeight)
+    ? getSquashScoreLayout(true)
+    : defaultMatchCard.score;
   const p1 = meta.players[0] ?? DEFAULT_PLAYERS[0] ?? { name: 'TBD', seed: 0 };
   const p2 = meta.players[1] ?? DEFAULT_PLAYERS[1] ?? { name: 'TBD', seed: 0 };
-  const insetX = compact ? 6 : 14;
+  const {
+    insetX,
+    badgeSize,
+    badgePad,
+    borderRadius,
+    matchCountWidth,
+    matchCountTrailingGap,
+    scoreGroupTrailingGap,
+  } = defaultMatchCard;
+  const scoreSegW = scoreLayout.segmentWidth;
+  const scoreSegG = scoreLayout.segmentGap;
+  const scoreFontSize = scoreLayout.fontSize;
+  const matchCountFontSize = scoreLayout.matchCountFontSize;
   const rowHeight = nodeHeight / 2;
-  const badgeSize = compact ? 16 : 28;
-  const badgePad = compact ? 4 : 10;
-  const scoreSegW = compact ? 12 : SCORE_SEGMENT_WIDTH;
-  const scoreSegG = compact ? 3 : SCORE_SEGMENT_GAP;
   const scoreSectionWidth = getScoreGroupWidth(Math.max(meta.sets.length, 1), scoreSegW, scoreSegG);
-  const matchCountWidth = compact ? 14 : 22;
-  const internalDividerX = nodeWidth - insetX - matchCountWidth - (compact ? 6 : 10);
-  const scoreGroupRightX = internalDividerX - 4;
+  const internalDividerX = nodeWidth - insetX - matchCountWidth - matchCountTrailingGap;
+  const scoreGroupRightX = internalDividerX - scoreGroupTrailingGap;
   const matchCountX = nodeWidth - insetX - matchCountWidth / 2;
   const playerTextX = insetX + badgeSize + badgePad;
   const maxNameWidth = Math.max(
-    compact ? 28 : 56,
+    compact ? 28 : 48,
     scoreGroupRightX - scoreSectionWidth - playerTextX - 4
   );
   const maxNameLength = Math.max(compact ? 6 : 10, Math.floor(maxNameWidth / (compact ? 6 : 7)));
@@ -37,14 +45,14 @@ export function SquashNodeSvg(props: SquashNodeVariantProps) {
     <g>
       <defs>
         <clipPath id={clipId}>
-          <rect width={nodeWidth} height={nodeHeight} rx={compact ? 8 : 16} ry={compact ? 8 : 16} />
+          <rect width={nodeWidth} height={nodeHeight} rx={borderRadius} ry={borderRadius} />
         </clipPath>
       </defs>
       <rect
         width={nodeWidth}
         height={nodeHeight}
-        rx={compact ? 8 : 16}
-        ry={compact ? 8 : 16}
+        rx={borderRadius}
+        ry={borderRadius}
         fill={props.isHovered ? colors.HOVER_BG : colors.BASE_BG}
         stroke={colors.CARD_BORDER}
         strokeWidth={NODE_BORDER_WIDTH}
@@ -82,6 +90,9 @@ export function SquashNodeSvg(props: SquashNodeVariantProps) {
               insetX={insetX}
               badgeSize={badgeSize}
               badgePad={badgePad}
+              badgeFontSize={defaultMatchCard.badgeFontSize}
+              nameFontSize={defaultMatchCard.nameFontSize}
+              bodyFontFamily={typography.bodyFontFamily}
               playerTextX={playerTextX}
               maxNameLength={maxNameLength}
               scoreGroupLeftX={scoreGroupRightX - scoreSectionWidth}
@@ -89,6 +100,10 @@ export function SquashNodeSvg(props: SquashNodeVariantProps) {
               matchCountX={matchCountX}
               scoreSegW={scoreSegW}
               scoreSegG={scoreSegG}
+              scoreFontSize={scoreFontSize}
+              scoreFontFamily={typography.scoreFontFamily}
+              matchCountFontSize={matchCountFontSize}
+              badgeRadius={compact ? 4 : 6}
             />
           );
         })}
@@ -104,4 +119,12 @@ export function SquashNodeSvg(props: SquashNodeVariantProps) {
       </g>
     </g>
   );
+}
+
+function layoutUsesCompactMetrics(
+  compact: boolean,
+  nodeWidth: number,
+  nodeHeight: number
+): boolean {
+  return compact || nodeHeight < NODE_DIMENSIONS.HEIGHT || nodeWidth < NODE_DIMENSIONS.WIDTH;
 }

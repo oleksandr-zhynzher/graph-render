@@ -2,7 +2,7 @@ import { fromNxGraph, layoutNodes } from '@graph-render/core';
 import { Graph } from '@graph-render/react';
 import type { StageView } from '@graph-render/tournament-tree';
 import {
-  BracketThemeProvider,
+  BracketAppearanceProvider,
   buildStageViews,
   getStageViewport,
   injectTournamentPathKeys,
@@ -12,7 +12,6 @@ import {
   routeBracketEdges,
   SquashNode,
   SquashNodeRenderMode,
-  ThemeMode,
   VerticalStagePosition,
 } from '@graph-render/tournament-tree';
 import type {
@@ -55,14 +54,20 @@ const DARK_THEME: NonNullable<GraphConfig['theme']> = {
 const INITIAL_VIEWPORT: GraphViewport = { x: 0, y: 0, zoom: 1 };
 const EMPTY_SELECTION: GraphSelection = { nodeIds: [], edgeIds: [] };
 const PANEL_WIDTH = 320;
+/** Extra layout inset around bracket edges inside layout bounds (inside the canvas). */
+const BRACKET_STORY_LAYOUT_PADDING = 10;
+/** Padding around the graph frame in the playground main column. */
+const BRACKET_STORY_OUTER_PADDING = 10;
+/** Padding used when fitting the bracket to the graph viewport control. */
+const BRACKET_STORY_FIT_VIEW_PADDING = 12;
 const DEFAULT_CANVAS_SIZE = { width: 1200, height: 900 };
 const LABEL_PILL_WIDTH = 64;
 const LABEL_PILL_HEIGHT = 20;
 const FIT_PADDING = {
-  top: 48,
-  right: 24,
-  bottom: 120,
-  left: 24,
+  top: 22,
+  right: 14,
+  bottom: 52,
+  left: 14,
 };
 
 const controlSectionStyle: React.CSSProperties = {
@@ -407,15 +412,22 @@ const getLabelBounds = (
   }, null);
 };
 
-const getFitViewportForStory = (
+interface StoryContentBounds {
+  readonly minX: number;
+  readonly minY: number;
+  readonly maxX: number;
+  readonly maxY: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+const STORY_DEFAULT_ZOOM = 1;
+
+const getStoryContentBounds = (
   graph: NxGraphInput,
   config: GraphConfig,
-  labels: readonly string[],
-  width: number,
-  height: number,
-  minZoom: number,
-  maxZoom: number
-): GraphViewport => {
+  labels: readonly string[]
+): StoryContentBounds | null => {
   const { nodes, edges } = fromNxGraph(graph, config.defaultEdgeType);
   const positionedNodes = layoutNodes({
     nodes,
@@ -460,10 +472,10 @@ const getFitViewportForStory = (
   );
 
   if (!contentBounds) {
-    return INITIAL_VIEWPORT;
+    return null;
   }
 
-  const paddedBounds = {
+  return {
     minX: contentBounds.minX,
     minY: contentBounds.minY,
     maxX: contentBounds.maxX,
@@ -471,28 +483,62 @@ const getFitViewportForStory = (
     width: contentBounds.width,
     height: contentBounds.height,
   };
+};
+
+const getViewportForStoryBounds = (
+  bounds: StoryContentBounds,
+  width: number,
+  height: number,
+  zoom: number
+): GraphViewport => {
+  const availableWidth = Math.max(width - FIT_PADDING.left - FIT_PADDING.right, 1);
+  const availableHeight = Math.max(height - FIT_PADDING.top - FIT_PADDING.bottom, 1);
+
+  return {
+    x: FIT_PADDING.left + (availableWidth - bounds.width * zoom) / 2 - bounds.minX * zoom,
+    y: FIT_PADDING.top + (availableHeight - bounds.height * zoom) / 2 - bounds.minY * zoom,
+    zoom,
+  };
+};
+
+const getStoryViewportAtZoom = (
+  graph: NxGraphInput,
+  config: GraphConfig,
+  labels: readonly string[],
+  width: number,
+  height: number,
+  zoom: number
+): GraphViewport => {
+  const bounds = getStoryContentBounds(graph, config, labels);
+  if (!bounds) {
+    return INITIAL_VIEWPORT;
+  }
+
+  return getViewportForStoryBounds(bounds, width, height, zoom);
+};
+
+const getFitViewportForStory = (
+  graph: NxGraphInput,
+  config: GraphConfig,
+  labels: readonly string[],
+  width: number,
+  height: number,
+  minZoom: number,
+  maxZoom: number
+): GraphViewport => {
+  const bounds = getStoryContentBounds(graph, config, labels);
+  if (!bounds) {
+    return INITIAL_VIEWPORT;
+  }
 
   const availableWidth = Math.max(width - FIT_PADDING.left - FIT_PADDING.right, 1);
   const availableHeight = Math.max(height - FIT_PADDING.top - FIT_PADDING.bottom, 1);
   const zoom = Math.min(
     maxZoom,
-    Math.max(
-      minZoom,
-      Math.min(availableWidth / paddedBounds.width, availableHeight / paddedBounds.height)
-    )
+    Math.max(minZoom, Math.min(availableWidth / bounds.width, availableHeight / bounds.height))
   );
 
-  return {
-    x:
-      FIT_PADDING.left +
-      (availableWidth - paddedBounds.width * zoom) / 2 -
-      paddedBounds.minX * zoom,
-    y:
-      FIT_PADDING.top +
-      (availableHeight - paddedBounds.height * zoom) / 2 -
-      paddedBounds.minY * zoom,
-    zoom,
-  };
+  return getViewportForStoryBounds(bounds, width, height, zoom);
 };
 
 const getStageViewsForStory = (
@@ -544,7 +590,7 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
   const [nodeSizing, setNodeSizing] = useState<GraphConfig['nodeSizing']>('fixed');
   const [selectionMode, setSelectionMode] = useState<'single' | 'multiple'>('multiple');
   const [renderMode, setRenderMode] = useState<SquashNodeRenderMode>(SquashNodeRenderMode.Export);
-  const [isCompact, setIsCompact] = useState(true);
+  const [isCompact, setIsCompact] = useState(false);
   const [highlightMode, setHighlightMode] = useState<HighlightMode>('ancestry');
   const [showViewportControls, setShowViewportControls] = useState(true);
   const [curveEdges, setCurveEdges] = useState(true);
@@ -563,9 +609,13 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
   /** Always-up-to-date viewport for use in event handlers (avoids stale closures). */
   const liveViewportRef = useRef<GraphViewport>(INITIAL_VIEWPORT);
 
+  /** Non-compact SVG layout needs NODE_DIMENSIONS; tiny fixed sizes would overlap glyphs. */
   const activeNodeSize = useMemo(
-    () => ({ width: NODE_DIMENSIONS_STAGE_NAV.WIDTH, height: NODE_DIMENSIONS_STAGE_NAV.HEIGHT }),
-    []
+    () =>
+      isCompact
+        ? { width: NODE_DIMENSIONS_STAGE_NAV.WIDTH, height: NODE_DIMENSIONS_STAGE_NAV.HEIGHT }
+        : { width: NODE_DIMENSIONS.WIDTH, height: NODE_DIMENSIONS.HEIGHT },
+    [isCompact]
   );
 
   const enrichedGraph = useMemo(() => {
@@ -612,6 +662,12 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
     };
   }, []);
 
+  const bracketStorySpacing = useMemo(() => {
+    // Tree layout uses one gap between siblings (same round) and between levels (round → round).
+    const gapPx = isCompact ? 14 : 34;
+    return { nodeGap: gapPx, edgeSeparation: gapPx };
+  }, [isCompact]);
+
   const vertexComponent = useMemo<VertexComponent>(
     () => (props: VertexComponentProps) =>
       React.createElement(SquashNode as React.ComponentType<any>, {
@@ -630,7 +686,7 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
       layoutDirection,
       width: canvasSize.width,
       height: canvasSize.height,
-      padding: 8,
+      padding: BRACKET_STORY_LAYOUT_PADDING,
       defaultEdgeType: EdgeType.Undirected,
       curveEdges,
       curveStrength: 0.2,
@@ -642,12 +698,12 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
       hoverNodeBothColor: dark ? '#9ab08d' : '#7c9070',
       theme: {
         ...baseTheme,
-        nodeGap: 8,
+        nodeGap: bracketStorySpacing.nodeGap,
       },
       labelOffset: 40,
       labels: isStageNavigationMode ? undefined : labels,
       routingStyle,
-      edgeSeparation: 8,
+      edgeSeparation: bracketStorySpacing.edgeSeparation,
       selfLoopRadius: 34,
       nodeSizing,
       fixedNodeSize: activeNodeSize,
@@ -658,6 +714,7 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
     };
   }, [
     activeNodeSize,
+    bracketStorySpacing,
     canvasSize.height,
     canvasSize.width,
     curveEdges,
@@ -691,6 +748,9 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
 
   const computedMinZoom = useMemo(() => {
     if (stageViews.length === 0 || !canvasSize.width || !canvasSize.height) return 0.05;
+    if (!isCompact && !isStageNavigationMode) {
+      return 0.05;
+    }
     // Use the same computation as getFitViewportForStory so minZoom == fit zoom.
     // This prevents normalizeViewport from clamping the fit viewport's zoom.
     const fitViewport = getFitViewportForStory(
@@ -703,7 +763,7 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
       3
     );
     return Math.max(0.05, fitViewport.zoom);
-  }, [canvasSize, config, enrichedGraph, labels, stageViews]);
+  }, [canvasSize, config, enrichedGraph, isCompact, isStageNavigationMode, labels, stageViews]);
 
   // Sync canvasSize to the actual container before the first browser paint.
   useLayoutEffect(() => {
@@ -725,17 +785,14 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
     const realH = Math.max(560, Math.floor(element.clientHeight));
     // Guard: skip until the first useLayoutEffect has flushed the correct canvasSize.
     if (canvasSize.width !== realW || canvasSize.height !== realH) return;
-    const fitViewport = getFitViewportForStory(
-      enrichedGraph,
-      config,
-      labels,
-      realW,
-      realH,
-      0.05,
-      3
-    );
-    graphRef.current.setViewport(fitViewport);
-  }, [canvasSize, config, enrichedGraph, labels]);
+    const nextViewport =
+      !isCompact && !isStageNavigationMode
+        ? getStoryViewportAtZoom(enrichedGraph, config, labels, realW, realH, STORY_DEFAULT_ZOOM)
+        : getFitViewportForStory(enrichedGraph, config, labels, realW, realH, 0.05, 3);
+    graphRef.current.setViewport(nextViewport);
+    liveViewportRef.current = nextViewport;
+    setViewport(nextViewport);
+  }, [canvasSize, config, enrichedGraph, isCompact, isStageNavigationMode, labels]);
 
   const handleViewportChange = useCallback((nextViewport: GraphViewport) => {
     liveViewportRef.current = nextViewport;
@@ -787,8 +844,8 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
       const isLastStage = stageIndex === stageViews.length - 1;
       // Show only 3 items vertically so the zoom is tight on mobile.
       const visibleItems = 3;
-      const itemH = NODE_DIMENSIONS_STAGE_NAV.HEIGHT;
-      const gap = 8;
+      const itemH = activeNodeSize.height;
+      const gap = bracketStorySpacing.nodeGap;
       const targetWorldHeight = visibleItems * itemH + (visibleItems - 1) * gap;
       const nextStageViewport = getStageViewport(
         stage.bounds,
@@ -803,7 +860,7 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
       liveViewportRef.current = nextStageViewport.viewport;
       setViewport(nextStageViewport.viewport);
     },
-    [stageViews, verticalStagePosition]
+    [bracketStorySpacing, stageViews, verticalStagePosition, activeNodeSize.height]
   );
 
   const handleToggleStageNavigationMode = useCallback(() => {
@@ -980,7 +1037,7 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
   }, [isStageNavigationMode]);
 
   return (
-    <BracketThemeProvider mode={isDarkMode ? ThemeMode.Dark : ThemeMode.Light}>
+    <BracketAppearanceProvider isDarkMode={isDarkMode} compact={isCompact}>
       <div
         style={{
           display: 'flex',
@@ -1317,7 +1374,7 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
             flex: 1,
             minWidth: 0,
             overflow: 'hidden',
-            padding: 24,
+            padding: BRACKET_STORY_OUTER_PADDING,
             boxSizing: 'border-box',
           }}
         >
@@ -1326,7 +1383,7 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
             style={{
               position: 'relative',
               width: '100%',
-              height: 'calc(100vh - 48px)',
+              height: `calc(100vh - ${BRACKET_STORY_OUTER_PADDING * 2}px)`,
               minHeight: 640,
               borderRadius: 18,
               overflow: 'hidden',
@@ -1344,7 +1401,7 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
               config={config}
               defaultViewport={INITIAL_VIEWPORT}
               onViewportChange={handleViewportChange}
-              fitViewPadding={12}
+              fitViewPadding={BRACKET_STORY_FIT_VIEW_PADDING}
               minZoom={computedMinZoom}
               maxZoom={isStageNavigationMode ? 5 : 3}
               zoomStep={0.12}
@@ -1751,7 +1808,7 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
           </div>
         </main>
       </div>
-    </BracketThemeProvider>
+    </BracketAppearanceProvider>
   );
 }
 

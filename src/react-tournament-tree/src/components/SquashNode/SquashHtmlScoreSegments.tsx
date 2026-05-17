@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { SCORE_FONT_FAMILY, SCORE_SEGMENT_WIDTH, SCORE_SEPARATOR_HEIGHT } from '../../constants';
+import { SCORE_SEPARATOR_HEIGHT } from '../../constants';
 import type { SquashThemeColors } from '../../types/squashNode';
 import { truncateText } from '../../utils/squash';
 
@@ -10,6 +10,10 @@ interface SquashHtmlScoreSegmentsProps {
   readonly scoreSegments: readonly string[];
   readonly textColor: string;
   readonly colors: SquashThemeColors;
+  readonly scoreFontSize: number;
+  readonly scoreSegW: number;
+  readonly scoreSegG: number;
+  readonly scoreFontFamily: string;
 }
 
 export function SquashHtmlScoreSegments({
@@ -18,6 +22,10 @@ export function SquashHtmlScoreSegments({
   scoreSegments,
   textColor,
   colors,
+  scoreFontSize,
+  scoreSegW,
+  scoreSegG,
+  scoreFontFamily,
 }: SquashHtmlScoreSegmentsProps) {
   return (
     <span
@@ -27,17 +35,17 @@ export function SquashHtmlScoreSegments({
         justifyContent: 'flex-end',
         minWidth: 0,
         width: '100%',
-        gap: 5,
+        gap: scoreSegG,
       }}
     >
       {scoreSegments.map((segment, segmentIndex) => (
         <React.Fragment key={`${nodeId}-html-score-${playerIndex}-${segmentIndex}`}>
           <span
             style={{
-              width: SCORE_SEGMENT_WIDTH,
-              fontSize: 10.5,
+              width: scoreSegW,
+              fontSize: scoreFontSize,
               color: textColor,
-              fontFamily: SCORE_FONT_FAMILY,
+              fontFamily: scoreFontFamily,
               textAlign: 'center',
               whiteSpace: 'nowrap',
               flexShrink: 0,

@@ -10,10 +10,26 @@ export {
   NODE_DIMENSIONS_COMPACT,
   NODE_DIMENSIONS_STAGE_NAV,
 } from './constants';
-export { ThemeMode } from './contexts/BracketThemeContext';
+export { ThemeMode } from './constants/themeMode';
+export {
+  BracketAppearanceProvider,
+  useBracketAppearance,
+} from './contexts/BracketAppearanceContext';
+/* eslint-disable @typescript-eslint/no-deprecated -- legacy theme API kept for backward compatibility */
 export { BracketThemeProvider, useBracketTheme } from './contexts/BracketThemeContext';
+/* eslint-enable @typescript-eslint/no-deprecated -- legacy theme API kept for backward compatibility */
 export { routeBracketEdges } from './utils/bracketRouting';
 export { injectTournamentPathKeys } from './utils/pathKeys';
+export type {
+  ResolvedBracketAppearance,
+  ResolvedBracketFrameStyle,
+  ResolvedBracketHeaderStyle,
+  ResolvedBracketStageLabelsStyle,
+  ResolvedBracketTypography,
+  ResolvedMatchCardScoreStyle,
+  ResolvedMatchCardStyle,
+} from './utils/resolveBracketAppearance';
+export { resolveBracketAppearance } from './utils/resolveBracketAppearance';
 export {
   roundLabelsForGraph,
   roundLabelsForMatchCount,
@@ -29,6 +45,7 @@ export type {
   StageBounds,
   StageView,
   StageViewportResult,
+  TournamentBracketAppearance,
   TournamentBracketProps,
 } from '@graph-render/types';
 export { MatchStatus, SquashNodeRenderMode, VerticalStagePosition } from '@graph-render/types';
