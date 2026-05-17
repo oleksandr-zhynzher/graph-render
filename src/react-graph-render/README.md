@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/@graph-render/react.svg)](https://www.npmjs.com/package/@graph-render/react)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/oleksandr-zhynzher/graph-render/blob/main/LICENSE)
-[![React](https://img.shields.io/badge/React-18%20%7C%2019-61dafb.svg)](https://react.dev/)
+[![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178c6.svg)](https://www.typescriptlang.org/)
 
 **Interactive graph canvas for React.**
@@ -94,7 +94,7 @@ function ServiceNode({ node }: VertexComponentProps) {
 - Custom React node components
 - Viewport control via imperative ref handle
 - SVG export support through `@graph-render/core`
-- React 18 and 19 compatible
+- React 19 required
 
 ## Layout Options
 

@@ -3,7 +3,7 @@
 [![Release](https://github.com/oleksandr-zhynzher/graph-render/actions/workflows/release.yml/badge.svg)](https://github.com/oleksandr-zhynzher/graph-render/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178c6.svg)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-18%20%7C%2019-61dafb.svg)](https://react.dev/)
+[![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev/)
 
 **Render interactive graphs and tournament brackets in React.**
 
@@ -65,6 +65,8 @@ export default function App() {
 
 That's it. You get match cards, winner highlighting, round labels, stage navigation, dark mode, and SVG export out of the box.
 
+To customize colors, fonts, match-card size, and chrome, pass an `appearance` object — see [Styling & configuration](src/react-tournament-tree/README.md#styling--configuration) in the tournament-tree package README.
+
 ---
 
 ## Interactive Graph Canvas
@@ -114,15 +116,20 @@ export default function App() {
 
 - **Zero config to start** — sane defaults for layout, zoom, and sizing
 - **Fully typed** — every prop, event, and data shape has a TypeScript type
+- **Themeable brackets** — `appearance` prop for colors, typography, match cards, header, and frame
 - **Custom node renderers** — replace any node with your own React component
 - **Stage navigation** — mobile-first round-by-round swiping for tournament brackets
 - **Dark mode** — built-in light/dark theme for all components
 - **SVG export** — render any graph to a static SVG file
-- **React 18 & 19** — peer dependency supports both versions
+- **React 19** — requires React 19 as a peer dependency
 
 ---
 
 ## Try It Live
+
+**Hosted Storybook:** [Bracket & graph demos](https://oleksandr-zhynzher.github.io/graph-render/?path=/docs/bracket-squash-tournament--docs)
+
+To run demos locally:
 
 ```bash
 git clone https://github.com/oleksandr-zhynzher/graph-render.git
@@ -130,7 +137,31 @@ cd graph-render
 yarn install && yarn storybook
 ```
 
-Open [http://localhost:6006](http://localhost:6006) to explore live bracket and graph demos.
+Then open [http://localhost:6006](http://localhost:6006).
+
+---
+
+## Releases & packages
+
+On every push to `main` or `master` (with a [Conventional Commit](https://www.conventionalcommits.org/) that triggers a release):
+
+- **GitHub Releases** — one release per published package (`@graph-render/types`, `core`, `react`, `tournament-tree`)
+- **npm** — published to [npmjs.com](https://www.npmjs.com/org/graph-render) when `NPM_TOKEN` is configured in repo secrets
+- **GitHub Packages** — the same versions are published to `https://npm.pkg.github.com`
+
+Install from GitHub Packages:
+
+```bash
+# ~/.npmrc
+@graph-render:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
+```
+
+```bash
+yarn add @graph-render/tournament-tree
+```
+
+Storybook is deployed to GitHub Pages on the same branches via the **Deploy Storybook** workflow.
 
 ---
 
