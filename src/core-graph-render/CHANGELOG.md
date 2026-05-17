@@ -1,3 +1,15 @@
+## <small>1.3.3 (2026-05-17)</small>
+
+* fix(release): force @graph-render scope when publishing to GitHub Pac… (#13) ([841e4bf](https://github.com/oleksandr-zhynzher/graph-render/commit/841e4bf)), closes [#13](https://github.com/oleksandr-zhynzher/graph-render/issues/13)
+
+
+
+
+
+### Dependencies
+
+* **@graph-render/types:** upgraded to 1.2.3
+
 ## <small>1.3.2 (2026-05-17)</small>
 
 - fix(release): publish @graph-render packages without scope remapping (#12) ([19b35c6](https://github.com/oleksandr-zhynzher/graph-render/commit/19b35c6)), closes [#12](https://github.com/oleksandr-zhynzher/graph-render/issues/12)
