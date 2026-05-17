@@ -1,6 +1,6 @@
 {
   "name": "@graph-render/tournament-tree",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": false,
   "repository": {
     "type": "git",
@@ -29,8 +29,8 @@
     "lint": "eslint src --ext .ts,.tsx"
   },
   "dependencies": {
-    "@graph-render/react": "1.3.0",
-    "@graph-render/types": "1.1.0"
+    "@graph-render/react": "1.4.0",
+    "@graph-render/types": "1.2.0"
   },
   "engines": {
     "node": ">=20"
