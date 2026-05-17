@@ -1,27 +1,32 @@
-import { BODY_FONT_FAMILY } from '../../constants';
 import type { SquashPlayerRowProps } from '../../types/squashNode';
+import type { ResolvedMatchCardStyle } from '../../utils/resolveBracketAppearance';
 import { getPlayerBadgeText } from '../../utils/squash';
 import { SquashHtmlScoreSegments } from './SquashHtmlScoreSegments';
 
 type SquashPlayerHtmlRowProps = SquashPlayerRowProps & {
   readonly nodeHeight: number;
   readonly scoreGroupWidth: number;
+  readonly matchCard: ResolvedMatchCardStyle;
+  readonly bodyFontFamily: string;
+  readonly scoreFontFamily: string;
 };
 
 export function SquashPlayerHtmlRow(props: SquashPlayerHtmlRowProps) {
-  const { player, playerIndex, compact, colors, isWinner, isPlayerHovered, playerOpacity } = props;
+  const { player, playerIndex, colors, isWinner, isPlayerHovered, playerOpacity, matchCard } =
+    props;
   const badgeBackground = isWinner ? colors.WINNER_CREST_BG : colors.CREST_BG;
   const badgeColor = isWinner ? colors.WINNER_CREST_TEXT : colors.CREST_TEXT;
   const rowBackground = isPlayerHovered ? colors.ROW_HOVER_BG : colors.ROW_BG;
+  const badgeRadius = props.compact ? 3 : 6;
 
   return (
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: `${compact ? 16 : 28}px minmax(0, 1fr) ${props.scoreGroupWidth}px ${compact ? 12 : 24}px`,
+        gridTemplateColumns: `${matchCard.badgeSize}px minmax(0, 1fr) ${props.scoreGroupWidth}px ${matchCard.matchCountWidth}px`,
         alignItems: 'center',
-        gap: compact ? 4 : 8,
-        padding: compact ? '4px 6px' : '14px 12px',
+        gap: matchCard.rowGap,
+        padding: matchCard.rowPadding,
         minHeight: props.nodeHeight / 2,
         background: rowBackground,
         opacity: playerOpacity,
@@ -34,19 +39,19 @@ export function SquashPlayerHtmlRow(props: SquashPlayerHtmlRowProps) {
     >
       <div
         style={{
-          width: compact ? 16 : 28,
-          height: compact ? 16 : 28,
-          borderRadius: compact ? 3 : 7,
+          width: matchCard.badgeSize,
+          height: matchCard.badgeSize,
+          borderRadius: badgeRadius,
           background: badgeBackground,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontWeight: 700,
           color: badgeColor,
-          fontSize: compact ? 8 : 12,
+          fontSize: matchCard.badgeFontSize,
           lineHeight: 1,
           flexShrink: 0,
-          fontFamily: BODY_FONT_FAMILY,
+          fontFamily: props.bodyFontFamily,
         }}
         aria-label={`crest-${player.name}`}
       >
@@ -55,19 +60,29 @@ export function SquashPlayerHtmlRow(props: SquashPlayerHtmlRowProps) {
       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <span
           style={{
-            fontSize: compact ? 9 : 13,
+            fontSize: matchCard.nameFontSize,
             fontWeight: isWinner ? 600 : 500,
             color: props.textColor,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-            fontFamily: BODY_FONT_FAMILY,
+            fontFamily: props.bodyFontFamily,
           }}
         >
           {player.name}
         </span>
       </div>
-      <SquashHtmlScoreSegments {...props} />
+      <SquashHtmlScoreSegments
+        nodeId={props.nodeId}
+        playerIndex={playerIndex}
+        scoreSegments={props.scoreSegments}
+        textColor={props.textColor}
+        colors={colors}
+        scoreFontSize={matchCard.score.fontSize}
+        scoreSegW={matchCard.score.segmentWidth}
+        scoreSegG={matchCard.score.segmentGap}
+        scoreFontFamily={props.scoreFontFamily}
+      />
       <span
         style={{
           display: 'flex',
@@ -75,11 +90,11 @@ export function SquashPlayerHtmlRow(props: SquashPlayerHtmlRowProps) {
           justifyContent: 'center',
           minHeight: 20,
           borderLeft: `1px solid ${colors.DARK_BORDER}`,
-          fontSize: compact ? 11 : 18,
+          fontSize: matchCard.score.matchCountFontSize,
           fontWeight: 700,
           color: props.textColor,
-          fontFamily: BODY_FONT_FAMILY,
-          paddingLeft: compact ? 3 : 8,
+          fontFamily: props.bodyFontFamily,
+          paddingLeft: props.compact ? 3 : 6,
         }}
       >
         {props.setCount}

@@ -1,6 +1,6 @@
 import type { StageView, VerticalStagePosition } from '@graph-render/types';
 
-import { useBracketTheme } from '../../contexts/BracketThemeContext';
+import { useBracketAppearance } from '../../contexts/BracketAppearanceContext';
 import { BracketHeader } from './BracketHeader';
 import { FloatingToolbarButton } from './FloatingToolbarButton';
 import { StageLabelBar } from './StageLabelBar';
@@ -51,7 +51,7 @@ export function BracketFrame({
   onToggleDarkMode,
   onExportSVG,
 }: BracketFrameProps) {
-  const { colors } = useBracketTheme();
+  const { colors, frame } = useBracketAppearance();
   const canGoPrev = activeStageIndex > 0;
   const canGoNext = activeStageIndex < stageViews.length - 1;
 
@@ -59,9 +59,9 @@ export function BracketFrame({
     <div
       style={{
         width: '100%',
-        maxWidth: 1180,
+        maxWidth: frame.maxWidth,
         background: colors.SURFACE_BG,
-        borderRadius: compact ? 10 : 24,
+        borderRadius: frame.borderRadius,
         boxShadow: colors.SHADOW,
         overflow: 'hidden',
       }}
@@ -73,18 +73,15 @@ export function BracketFrame({
         isDarkMode={isDarkMode}
         isNavigationMode={isNavigationMode}
         showToolbar={showToolbar}
-        colors={colors}
         onToggleNavigationMode={onToggleNavigationMode}
         onToggleDarkMode={onToggleDarkMode}
         onExportSVG={onExportSVG}
       />
       <StageLabelBar
         stageLabels={stageLabels}
-        compact={compact}
         isDarkMode={isDarkMode}
         isNavigationMode={isNavigationMode}
         activeStageIndex={activeStageIndex}
-        colors={colors}
         canGoPrev={canGoPrev}
         canGoNext={canGoNext}
         onPreviousStage={onPreviousStage}
@@ -94,12 +91,10 @@ export function BracketFrame({
         ref={contentViewportRef}
         style={{
           position: 'relative',
-          padding: compact ? '4px 8px 8px' : '12px 24px 24px',
+          padding: frame.contentPadding,
           overflowX: isNavigationMode ? 'hidden' : 'auto',
           overflowY: 'hidden',
-          background: isDarkMode
-            ? 'radial-gradient(circle at top left, rgba(154, 176, 141, 0.08), transparent 28%), #191e24'
-            : 'radial-gradient(circle at top left, rgba(124, 144, 112, 0.08), transparent 28%), #f7f6f3',
+          background: frame.canvasBackground,
         }}
       >
         {children}
@@ -107,7 +102,6 @@ export function BracketFrame({
           <FloatingToolbarButton
             isDarkMode={isDarkMode}
             isNavigationMode={isNavigationMode}
-            colors={colors}
             onToggleNavigationMode={onToggleNavigationMode}
           />
         ) : null}

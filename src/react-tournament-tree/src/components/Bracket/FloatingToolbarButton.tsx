@@ -1,19 +1,18 @@
-import type { SquashThemeColors } from '../../types/squashNode';
+import { useBracketAppearance } from '../../contexts/BracketAppearanceContext';
 import { StageNavigationIcon } from '../icons';
 
 interface FloatingToolbarButtonProps {
   readonly isDarkMode: boolean;
   readonly isNavigationMode: boolean;
-  readonly colors: SquashThemeColors;
   readonly onToggleNavigationMode: () => void;
 }
 
 export function FloatingToolbarButton({
   isDarkMode,
   isNavigationMode,
-  colors,
   onToggleNavigationMode,
 }: FloatingToolbarButtonProps) {
+  const { colors } = useBracketAppearance();
   const border = isDarkMode ? '#38424d' : '#e5dfd4';
   const text = isNavigationMode
     ? isDarkMode

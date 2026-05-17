@@ -1,4 +1,4 @@
-import { SCORE_FONT_FAMILY, SCORE_SEPARATOR_HEIGHT } from '../../constants';
+import { SCORE_SEPARATOR_HEIGHT } from '../../constants';
 import type { SquashThemeColors } from '../../types/squashNode';
 import { truncateText } from '../../utils/squash';
 
@@ -12,7 +12,8 @@ interface SquashSvgScoreSegmentsProps {
   readonly scoreSegG: number;
   readonly textColor: string;
   readonly colors: SquashThemeColors;
-  readonly compact: boolean;
+  readonly scoreFontSize: number;
+  readonly scoreFontFamily: string;
 }
 
 export function SquashSvgScoreSegments({
@@ -25,7 +26,8 @@ export function SquashSvgScoreSegments({
   scoreSegG,
   textColor,
   colors,
-  compact,
+  scoreFontSize,
+  scoreFontFamily,
 }: SquashSvgScoreSegmentsProps) {
   return (
     <>
@@ -40,10 +42,10 @@ export function SquashSvgScoreSegments({
               y={rowHeight / 2}
               textAnchor="middle"
               dy="0.35em"
-              fontSize={compact ? 8.5 : 10.5}
+              fontSize={scoreFontSize}
               fontWeight={400}
               fill={textColor}
-              fontFamily={SCORE_FONT_FAMILY}
+              fontFamily={scoreFontFamily}
             >
               {truncateText(segment, 4)}
             </text>

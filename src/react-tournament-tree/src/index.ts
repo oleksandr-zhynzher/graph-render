@@ -10,8 +10,22 @@ export {
   NODE_DIMENSIONS_COMPACT,
   NODE_DIMENSIONS_STAGE_NAV,
 } from './constants';
-export { ThemeMode } from './contexts/BracketThemeContext';
+export { ThemeMode } from './constants/themeMode';
+export {
+  BracketAppearanceProvider,
+  useBracketAppearance,
+} from './contexts/BracketAppearanceContext';
 export { BracketThemeProvider, useBracketTheme } from './contexts/BracketThemeContext';
+export { resolveBracketAppearance } from './utils/resolveBracketAppearance';
+export type {
+  ResolvedBracketAppearance,
+  ResolvedBracketFrameStyle,
+  ResolvedBracketHeaderStyle,
+  ResolvedBracketStageLabelsStyle,
+  ResolvedBracketTypography,
+  ResolvedMatchCardScoreStyle,
+  ResolvedMatchCardStyle,
+} from './utils/resolveBracketAppearance';
 export { routeBracketEdges } from './utils/bracketRouting';
 export { injectTournamentPathKeys } from './utils/pathKeys';
 export {
@@ -29,6 +43,7 @@ export type {
   StageBounds,
   StageView,
   StageViewportResult,
+  TournamentBracketAppearance,
   TournamentBracketProps,
 } from '@graph-render/types';
 export { MatchStatus, SquashNodeRenderMode, VerticalStagePosition } from '@graph-render/types';

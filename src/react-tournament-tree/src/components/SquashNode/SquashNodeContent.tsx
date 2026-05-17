@@ -1,13 +1,8 @@
 import { SquashNodeRenderMode } from '@graph-render/types';
 import React, { useEffect, useState } from 'react';
 
-import {
-  DEFAULT_PLAYER_ONE,
-  DEFAULT_PLAYER_TWO,
-  NODE_DIMENSIONS,
-  NODE_DIMENSIONS_COMPACT,
-} from '../../constants';
-import { useBracketTheme } from '../../contexts/BracketThemeContext';
+import { DEFAULT_PLAYER_ONE, DEFAULT_PLAYER_TWO, NODE_DIMENSIONS } from '../../constants';
+import { useBracketAppearance } from '../../contexts/BracketAppearanceContext';
 import type { SquashNodeProps } from '../../types/squashNode';
 import { ensureSquashNodeAnimations } from '../../utils/animations';
 import { isSvgCompatibleRenderMode } from '../../utils/renderMode';
@@ -28,10 +23,9 @@ export const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNode
   onPathHover,
   onPathLeave,
   renderMode = SquashNodeRenderMode.Export,
-  compact = true,
 }) {
   const [hoveredPlayerIndex, setHoveredPlayerIndex] = useState<number | null>(null);
-  const { colors } = useBracketTheme();
+  const { colors, matchCard: defaultMatchCard, compact: densityCompact } = useBracketAppearance();
 
   useEffect(() => {
     if (renderMode === SquashNodeRenderMode.Html) {
@@ -42,16 +36,17 @@ export const SquashNodeContent = React.memo<SquashNodeProps>(function SquashNode
   const meta = normalizeMatchMeta(node.meta);
   const p1 = meta.players[0] ?? DEFAULT_PLAYER_ONE;
   const p2 = meta.players[1] ?? DEFAULT_PLAYER_TWO;
-  const nodeWidth =
-    node.size?.width ?? (compact ? NODE_DIMENSIONS_COMPACT.WIDTH : NODE_DIMENSIONS.WIDTH);
-  const nodeHeight =
-    node.size?.height ?? (compact ? NODE_DIMENSIONS_COMPACT.HEIGHT : NODE_DIMENSIONS.HEIGHT);
+  const nodeWidth = node.size?.width ?? defaultMatchCard.width;
+  const nodeHeight = node.size?.height ?? defaultMatchCard.height;
+  /** Fall back to compact drawing metrics when the box is smaller than the standard card. */
+  const layoutCompact =
+    densityCompact || nodeHeight < NODE_DIMENSIONS.HEIGHT || nodeWidth < NODE_DIMENSIONS.WIDTH;
   const setWins = getSetWins(meta.sets, meta.status, meta.currentSet);
   const sharedProps = {
     nodeId: node.id,
     nodeWidth,
     nodeHeight,
-    compact,
+    compact: layoutCompact,
     isHovered,
     hoveredPlayerIndex,
     normalizedActivePathKey: activePathKey ? normalizePlayerKey(activePathKey) : null,

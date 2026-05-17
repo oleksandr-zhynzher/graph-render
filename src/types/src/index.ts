@@ -1,3 +1,4 @@
+export * from './bracketAppearance';
 export * from './config';
 export type * from './edge';
 export * from './graph';

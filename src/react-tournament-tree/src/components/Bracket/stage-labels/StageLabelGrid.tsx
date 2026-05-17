@@ -1,16 +1,19 @@
+import { useBracketAppearance } from '../../../contexts/BracketAppearanceContext';
+
 interface StageLabelGridProps {
   readonly labels: readonly string[];
-  readonly compact: boolean;
   readonly isDarkMode: boolean;
 }
 
-export function StageLabelGrid({ labels, compact, isDarkMode }: StageLabelGridProps) {
+export function StageLabelGrid({ labels, isDarkMode }: StageLabelGridProps) {
+  const { colors, stageLabels, typography } = useBracketAppearance();
+
   return (
     <div
       style={{
         display: 'grid',
         gridTemplateColumns: `repeat(${labels.length}, minmax(0, 1fr))`,
-        gap: compact ? 8 : 24,
+        gap: stageLabels.gridGap,
       }}
     >
       {labels.map((label, index) => (
@@ -33,11 +36,12 @@ export function StageLabelGrid({ labels, compact, isDarkMode }: StageLabelGridPr
           />
           <div
             style={{
-              fontSize: 12,
+              fontFamily: typography.bodyFontFamily,
+              fontSize: stageLabels.labelFontSize,
               fontWeight: 800,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              color: isDarkMode ? '#d8d2c7' : '#444b55',
+              color: colors.LABEL_TEXT,
               textAlign: 'center',
               whiteSpace: 'nowrap',
             }}

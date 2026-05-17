@@ -1,39 +1,30 @@
+import type { TournamentBracketAppearance } from '@graph-render/types';
 import React from 'react';
 
-import { THEME_COLORS_DARK, THEME_COLORS_LIGHT } from '../constants';
+import { ThemeMode } from '../constants/themeMode';
+import { BracketAppearanceProvider } from './BracketAppearanceContext';
 
-export enum ThemeMode {
-  Light = 'light',
-  Dark = 'dark',
-}
+export { ThemeMode } from '../constants/themeMode';
+export {
+  BracketAppearanceProvider,
+  useBracketAppearance,
+  useBracketTheme,
+} from './BracketAppearanceContext';
 
-type ThemeColors = typeof THEME_COLORS_LIGHT | typeof THEME_COLORS_DARK;
-
-interface BracketThemeContextValue {
+/**
+ * @deprecated Prefer {@link BracketAppearanceProvider} with `appearance`, `isDarkMode`, and `compact`.
+ */
+export const BracketThemeProvider: React.FC<{
   readonly mode: ThemeMode;
-  readonly colors: ThemeColors;
-}
-
-const BracketThemeContext = React.createContext<BracketThemeContextValue>({
-  mode: ThemeMode.Light,
-  colors: THEME_COLORS_LIGHT,
-});
-
-export const useBracketTheme = () => React.useContext(BracketThemeContext);
-
-interface BracketThemeProviderProps {
-  readonly mode: ThemeMode;
+  readonly compact?: boolean | undefined;
+  readonly appearance?: TournamentBracketAppearance | undefined;
   readonly children: React.ReactNode;
-}
-
-export const BracketThemeProvider: React.FC<BracketThemeProviderProps> = ({ mode, children }) => {
-  const value = React.useMemo(
-    () => ({
-      mode,
-      colors: mode === ThemeMode.Dark ? THEME_COLORS_DARK : THEME_COLORS_LIGHT,
-    }),
-    [mode]
-  );
-
-  return <BracketThemeContext.Provider value={value}>{children}</BracketThemeContext.Provider>;
-};
+}> = ({ mode, compact = true, appearance, children }) => (
+  <BracketAppearanceProvider
+    appearance={appearance}
+    isDarkMode={mode === ThemeMode.Dark}
+    compact={compact}
+  >
+    {children}
+  </BracketAppearanceProvider>
+);

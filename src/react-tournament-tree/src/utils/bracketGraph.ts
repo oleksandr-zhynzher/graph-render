@@ -5,15 +5,15 @@ import {
   DARK_COMPACT_TOURNAMENT_CONFIG,
   DARK_TOURNAMENT_CONFIG,
   DEFAULT_TOURNAMENT_CONFIG,
-  NODE_DIMENSIONS,
-  NODE_DIMENSIONS_COMPACT,
 } from '../constants';
+import type { ResolvedMatchCardStyle } from './resolveBracketAppearance';
 import { injectTournamentPathKeys } from './pathKeys';
 
 export function buildGraphConfig(
   config: TournamentBracketProps['config'],
   isDarkMode: boolean,
-  compact: boolean
+  compact: boolean,
+  matchCard: ResolvedMatchCardStyle
 ): GraphConfig {
   const { theme: themeOverride, ...restConfig } = config ?? {};
   const baseConfig = isDarkMode
@@ -30,22 +30,25 @@ export function buildGraphConfig(
     labels: undefined,
     autoLabels: false,
     theme: { ...baseConfig.theme, ...themeOverride },
+    fixedNodeSize: restConfig.fixedNodeSize ?? {
+      width: matchCard.width,
+      height: matchCard.height,
+    },
   };
 }
 
 export function buildBracketGraph(
   graph: TournamentBracketProps['graph'],
   hasCustomVertexComponent: boolean,
-  compact: boolean
+  matchCard: ResolvedMatchCardStyle
 ): TournamentBracketProps['graph'] {
   const graphWithPaths = injectTournamentPathKeys(graph);
   if (hasCustomVertexComponent) return graphWithPaths;
 
-  const dimensions = compact ? NODE_DIMENSIONS_COMPACT : NODE_DIMENSIONS;
   const sizedNodes = Object.entries(graphWithPaths.nodes ?? {}).reduce<
     NonNullable<TournamentBracketProps['graph']['nodes']>
   >((acc, [nodeId, attrs]) => {
-    acc[nodeId] = { ...attrs, size: { width: dimensions.WIDTH, height: dimensions.HEIGHT } };
+    acc[nodeId] = { ...attrs, size: { width: matchCard.width, height: matchCard.height } };
     return acc;
   }, {});
 
