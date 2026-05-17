@@ -29,6 +29,9 @@ jobs:
       - name: Build all packages
         run: yarn build
 
+      - name: Format changelogs
+        run: yarn prettier --write 'src/**/CHANGELOG.md'
+
       - name: Publish packages
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN || github.token }}

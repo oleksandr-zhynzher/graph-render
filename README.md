@@ -172,7 +172,11 @@ yarn add @graph-render/tournament-tree
 
 To backfill packages without a new release, run the **Publish GitHub Packages** workflow under Actions.
 
-If you see short names (`react`, `core`, `types`, `tournament-tree`) without the `@graph-render/` scope, those are stale packages from an earlier publish. Delete them under **Packages → Package settings → Delete package**, then re-run the publish workflow so only `@graph-render/*` packages remain.
+### Repo sidebar vs full package name
+
+On the repository home page, the **Packages** box often lists only the **basename** of a scoped package (`tournament-tree`, `react`, `core`, `types`). That is normal GitHub UI for `@scope/name` packages — the real name is still `@graph-render/tournament-tree`, `@graph-render/react`, and so on. Open **Packages** (or your [profile packages tab](https://github.com/oleksandr-zhynzher?tab=packages)) to confirm the full scoped name and version.
+
+If you still see **duplicate** packages (short names that are _not_ linked to `@graph-render/*`, or old versions you do not use), delete the stale entry: **Package → Package settings → Delete package**, then re-run **Publish GitHub Packages**.
 
 Storybook is deployed to GitHub Pages on the same branches via the **Deploy Storybook** workflow.
 
