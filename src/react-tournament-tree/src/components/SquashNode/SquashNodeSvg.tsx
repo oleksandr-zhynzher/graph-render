@@ -1,8 +1,8 @@
 import { MatchStatus } from '@graph-render/types';
 
 import { DEFAULT_PLAYERS, NODE_BORDER_WIDTH, NODE_DIMENSIONS } from '../../constants';
-import { useBracketAppearance } from '../../contexts/BracketAppearanceContext';
 import { getSquashScoreLayout } from '../../constants/squashNode';
+import { useBracketAppearance } from '../../contexts/BracketAppearanceContext';
 import type { SquashNodeVariantProps } from '../../types/squashNode';
 import { getScoreGroupWidth, getScoreSegments, normalizePlayerKey } from '../../utils/squash';
 import { SquashPlayerSvgRow } from './SquashPlayerSvgRow';
@@ -30,8 +30,7 @@ export function SquashNodeSvg(props: SquashNodeVariantProps) {
   const matchCountFontSize = scoreLayout.matchCountFontSize;
   const rowHeight = nodeHeight / 2;
   const scoreSectionWidth = getScoreGroupWidth(Math.max(meta.sets.length, 1), scoreSegW, scoreSegG);
-  const internalDividerX =
-    nodeWidth - insetX - matchCountWidth - matchCountTrailingGap;
+  const internalDividerX = nodeWidth - insetX - matchCountWidth - matchCountTrailingGap;
   const scoreGroupRightX = internalDividerX - scoreGroupTrailingGap;
   const matchCountX = nodeWidth - insetX - matchCountWidth / 2;
   const playerTextX = insetX + badgeSize + badgePad;
@@ -122,8 +121,10 @@ export function SquashNodeSvg(props: SquashNodeVariantProps) {
   );
 }
 
-function layoutUsesCompactMetrics(compact: boolean, nodeWidth: number, nodeHeight: number): boolean {
-  return (
-    compact || nodeHeight < NODE_DIMENSIONS.HEIGHT || nodeWidth < NODE_DIMENSIONS.WIDTH
-  );
+function layoutUsesCompactMetrics(
+  compact: boolean,
+  nodeWidth: number,
+  nodeHeight: number
+): boolean {
+  return compact || nodeHeight < NODE_DIMENSIONS.HEIGHT || nodeWidth < NODE_DIMENSIONS.WIDTH;
 }

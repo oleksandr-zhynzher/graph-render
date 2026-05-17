@@ -45,7 +45,7 @@ export const useGraphCollapseHandlers = ({
           );
           void Promise.resolve(expandResult)
             .then(() => updateCollapsedNodeIds((current) => current.filter((id) => id !== node.id)))
-            .catch((error) =>
+            .catch((error: unknown) =>
               onError?.(toError(error), { graph, phase: GraphErrorPhase.Interaction })
             )
             .finally(() => {

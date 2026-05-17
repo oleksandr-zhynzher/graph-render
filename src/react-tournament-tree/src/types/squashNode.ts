@@ -7,8 +7,6 @@ import type {
 
 import type { NormalizedSquashMatchMeta, SetWins } from '../utils/squash';
 
-export type { SquashThemeColors };
-
 export interface SquashNodeProps extends VertexComponentProps {
   readonly renderMode?: SquashNodeRenderMode | undefined;
   readonly compact?: boolean | undefined;
@@ -50,3 +48,5 @@ export type SquashPlayerRowProps = PlayerHoverHandlers & {
   readonly textColor: string;
   readonly colors: SquashThemeColors;
 };
+
+export { type SquashThemeColors } from '@graph-render/types';

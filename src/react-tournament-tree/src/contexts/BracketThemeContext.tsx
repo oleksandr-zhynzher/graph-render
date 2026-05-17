@@ -1,15 +1,10 @@
 import type { TournamentBracketAppearance } from '@graph-render/types';
-import React from 'react';
+import type React from 'react';
 
 import { ThemeMode } from '../constants/themeMode';
-import { BracketAppearanceProvider } from './BracketAppearanceContext';
+import { BracketAppearanceProvider, useBracketAppearance } from './BracketAppearanceContext';
 
 export { ThemeMode } from '../constants/themeMode';
-export {
-  BracketAppearanceProvider,
-  useBracketAppearance,
-  useBracketTheme,
-} from './BracketAppearanceContext';
 
 /**
  * @deprecated Prefer {@link BracketAppearanceProvider} with `appearance`, `isDarkMode`, and `compact`.
@@ -28,3 +23,12 @@ export const BracketThemeProvider: React.FC<{
     {children}
   </BracketAppearanceProvider>
 );
+
+/** @deprecated Use {@link useBracketAppearance} for full styling; this remains for color/mode only. */
+export function useBracketTheme(): {
+  readonly mode: ThemeMode;
+  readonly colors: ReturnType<typeof useBracketAppearance>['colors'];
+} {
+  const { mode, colors } = useBracketAppearance();
+  return { mode, colors };
+}

@@ -95,7 +95,7 @@ export const useGraphModel = ({
 
       setMeasuredNodeSizes((current) => {
         const previous = current[nodeId];
-        if (previous && previous.width === size.width && previous.height === size.height) {
+        if (previous?.width === size.width && previous?.height === size.height) {
           return current;
         }
 

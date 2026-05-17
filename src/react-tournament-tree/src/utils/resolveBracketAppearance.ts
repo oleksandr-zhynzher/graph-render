@@ -14,9 +14,9 @@ import {
   BODY_FONT_FAMILY,
   NODE_DIMENSIONS,
   NODE_DIMENSIONS_COMPACT,
+  SCORE_FONT_FAMILY,
   SCORE_LAYOUT_COMPACT,
   SCORE_LAYOUT_DEFAULT,
-  SCORE_FONT_FAMILY,
   THEME_COLORS_DARK,
   THEME_COLORS_LIGHT,
 } from '../constants';
@@ -225,11 +225,8 @@ const mergeMatchCardStyle = (
   score: mergeScoreStyle(base.score, override?.score),
 });
 
-const pickDensity = <T,>(
-  compact: boolean,
-  compactValue: T,
-  standardValue: T
-): T => (compact ? compactValue : standardValue);
+const pickDensity = <T>(compact: boolean, compactValue: T, standardValue: T): T =>
+  compact ? compactValue : standardValue;
 
 const resolveFrameStyle = (
   frame: BracketFrameAppearance | undefined,
@@ -310,7 +307,9 @@ const resolveStageLabelsStyle = (
   ),
   paddingNavigation: pickDensity(
     compact,
-    stageLabels?.paddingNavigationCompact ?? DEFAULT_STAGE_LABELS.paddingNavigationCompact ?? '5px 10px',
+    stageLabels?.paddingNavigationCompact ??
+      DEFAULT_STAGE_LABELS.paddingNavigationCompact ??
+      '5px 10px',
     stageLabels?.paddingNavigationStandard ??
       DEFAULT_STAGE_LABELS.paddingNavigationStandard ??
       '8px 16px'
@@ -332,7 +331,9 @@ const resolveStageLabelsStyle = (
   ),
   activePillPadding: pickDensity(
     compact,
-    stageLabels?.activePillPaddingCompact ?? DEFAULT_STAGE_LABELS.activePillPaddingCompact ?? '4px 12px',
+    stageLabels?.activePillPaddingCompact ??
+      DEFAULT_STAGE_LABELS.activePillPaddingCompact ??
+      '4px 12px',
     stageLabels?.activePillPaddingStandard ??
       DEFAULT_STAGE_LABELS.activePillPaddingStandard ??
       '5px 16px'
@@ -364,7 +365,9 @@ export function resolveBracketAppearance(
     : appearance?.matchCard?.standard;
   const typography = {
     bodyFontFamily:
-      appearance?.typography?.bodyFontFamily ?? DEFAULT_TYPOGRAPHY.bodyFontFamily ?? BODY_FONT_FAMILY,
+      appearance?.typography?.bodyFontFamily ??
+      DEFAULT_TYPOGRAPHY.bodyFontFamily ??
+      BODY_FONT_FAMILY,
     scoreFontFamily:
       appearance?.typography?.scoreFontFamily ??
       DEFAULT_TYPOGRAPHY.scoreFontFamily ??

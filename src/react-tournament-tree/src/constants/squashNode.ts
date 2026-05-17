@@ -10,12 +10,12 @@ export const SCORE_SEGMENT_GAP = 10;
 export const SCORE_SEPARATOR_HEIGHT = 10;
 export const NODE_BORDER_WIDTH = 2;
 
-export type SquashScoreLayout = {
+export interface SquashScoreLayout {
   readonly segmentWidth: number;
   readonly segmentGap: number;
   readonly fontSize: number;
   readonly matchCountFontSize: number;
-};
+}
 
 /** Tight set-score columns for compact / stage-nav match cards. */
 export const SCORE_LAYOUT_COMPACT: SquashScoreLayout = {

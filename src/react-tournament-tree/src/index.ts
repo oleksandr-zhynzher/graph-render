@@ -15,8 +15,11 @@ export {
   BracketAppearanceProvider,
   useBracketAppearance,
 } from './contexts/BracketAppearanceContext';
+/* eslint-disable @typescript-eslint/no-deprecated -- legacy theme API kept for backward compatibility */
 export { BracketThemeProvider, useBracketTheme } from './contexts/BracketThemeContext';
-export { resolveBracketAppearance } from './utils/resolveBracketAppearance';
+/* eslint-enable @typescript-eslint/no-deprecated -- legacy theme API kept for backward compatibility */
+export { routeBracketEdges } from './utils/bracketRouting';
+export { injectTournamentPathKeys } from './utils/pathKeys';
 export type {
   ResolvedBracketAppearance,
   ResolvedBracketFrameStyle,
@@ -26,8 +29,7 @@ export type {
   ResolvedMatchCardScoreStyle,
   ResolvedMatchCardStyle,
 } from './utils/resolveBracketAppearance';
-export { routeBracketEdges } from './utils/bracketRouting';
-export { injectTournamentPathKeys } from './utils/pathKeys';
+export { resolveBracketAppearance } from './utils/resolveBracketAppearance';
 export {
   roundLabelsForGraph,
   roundLabelsForMatchCount,

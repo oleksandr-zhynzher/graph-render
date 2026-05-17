@@ -1,7 +1,6 @@
 import type { TournamentBracketAppearance } from '@graph-render/types';
 import React from 'react';
 
-import { ThemeMode } from '../constants/themeMode';
 import {
   resolveBracketAppearance,
   type ResolvedBracketAppearance,
@@ -39,13 +38,4 @@ export function useBracketAppearance(): ResolvedBracketAppearance {
   }
 
   return context;
-}
-
-/** @deprecated Use {@link useBracketAppearance} for full styling; this remains for color/mode only. */
-export function useBracketTheme(): {
-  readonly mode: ThemeMode;
-  readonly colors: ResolvedBracketAppearance['colors'];
-} {
-  const { mode, colors } = useBracketAppearance();
-  return { mode, colors };
 }

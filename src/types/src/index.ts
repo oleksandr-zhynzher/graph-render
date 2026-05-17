@@ -1,4 +1,4 @@
-export * from './bracketAppearance';
+export type * from './bracketAppearance';
 export * from './config';
 export type * from './edge';
 export * from './graph';

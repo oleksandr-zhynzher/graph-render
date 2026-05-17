@@ -6,8 +6,8 @@ import {
   DARK_TOURNAMENT_CONFIG,
   DEFAULT_TOURNAMENT_CONFIG,
 } from '../constants';
-import type { ResolvedMatchCardStyle } from './resolveBracketAppearance';
 import { injectTournamentPathKeys } from './pathKeys';
+import type { ResolvedMatchCardStyle } from './resolveBracketAppearance';
 
 export function buildGraphConfig(
   config: TournamentBracketProps['config'],

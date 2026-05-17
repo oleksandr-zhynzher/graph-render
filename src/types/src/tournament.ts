@@ -4,20 +4,6 @@ import type { NxGraphInput } from './graph';
 import type { NodeData, PositionedNode } from './node';
 import type { GraphViewport, VertexComponent } from './react';
 
-export type {
-  BracketColorsAppearance,
-  BracketFrameAppearance,
-  BracketHeaderAppearance,
-  BracketStageLabelsAppearance,
-  BracketTypographyAppearance,
-  MatchCardAppearance,
-  MatchCardAppearanceByDensity,
-  MatchCardScoreAppearance,
-  SquashThemeColors,
-  SquashThemeColorsOverrides,
-  TournamentBracketAppearance,
-} from './bracketAppearance';
-
 export interface SquashPlayer {
   readonly name: string;
   readonly seed?: number | undefined;
