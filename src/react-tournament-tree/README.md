@@ -84,24 +84,24 @@ export default function App() {
 
 ### Inputs (what you pass in)
 
-| Input | Type | Required | Role |
-| --- | --- | --- | --- |
-| `graph` | `NxGraphInput` | yes | Bracket structure + match metadata on each node |
-| `graph.nodes[id].meta` | `SquashMatchMeta` | per match | Players, scores, status, tiebreaks |
-| `graph.adj` | adjacency map | yes | Parent → child links between matches |
-| `config` | `Partial<GraphConfig>` | no | Layout engine: tree layout, canvas size, `nodeGap`, edges |
-| `appearance` | `TournamentBracketAppearance` | no | Visual styling: colors, fonts, card size, chrome |
-| Other props | see [Component props](#component-props) | no | Title, compact mode, callbacks, viewport |
+| Input                  | Type                                    | Required  | Role                                                      |
+| ---------------------- | --------------------------------------- | --------- | --------------------------------------------------------- |
+| `graph`                | `NxGraphInput`                          | yes       | Bracket structure + match metadata on each node           |
+| `graph.nodes[id].meta` | `SquashMatchMeta`                       | per match | Players, scores, status, tiebreaks                        |
+| `graph.adj`            | adjacency map                           | yes       | Parent → child links between matches                      |
+| `config`               | `Partial<GraphConfig>`                  | no        | Layout engine: tree layout, canvas size, `nodeGap`, edges |
+| `appearance`           | `TournamentBracketAppearance`           | no        | Visual styling: colors, fonts, card size, chrome          |
+| Other props            | see [Component props](#component-props) | no        | Title, compact mode, callbacks, viewport                  |
 
 ### Outputs (what you get back)
 
-| Output | Type | When |
-| --- | --- | --- |
-| Rendered bracket UI | React tree | Always — header, stage labels, graph canvas, toolbar |
-| `onMatchClick(node)` | `SquashPositionedNode` | User clicks a built-in match card |
-| `onInvalidNode(id, error)` | `string`, `Error` | Custom or built-in node fails to render |
-| SVG export | file download | User clicks export in toolbar (built-in handler) |
-| Dark mode | document / toolbar | Toggles `document` dark class via built-in control |
+| Output                     | Type                   | When                                                 |
+| -------------------------- | ---------------------- | ---------------------------------------------------- |
+| Rendered bracket UI        | React tree             | Always — header, stage labels, graph canvas, toolbar |
+| `onMatchClick(node)`       | `SquashPositionedNode` | User clicks a built-in match card                    |
+| `onInvalidNode(id, error)` | `string`, `Error`      | Custom or built-in node fails to render              |
+| SVG export                 | file download          | User clicks export in toolbar (built-in handler)     |
+| Dark mode                  | document / toolbar     | Toggles `document` dark class via built-in control   |
 
 For custom integrations, use `useBracketAppearance()` inside children of `BracketAppearanceProvider`, or call `resolveBracketAppearance(appearance, isDarkMode, compact)` to get the merged style object without rendering.
 
@@ -218,17 +218,17 @@ import { EdgeType, LayoutDirection, LayoutType } from '@graph-render/types';
     defaultEdgeType: EdgeType.Undirected,
     theme: { nodeGap: 34, edgeColor: '#d9d6cf' },
   }}
-/>
+/>;
 ```
 
 `config.theme` only affects the **graph engine** (edges, canvas background, node spacing). Match-card colors come from `appearance.colors`.
 
 ### Default match-card sizes
 
-| Mode | `compact` | Default size (W×H) |
-| --- | --- | --- |
-| Standard | `false` | 280 × 100 |
-| Compact | `true` | 160 × 56 |
+| Mode     | `compact` | Default size (W×H) |
+| -------- | --------- | ------------------ |
+| Standard | `false`   | 280 × 100          |
+| Compact  | `true`    | 160 × 56           |
 
 Constants exported for reference: `NODE_DIMENSIONS`, `NODE_DIMENSIONS_COMPACT`, `NODE_DIMENSIONS_STAGE_NAV`.
 
@@ -242,25 +242,25 @@ Type: `TournamentBracketAppearance` (from `@graph-render/tournament-tree` or `@g
 
 Override theme tokens per color mode. Keys are merged on top of built-in light/dark palettes.
 
-| Key | Used for |
-| --- | --- |
-| `BASE_BG` | Match card background |
-| `SURFACE_BG` | Outer bracket frame background |
-| `HEADER_BG` | Top header bar |
-| `HEADER_TITLE` | Title text |
-| `HEADER_BORDER` | Header / stage label dividers |
-| `ICON_BG` / `ICON_FG` | Trophy icon badge |
-| `BADGE_BG` / `BADGE_TEXT` / `BADGE_DOT` | Header status badge |
-| `CREST_BG` / `CREST_TEXT` | Player initials badge |
-| `WINNER_CREST_BG` / `WINNER_CREST_TEXT` | Winner initials badge |
-| `ROW_BG` / `ROW_HOVER_BG` | Player row backgrounds |
-| `FOREGROUND` / `MUTED_TEXT` | Primary / secondary text |
-| `BORDER` / `DARK_BORDER` / `CARD_BORDER` | Dividers and card outline |
-| `LIVE_INDICATOR` | Live match dot |
-| `EDGE_COLOR` | Bracket connector lines (also set via `config.theme`) |
-| `LABEL_TEXT` | Round label text |
-| `TOOLBAR_*` | Floating toolbar |
-| `SHADOW` / `CARD_SHADOW` | Frame and card shadows |
+| Key                                      | Used for                                              |
+| ---------------------------------------- | ----------------------------------------------------- |
+| `BASE_BG`                                | Match card background                                 |
+| `SURFACE_BG`                             | Outer bracket frame background                        |
+| `HEADER_BG`                              | Top header bar                                        |
+| `HEADER_TITLE`                           | Title text                                            |
+| `HEADER_BORDER`                          | Header / stage label dividers                         |
+| `ICON_BG` / `ICON_FG`                    | Trophy icon badge                                     |
+| `BADGE_BG` / `BADGE_TEXT` / `BADGE_DOT`  | Header status badge                                   |
+| `CREST_BG` / `CREST_TEXT`                | Player initials badge                                 |
+| `WINNER_CREST_BG` / `WINNER_CREST_TEXT`  | Winner initials badge                                 |
+| `ROW_BG` / `ROW_HOVER_BG`                | Player row backgrounds                                |
+| `FOREGROUND` / `MUTED_TEXT`              | Primary / secondary text                              |
+| `BORDER` / `DARK_BORDER` / `CARD_BORDER` | Dividers and card outline                             |
+| `LIVE_INDICATOR`                         | Live match dot                                        |
+| `EDGE_COLOR`                             | Bracket connector lines (also set via `config.theme`) |
+| `LABEL_TEXT`                             | Round label text                                      |
+| `TOOLBAR_*`                              | Floating toolbar                                      |
+| `SHADOW` / `CARD_SHADOW`                 | Frame and card shadows                                |
 
 ```ts
 appearance: {
@@ -273,95 +273,95 @@ appearance: {
 
 ### `appearance.typography`
 
-| Field | Default | Description |
-| --- | --- | --- |
-| `bodyFontFamily` | Plus Jakarta Sans stack | Names, header, badges |
-| `scoreFontFamily` | Space Mono stack | Per-set score digits |
+| Field             | Default                 | Description           |
+| ----------------- | ----------------------- | --------------------- |
+| `bodyFontFamily`  | Plus Jakarta Sans stack | Names, header, badges |
+| `scoreFontFamily` | Space Mono stack        | Per-set score digits  |
 
 ### `appearance.matchCard.standard` / `.compact`
 
 Applied when `compact={false}` or `compact={true}` respectively.
 
-| Field | Standard default | Compact default | Description |
-| --- | --- | --- | --- |
-| `width` | 280 | 160 | Card width (px); drives layout |
-| `height` | 100 | 56 | Card height (px) |
-| `borderRadius` | 14 | 8 | Card corner radius |
-| `insetX` | 10 | 6 | Horizontal padding inside card |
-| `badgeSize` | 24 | 16 | Player crest size |
-| `badgePad` | 6 | 4 | Gap after crest |
-| `badgeFontSize` | 12 | 8 | Crest initials font size |
-| `nameFontSize` | 13 | 10 | Player name font size |
-| `matchCountWidth` | 20 | 14 | Width of “sets won” column |
-| `matchCountTrailingGap` | 8 | 6 | Space before sets-won column |
-| `scoreGroupTrailingGap` | 4 | 4 | Space before score group |
-| `rowPadding` | `8px 10px` | `4px 6px` | HTML row padding |
-| `rowGap` | 5 | 4 | HTML row grid gap |
-| `score.segmentWidth` | 24 | 9 | Width per set-score column |
-| `score.segmentGap` | 10 | 5 | Gap between set scores |
-| `score.fontSize` | 14.5 | 7.5 | Set score font size |
-| `score.matchCountFontSize` | 21 | 11 | Sets-won number font size |
+| Field                      | Standard default | Compact default | Description                    |
+| -------------------------- | ---------------- | --------------- | ------------------------------ |
+| `width`                    | 280              | 160             | Card width (px); drives layout |
+| `height`                   | 100              | 56              | Card height (px)               |
+| `borderRadius`             | 14               | 8               | Card corner radius             |
+| `insetX`                   | 10               | 6               | Horizontal padding inside card |
+| `badgeSize`                | 24               | 16              | Player crest size              |
+| `badgePad`                 | 6                | 4               | Gap after crest                |
+| `badgeFontSize`            | 12               | 8               | Crest initials font size       |
+| `nameFontSize`             | 13               | 10              | Player name font size          |
+| `matchCountWidth`          | 20               | 14              | Width of “sets won” column     |
+| `matchCountTrailingGap`    | 8                | 6               | Space before sets-won column   |
+| `scoreGroupTrailingGap`    | 4                | 4               | Space before score group       |
+| `rowPadding`               | `8px 10px`       | `4px 6px`       | HTML row padding               |
+| `rowGap`                   | 5                | 4               | HTML row grid gap              |
+| `score.segmentWidth`       | 24               | 9               | Width per set-score column     |
+| `score.segmentGap`         | 10               | 5               | Gap between set scores         |
+| `score.fontSize`           | 14.5             | 7.5             | Set score font size            |
+| `score.matchCountFontSize` | 21               | 11              | Sets-won number font size      |
 
 ### `appearance.frame`
 
-| Field | Description |
-| --- | --- |
-| `maxWidth` | Max width of bracket container (default `1180`) |
-| `borderRadiusStandard` / `borderRadiusCompact` | Outer frame radius |
-| `contentPaddingStandard` / `contentPaddingCompact` | Padding around graph canvas |
-| `canvasBackgroundLight` / `canvasBackgroundDark` | CSS background behind the graph |
+| Field                                              | Description                                     |
+| -------------------------------------------------- | ----------------------------------------------- |
+| `maxWidth`                                         | Max width of bracket container (default `1180`) |
+| `borderRadiusStandard` / `borderRadiusCompact`     | Outer frame radius                              |
+| `contentPaddingStandard` / `contentPaddingCompact` | Padding around graph canvas                     |
+| `canvasBackgroundLight` / `canvasBackgroundDark`   | CSS background behind the graph                 |
 
 ### `appearance.header`
 
-| Field | Description |
-| --- | --- |
-| `gap` | Flex gap between header items |
-| `minHeightStandard` / `minHeightCompact` | Header bar min height |
-| `paddingStandard` / `paddingCompact` | Header horizontal padding |
-| `iconSizeStandard` / `iconSizeCompact` | Trophy icon box size |
-| `iconRadiusStandard` / `iconRadiusCompact` | Trophy icon corner radius |
-| `titleFontSizeStandard` / `titleFontSizeCompact` | Title font size |
-| `badgeFontSizeStandard` / `badgeFontSizeCompact` | Badge label font size |
-| `badgePaddingStandard` / `badgePaddingCompact` | Badge padding |
-| `badgeDotSize` | Status dot size in badge |
+| Field                                            | Description                   |
+| ------------------------------------------------ | ----------------------------- |
+| `gap`                                            | Flex gap between header items |
+| `minHeightStandard` / `minHeightCompact`         | Header bar min height         |
+| `paddingStandard` / `paddingCompact`             | Header horizontal padding     |
+| `iconSizeStandard` / `iconSizeCompact`           | Trophy icon box size          |
+| `iconRadiusStandard` / `iconRadiusCompact`       | Trophy icon corner radius     |
+| `titleFontSizeStandard` / `titleFontSizeCompact` | Title font size               |
+| `badgeFontSizeStandard` / `badgeFontSizeCompact` | Badge label font size         |
+| `badgePaddingStandard` / `badgePaddingCompact`   | Badge padding                 |
+| `badgeDotSize`                                   | Status dot size in badge      |
 
 ### `appearance.stageLabels`
 
-| Field | Description |
-| --- | --- |
-| `backgroundLight` / `backgroundDark` | Stage label bar background |
-| `paddingStandard` / `paddingCompact` | Padding when showing all rounds |
+| Field                                                    | Description                      |
+| -------------------------------------------------------- | -------------------------------- |
+| `backgroundLight` / `backgroundDark`                     | Stage label bar background       |
+| `paddingStandard` / `paddingCompact`                     | Padding when showing all rounds  |
 | `paddingNavigationStandard` / `paddingNavigationCompact` | Padding in stage navigation mode |
-| `gridGapStandard` / `gridGapCompact` | Gap between round labels |
-| `labelFontSizeStandard` / `labelFontSizeCompact` | Round name font size |
-| `activePillFontSize*` / `activePillPadding*` | Active stage chip in nav mode |
-| `counterFontSize*` | “2/5” stage counter font size |
-| `navColorLight` / `navColorDark` | Prev/next arrow color |
-| `navBorderLight` / `navBorderDark` | Prev/next button border |
+| `gridGapStandard` / `gridGapCompact`                     | Gap between round labels         |
+| `labelFontSizeStandard` / `labelFontSizeCompact`         | Round name font size             |
+| `activePillFontSize*` / `activePillPadding*`             | Active stage chip in nav mode    |
+| `counterFontSize*`                                       | “2/5” stage counter font size    |
+| `navColorLight` / `navColorDark`                         | Prev/next arrow color            |
+| `navBorderLight` / `navBorderDark`                       | Prev/next button border          |
 
 ---
 
 ## Component props
 
-| Prop | Type | Default | Description |
-| --- | --- | --- | --- |
-| `graph` | `NxGraphInput` | required | Bracket nodes + edges |
-| `config` | `Partial<GraphConfig>` | tournament defaults | Layout, canvas, routing |
-| `appearance` | `TournamentBracketAppearance` | built-in theme | Visual styling overrides |
-| `defaultViewport` | `Partial<GraphViewport>` | auto fit | Initial pan/zoom (`x`, `y`, `zoom`) |
-| `vertexComponent` | `VertexComponent` | built-in card | Replace match card renderer |
-| `nodeRenderMode` | `SquashNodeRenderMode` | `'export'` | `'svg'` \| `'html'` \| `'export'` \| `'server'` |
-| `title` | `string` | `'Tournament Bracket'` | Header title |
-| `badgeText` | `string` | auto from graph | Header badge text |
-| `showToolbar` | `boolean` | `true` | Show toolbar actions |
-| `showViewportControls` | `boolean` | `false` | Show zoom controls on canvas |
-| `defaultNavigationMode` | `boolean` | `true` | Start in per-stage navigation |
-| `panEnabled` | `boolean` | `true` (off in nav mode) | Allow panning |
-| `zoomEnabled` | `boolean` | `true` (off in nav mode) | Allow zoom |
-| `pinchZoomEnabled` | `boolean` | `true` (off in nav mode) | Allow pinch zoom |
-| `compact` | `boolean` | `true` | Use compact match-card preset |
-| `onMatchClick` | `(node: SquashPositionedNode) => void` | — | Match click handler |
-| `onInvalidNode` | `(id, error) => void` | — | Node render error handler |
+| Prop                    | Type                                   | Default                  | Description                                     |
+| ----------------------- | -------------------------------------- | ------------------------ | ----------------------------------------------- |
+| `graph`                 | `NxGraphInput`                         | required                 | Bracket nodes + edges                           |
+| `config`                | `Partial<GraphConfig>`                 | tournament defaults      | Layout, canvas, routing                         |
+| `appearance`            | `TournamentBracketAppearance`          | built-in theme           | Visual styling overrides                        |
+| `defaultViewport`       | `Partial<GraphViewport>`               | auto fit                 | Initial pan/zoom (`x`, `y`, `zoom`)             |
+| `vertexComponent`       | `VertexComponent`                      | built-in card            | Replace match card renderer                     |
+| `nodeRenderMode`        | `SquashNodeRenderMode`                 | `'export'`               | `'svg'` \| `'html'` \| `'export'` \| `'server'` |
+| `title`                 | `string`                               | `'Tournament Bracket'`   | Header title                                    |
+| `badgeText`             | `string`                               | auto from graph          | Header badge text                               |
+| `showToolbar`           | `boolean`                              | `true`                   | Show toolbar actions                            |
+| `showViewportControls`  | `boolean`                              | `false`                  | Show zoom controls on canvas                    |
+| `defaultNavigationMode` | `boolean`                              | `true`                   | Start in per-stage navigation                   |
+| `panEnabled`            | `boolean`                              | `true` (off in nav mode) | Allow panning                                   |
+| `zoomEnabled`           | `boolean`                              | `true` (off in nav mode) | Allow zoom                                      |
+| `pinchZoomEnabled`      | `boolean`                              | `true` (off in nav mode) | Allow pinch zoom                                |
+| `compact`               | `boolean`                              | `true`                   | Use compact match-card preset                   |
+| `onMatchClick`          | `(node: SquashPositionedNode) => void` | —                        | Match click handler                             |
+| `onInvalidNode`         | `(id, error) => void`                  | —                        | Node render error handler                       |
 
 ---
 
@@ -402,7 +402,9 @@ Connect matches through `adj`. Round labels are inferred from graph depth.
 
 ```ts
 const graph = {
-  nodes: { /* id -> { meta } */ },
+  nodes: {
+    /* id -> { meta } */
+  },
   adj: {
     qf1: { sf1: { id: 'qf1-sf1', type: 'undirected' } },
     sf1: { final: { id: 'sf1-final', type: 'undirected' } },
@@ -434,17 +436,17 @@ Merge user `appearance` with defaults without rendering — useful for Storybook
 
 ### Re-exports
 
-| Export | Description |
-| --- | --- |
-| `TournamentBracket` | Main component |
-| `SquashNode` | Standalone match card |
-| `BracketAppearanceProvider`, `useBracketAppearance` | Appearance context |
-| `resolveBracketAppearance` | Merge `appearance` with defaults |
-| `TournamentBracketAppearance`, `ResolvedBracketAppearance`, … | Types |
-| `NODE_DIMENSIONS`, `NODE_DIMENSIONS_COMPACT`, `NODE_DIMENSIONS_STAGE_NAV` | Default sizes |
-| `DEFAULT_TOURNAMENT_CONFIG`, `COMPACT_TOURNAMENT_CONFIG`, … | Default `config` presets |
-| `MatchStatus`, `SquashNodeRenderMode`, `VerticalStagePosition` | Enums |
-| `getStageViewport`, `buildStageViews`, `roundLabelsForGraph` | Utilities |
+| Export                                                                    | Description                      |
+| ------------------------------------------------------------------------- | -------------------------------- |
+| `TournamentBracket`                                                       | Main component                   |
+| `SquashNode`                                                              | Standalone match card            |
+| `BracketAppearanceProvider`, `useBracketAppearance`                       | Appearance context               |
+| `resolveBracketAppearance`                                                | Merge `appearance` with defaults |
+| `TournamentBracketAppearance`, `ResolvedBracketAppearance`, …             | Types                            |
+| `NODE_DIMENSIONS`, `NODE_DIMENSIONS_COMPACT`, `NODE_DIMENSIONS_STAGE_NAV` | Default sizes                    |
+| `DEFAULT_TOURNAMENT_CONFIG`, `COMPACT_TOURNAMENT_CONFIG`, …               | Default `config` presets         |
+| `MatchStatus`, `SquashNodeRenderMode`, `VerticalStagePosition`            | Enums                            |
+| `getStageViewport`, `buildStageViews`, `roundLabelsForGraph`              | Utilities                        |
 
 ---
 
