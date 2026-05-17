@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 static/
 tmp/
 .nx/
+
+# Ephemeral auth config created by scripts/publish-github-packages.mjs
+**/.npmrc.publish
