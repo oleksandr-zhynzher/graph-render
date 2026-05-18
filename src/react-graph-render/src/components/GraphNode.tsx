@@ -138,6 +138,7 @@ export const GraphNode = React.memo<GraphNodeProps>(
         data-graph-node-interactive="true"
         role="button"
         tabIndex={0}
+        aria-label={typeof node.label === 'string' ? node.label : String(node.id)}
         aria-pressed={isSelected}
         onMouseDown={handleMouseDown}
         onFocus={handleFocus}

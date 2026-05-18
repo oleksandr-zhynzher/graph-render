@@ -76,6 +76,7 @@ export const GraphViewportControls = React.memo(function GraphViewportControls({
             transform={`translate(${x}, 0)`}
             role="button"
             tabIndex={0}
+            aria-label={def.ariaLabel}
             onClick={(event) => {
               event.stopPropagation();
               onClick();

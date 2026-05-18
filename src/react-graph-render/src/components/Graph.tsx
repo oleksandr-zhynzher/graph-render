@@ -123,6 +123,7 @@ function GraphInner(
   // consumers do not cascade a full model recompute on every parent render.
   const stableConfig = useStableConfig(config);
   const markerPrefix = useId().replaceAll(':', '-');
+  const svgDescId = `${markerPrefix}-desc`;
   const svgRef = useRef<SVGSVGElement>(null);
   const contentRef = useRef<SVGGElement>(null);
 
@@ -382,7 +383,6 @@ function GraphInner(
       background: mergedTheme.background,
       fontFamily: mergedTheme.fontFamily,
       cursor: isDragging ? 'grabbing' : panEnabled ? 'grab' : 'default',
-      outline: 'none',
       touchAction: panEnabled || zoomEnabled ? 'none' : 'auto',
       overflow: 'hidden',
       userSelect: 'none' as const,
@@ -421,6 +421,7 @@ function GraphInner(
       height={cfg.height}
       role="figure"
       aria-label="Graph"
+      aria-describedby={svgDescId}
       tabIndex={0}
       style={svgStyle}
       onClick={handleSvgClick}
@@ -431,6 +432,10 @@ function GraphInner(
       onWheel={handleWheel}
       onKeyDown={handleKeyDown}
     >
+      <desc id={svgDescId}>
+        Interactive graph. Arrow keys pan the view. Tab / Shift+Tab cycle focusable nodes. Enter or
+        Space activates the focused node. Plus (+) and Minus (−) zoom in and out.
+      </desc>
       {showArrows ? (
         <GraphMarkerDefs
           arrowMarkerId={arrowMarkerId}

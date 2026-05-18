@@ -21,10 +21,15 @@ export const DEFAULT_NODE_WIDTH = 180;
 export const DEFAULT_COLUMN_TOLERANCE = 24;
 
 export const CONTROL_DEFS = [
-  { key: 'zoom-in', label: '+', width: CONTROL_BUTTON_SIZE },
-  { key: 'zoom-out', label: '−', width: CONTROL_BUTTON_SIZE },
-  { key: 'fit-view', label: 'Fit', width: CONTROL_LABEL_BUTTON_WIDTH },
-  { key: 'reset-view', label: '1:1', width: CONTROL_LABEL_BUTTON_WIDTH },
+  { key: 'zoom-in', label: '+', ariaLabel: 'Zoom in', width: CONTROL_BUTTON_SIZE },
+  { key: 'zoom-out', label: '−', ariaLabel: 'Zoom out', width: CONTROL_BUTTON_SIZE },
+  { key: 'fit-view', label: 'Fit', ariaLabel: 'Fit view', width: CONTROL_LABEL_BUTTON_WIDTH },
+  {
+    key: 'reset-view',
+    label: '1:1',
+    ariaLabel: 'Reset to 100%',
+    width: CONTROL_LABEL_BUTTON_WIDTH,
+  },
 ] as const;
 
 export const CONTROL_X_POSITIONS = CONTROL_DEFS.reduce<number[]>((acc, _def, i) => {

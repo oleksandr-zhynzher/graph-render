@@ -53,9 +53,29 @@ export const EdgePath = React.memo(function EdgePath({
         fill="none"
         pointerEvents="stroke"
         data-graph-edge-interactive="true"
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        aria-label={
+          onClick
+            ? edge.label != null
+              ? `Edge: ${String(edge.label)}`
+              : 'Graph edge'
+            : undefined
+        }
+        aria-pressed={onClick ? isSelected : undefined}
         onMouseEnter={() => hoverEnabled && onHoverChange?.(true)}
         onMouseLeave={() => hoverEnabled && onHoverChange?.(false)}
         onClick={onClick}
+        onKeyDown={
+          onClick
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onClick();
+                }
+              }
+            : undefined
+        }
       />
       <path
         d={d}
