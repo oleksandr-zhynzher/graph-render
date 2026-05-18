@@ -20,10 +20,11 @@ export function useBracketVertexComponents({
         <SquashNode
           {...props}
           renderMode={SquashNodeRenderMode.Export}
+          compact={compact}
           onRenderError={onInvalidNode}
         />
       )),
-    [onInvalidNode, vertexComponent]
+    [compact, onInvalidNode, vertexComponent]
   );
   const resolvedVertexComponent = useMemo(
     () =>

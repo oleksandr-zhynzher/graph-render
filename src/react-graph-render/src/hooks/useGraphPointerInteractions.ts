@@ -187,7 +187,10 @@ export const useGraphPointerInteractions = ({
       }
       dragRef.current.active = false;
       setIsDragging(false);
-      (event.target as Element).releasePointerCapture(event.pointerId);
+      const el = event.target as Element;
+      if (el.hasPointerCapture(event.pointerId)) {
+        el.releasePointerCapture(event.pointerId);
+      }
     },
     [positionedEdges, positionedNodes, selectionBox, updateSelection, viewport]
   );

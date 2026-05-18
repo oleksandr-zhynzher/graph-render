@@ -1,4 +1,5 @@
 import type { LayoutDirection, LayoutType, PositionedNode } from '@graph-render/types';
+import React from 'react';
 
 import {
   LABEL_PILL_FONT_SIZE,
@@ -23,7 +24,7 @@ export interface GraphLabelsProps {
   readonly pillTextColor?: string | undefined;
 }
 
-export function GraphLabels({
+export const GraphLabels = React.memo(function GraphLabels({
   positionedNodes,
   layout,
   layoutDirection,
@@ -88,7 +89,7 @@ export function GraphLabels({
       })}
     </g>
   );
-}
+});
 
 export { LABEL_PILL_HEIGHT, LABEL_PILL_MIN_WIDTH, LABEL_PILL_RADIUS } from '../constants/labels';
 export { getEffectiveGraphLabels, getLabelPillWidth } from '../utils/graphLabels';
