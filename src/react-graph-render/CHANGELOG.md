@@ -1,3 +1,17 @@
+## <small>1.4.4 (2026-05-18)</small>
+
+* fix: update repository URL to graph-render org in all package manifests ([1e40643](https://github.com/graph-render/graph-render/commit/1e40643))
+* docs(ci): clarify GitHub Packages sidebar names and format changelogs in CI (#14) ([dc5f0e4](https://github.com/graph-render/graph-render/commit/dc5f0e4)), closes [#14](https://github.com/graph-render/graph-render/issues/14)
+
+
+
+
+
+### Dependencies
+
+* **@graph-render/core:** upgraded to 1.3.4
+* **@graph-render/types:** upgraded to 1.2.4
+
 ## <small>1.4.3 (2026-05-17)</small>
 
 - fix(release): force @graph-render scope when publishing to GitHub Pac… (#13) ([841e4bf](https://github.com/oleksandr-zhynzher/graph-render/commit/841e4bf)), closes [#13](https://github.com/oleksandr-zhynzher/graph-render/issues/13)
