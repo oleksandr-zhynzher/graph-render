@@ -1,245 +1,208 @@
 import { Graph } from '@graph-render/react';
 import type { NxGraphInput, VertexComponentProps } from '@graph-render/types';
+import { LayoutType } from '@graph-render/types';
 import type { Meta, StoryObj } from '@storybook/react';
 
-function DemoNode({ node }: VertexComponentProps) {
+// ── Shared node renderers ─────────────────────────────────────────────────
+
+function DarkNode({ node, isSelected, isHovered }: VertexComponentProps) {
+  const w = node.size?.width ?? 180;
+  const h = node.size?.height ?? 72;
   return (
-    <foreignObject
-      width={node.size?.width ?? 180}
-      height={node.size?.height ?? 72}
-      requiredExtensions="http://www.w3.org/1999/xhtml"
-    >
+    <foreignObject width={w} height={h} requiredExtensions="http://www.w3.org/1999/xhtml">
       <div
         style={{
           boxSizing: 'border-box',
           width: '100%',
           height: '100%',
-          padding: 12,
+          padding: '10px 14px',
           borderRadius: 8,
-          background: '#1b1f2a',
+          background: isSelected ? '#1e3a5f' : isHovered ? '#222b3d' : '#1b1f2a',
           color: '#e5ecff',
-          border: '1px solid #324569',
+          border: `1.5px solid ${isSelected ? '#58a6ff' : isHovered ? '#4a6fa5' : '#324569'}`,
           display: 'flex',
           flexDirection: 'column',
-          gap: 4,
+          gap: 2,
           justifyContent: 'center',
+          transition: 'background 0.15s, border-color 0.15s',
+          cursor: 'pointer',
         }}
       >
-        <strong style={{ fontSize: 14 }}>{node.label ?? node.id}</strong>
-        <small style={{ opacity: 0.8 }}>({node.id})</small>
+        <strong style={{ fontSize: 13, lineHeight: 1.3 }}>{node.label ?? node.id}</strong>
+        <small style={{ opacity: 0.5, fontSize: 11 }}>{node.id}</small>
       </div>
     </foreignObject>
   );
 }
 
+// ── Graph data ────────────────────────────────────────────────────────────
+
 const graphSimple: NxGraphInput = {
   nodes: {
-    a: { label: 'Root' },
-    b: { label: 'Child 1' },
-    c: { label: 'Child 2' },
+    root: { label: 'Root' },
+    a: { label: 'Child A' },
+    b: { label: 'Child B' },
+    c: { label: 'Child C' },
+    a1: { label: 'Leaf A1' },
+    a2: { label: 'Leaf A2' },
+    b1: { label: 'Leaf B1' },
+    c1: { label: 'Leaf C1' },
   },
   adj: {
+    root: {
+      a: { id: 'r-a', type: 'directed' },
+      b: { id: 'r-b', type: 'directed' },
+      c: { id: 'r-c', type: 'directed' },
+    },
     a: {
-      b: { id: 'a-b', type: 'directed' },
-      c: { id: 'a-c', type: 'directed' },
+      a1: { id: 'a-a1', type: 'directed' },
+      a2: { id: 'a-a2', type: 'directed' },
     },
-    b: {},
-    c: {},
-  },
-};
-
-const graphTwenty: NxGraphInput = {
-  nodes: {
-    n1: { label: 'Hub' },
-    n2: { label: 'Branch A' },
-    n3: { label: 'Branch B' },
-    n4: { label: 'Branch C' },
-    n5: { label: 'Branch D' },
-    n6: { label: 'Leaf A1' },
-    n7: { label: 'Leaf A2' },
-    n8: { label: 'Leaf B1' },
-    n9: { label: 'Leaf B2' },
-    n10: { label: 'Leaf C1' },
-    n11: { label: 'Leaf D1' },
-    n12: { label: 'Depth A1' },
-    n13: { label: 'Depth A2' },
-    n14: { label: 'Depth B1' },
-    n15: { label: 'Depth B2' },
-    n16: { label: 'Depth C1' },
-    n17: { label: 'Depth D1' },
-    n18: { label: 'Tail A1' },
-    n19: { label: 'Tail A2' },
-    n20: { label: 'Tail B1' },
-  },
-  adj: {
-    n1: {
-      n2: { id: 'e1', type: 'directed' },
-      n3: { id: 'e2', type: 'directed' },
-      n4: { id: 'e3', type: 'directed' },
-      n5: { id: 'e4', type: 'directed' },
-    },
-    n2: {
-      n6: { id: 'e5', type: 'directed' },
-      n7: { id: 'e6', type: 'directed' },
-    },
-    n3: {
-      n8: { id: 'e7', type: 'directed' },
-      n9: { id: 'e8', type: 'directed' },
-      n11: { id: 'e22', type: 'directed' },
-    },
-    n4: { n10: { id: 'e9', type: 'directed' } },
-    n5: {
-      n11: { id: 'e10', type: 'directed' },
-      n9: { id: 'e20', type: 'directed' },
-    },
-    n6: { n12: { id: 'e11', type: 'directed' } },
-    n7: {
-      n13: { id: 'e12', type: 'directed' },
-      n10: { id: 'e21', type: 'directed' },
-    },
-    n8: { n14: { id: 'e13', type: 'directed' } },
-    n9: { n15: { id: 'e14', type: 'directed' } },
-    n10: { n16: { id: 'e15', type: 'directed' } },
-    n11: { n17: { id: 'e16', type: 'directed' } },
-    n12: { n18: { id: 'e17', type: 'directed' } },
-    n13: { n19: { id: 'e18', type: 'directed' } },
-    n14: { n20: { id: 'e19', type: 'directed' } },
-  },
-};
-
-const graphUndirected: NxGraphInput = {
-  nodes: {
-    u1: { label: 'Alpha' },
-    u2: { label: 'Beta' },
-    u3: { label: 'Gamma' },
-  },
-  adj: {
-    u1: {
-      u2: { id: 'u1-2', type: 'undirected' },
-      u3: { id: 'u1-3', type: 'undirected' },
-    },
-    u2: { u3: { id: 'u2-3', type: 'undirected' } },
-    u3: {},
-  },
-};
-
-const graphCrossLayer: NxGraphInput = {
-  nodes: {
-    t1: { label: 'Top A' },
-    t2: { label: 'Top B' },
-    m1: { label: 'Mid A' },
-    m2: { label: 'Mid B' },
-    m3: { label: 'Mid C' },
-    b1: { label: 'Bottom A' },
-    b2: { label: 'Bottom B' },
-  },
-  adj: {
-    t1: {
-      m1: { id: 't1-m1', type: 'directed' },
-      m2: { id: 't1-m2', type: 'directed' },
-    },
-    t2: {
-      m2: { id: 't2-m2', type: 'directed' },
-      m3: { id: 't2-m3', type: 'directed' },
-    },
-    m1: {
-      b1: { id: 'm1-b1', type: 'directed' },
-      b2: { id: 'm1-b2', type: 'directed' },
-    },
-    m2: {
-      b1: { id: 'm2-b1', type: 'directed' },
-      b2: { id: 'm2-b2', type: 'directed' },
-    },
-    m3: { b2: { id: 'm3-b2', type: 'directed' } },
+    b: { b1: { id: 'b-b1', type: 'directed' } },
+    c: { c1: { id: 'c-c1', type: 'directed' } },
+    a1: {},
+    a2: {},
     b1: {},
-    b2: {},
+    c1: {},
   },
 };
 
-const graphMixedTypes: NxGraphInput = {
+const graphDag: NxGraphInput = {
   nodes: {
-    mx1: { label: 'Hub' },
-    mx2: { label: 'Left' },
-    mx3: { label: 'Right' },
-    mx4: { label: 'Child L1' },
-    mx5: { label: 'Child R1' },
-    mx6: { label: 'Bridge' },
+    build: { label: 'Build' },
+    test: { label: 'Test' },
+    lint: { label: 'Lint' },
+    bundle: { label: 'Bundle' },
+    deploy: { label: 'Deploy' },
+    notify: { label: 'Notify' },
+    cache: { label: 'Cache' },
   },
   adj: {
-    mx1: {
-      mx2: { id: 'mx1-2', type: 'directed' },
-      mx3: { id: 'mx1-3', type: 'directed' },
-      mx6: { id: 'mx1-6', type: 'undirected' },
+    build: {
+      test: { id: 'build-test', type: 'directed' },
+      lint: { id: 'build-lint', type: 'directed' },
+      bundle: { id: 'build-bundle', type: 'directed' },
     },
-    mx2: {
-      mx4: { id: 'mx2-4', type: 'undirected' },
-      mx6: { id: 'mx2-6', type: 'undirected' },
+    test: { deploy: { id: 'test-deploy', type: 'directed' } },
+    lint: { deploy: { id: 'lint-deploy', type: 'directed' } },
+    bundle: {
+      deploy: { id: 'bundle-deploy', type: 'directed' },
+      cache: { id: 'bundle-cache', type: 'directed' },
     },
-    mx3: {
-      mx5: { id: 'mx3-5', type: 'undirected' },
-      mx6: { id: 'mx3-6', type: 'directed' },
-    },
-    mx4: {},
-    mx5: {},
-    mx6: {},
+    deploy: { notify: { id: 'deploy-notify', type: 'directed' } },
+    cache: {},
+    notify: {},
   },
 };
 
-const graphMesh: NxGraphInput = {
+const graphRadial: NxGraphInput = {
   nodes: {
-    g1: { label: 'P1' },
-    g2: { label: 'P2' },
-    g3: { label: 'P3' },
-    g4: { label: 'P4' },
-    g5: { label: 'P5' },
-    g6: { label: 'P6' },
+    hub: { label: 'Core' },
+    api: { label: 'API' },
+    db: { label: 'Database' },
+    auth: { label: 'Auth' },
+    cache: { label: 'Cache' },
+    queue: { label: 'Queue' },
+    logs: { label: 'Logs' },
+    cdn: { label: 'CDN' },
+    s3: { label: 'Storage' },
   },
   adj: {
-    g1: {
-      g2: { id: 'g1-2', type: 'directed' },
-      g3: { id: 'g1-3', type: 'directed' },
-      g4: { id: 'g1-4', type: 'directed' },
+    hub: {
+      api: { id: 'h-api' },
+      db: { id: 'h-db' },
+      auth: { id: 'h-auth' },
+      cache: { id: 'h-cache' },
+      queue: { id: 'h-queue' },
+      logs: { id: 'h-logs' },
+      cdn: { id: 'h-cdn' },
+      s3: { id: 'h-s3' },
     },
-    g2: {
-      g5: { id: 'g2-5', type: 'directed' },
-      g6: { id: 'g2-6', type: 'directed' },
-    },
-    g3: {
-      g5: { id: 'g3-5', type: 'directed' },
-      g6: { id: 'g3-6', type: 'directed' },
-    },
-    g4: {
-      g5: { id: 'g4-5', type: 'directed' },
-      g6: { id: 'g4-6', type: 'directed' },
-    },
-    g5: {},
-    g6: {},
+    api: {},
+    db: {},
+    auth: {},
+    cache: {},
+    queue: {},
+    logs: {},
+    cdn: {},
+    s3: {},
   },
 };
 
-const graphNx: NxGraphInput = {
-  nodes: {
-    g1: { label: 'Alpha' },
-    g2: { label: 'Beta' },
-    g3: { label: 'Gamma' },
-  },
+const graphGrid: NxGraphInput = {
+  nodes: Object.fromEntries(
+    Array.from({ length: 12 }, (_, i) => [`n${i + 1}`, { label: `Node ${i + 1}` }])
+  ),
   adj: {
-    g1: { g2: {}, g3: {} },
-    g2: { g3: {} },
-    g3: { g1: {} },
+    n1: { n2: { id: 'e1' }, n5: { id: 'e2' } },
+    n2: { n3: { id: 'e3' }, n6: { id: 'e4' } },
+    n3: { n4: { id: 'e5' }, n7: { id: 'e6' } },
+    n4: { n8: { id: 'e7' } },
+    n5: { n6: { id: 'e8' }, n9: { id: 'e9' } },
+    n6: { n7: { id: 'e10' }, n10: { id: 'e11' } },
+    n7: { n8: { id: 'e12' }, n11: { id: 'e13' } },
+    n8: { n12: { id: 'e14' } },
+    n9: { n10: { id: 'e15' } },
+    n10: { n11: { id: 'e16' } },
+    n11: { n12: { id: 'e17' } },
+    n12: {},
   },
 };
+
+const graphForceDirected: NxGraphInput = {
+  nodes: {
+    react: { label: 'React' },
+    redux: { label: 'Redux' },
+    router: { label: 'Router' },
+    query: { label: 'Query' },
+    vite: { label: 'Vite' },
+    ts: { label: 'TypeScript' },
+    eslint: { label: 'ESLint' },
+    jest: { label: 'Jest' },
+    storybook: { label: 'Storybook' },
+    vitest: { label: 'Vitest' },
+    tailwind: { label: 'Tailwind' },
+  },
+  adj: {
+    react: {
+      redux: { id: 'r-rdx' },
+      router: { id: 'r-rtr' },
+      query: { id: 'r-qry' },
+    },
+    redux: { ts: { id: 'rdx-ts' } },
+    router: { ts: { id: 'rtr-ts' } },
+    query: { ts: { id: 'qry-ts' } },
+    vite: {
+      ts: { id: 'v-ts' },
+      tailwind: { id: 'v-tw' },
+    },
+    ts: {
+      eslint: { id: 'ts-eslint' },
+      jest: { id: 'ts-jest' },
+      vitest: { id: 'ts-vitest' },
+    },
+    eslint: { storybook: { id: 'e-sb' } },
+    jest: {},
+    storybook: {},
+    vitest: {},
+    tailwind: {},
+  },
+};
+
+// ── Meta ──────────────────────────────────────────────────────────────────
 
 const meta: Meta<typeof Graph> = {
-  title: 'Graph/Core',
+  title: 'Graph/Layouts',
   component: Graph,
+  tags: ['autodocs'],
+  parameters: { layout: 'fullscreen' },
   args: {
-    graph: graphSimple,
-    vertexComponent: DemoNode,
+    vertexComponent: DarkNode,
     config: {
-      width: 800,
-      height: 480,
-      curveEdges: false,
+      width: 960,
+      height: 540,
+      padding: 32,
+      theme: { background: '#0d1117' },
     },
   },
 };
@@ -248,112 +211,118 @@ export default meta;
 
 type Story = StoryObj<typeof Graph>;
 
-export const Default: Story = {};
+// ── Layout stories ────────────────────────────────────────────────────────
 
-export const TwentyNodes: Story = {
+export const Tree: Story = {
+  name: 'Tree — top-down hierarchy',
   args: {
-    graph: graphTwenty,
-    vertexComponent: DemoNode,
+    graph: graphSimple,
     config: {
-      width: 1300,
-      height: 760,
-      padding: 24,
-      curveStrength: 0.35,
-      layout: 'tree',
-      layoutDirection: 'ltr',
-      hoverHighlight: true,
-      theme: {
-        background: '#0b0f16',
-      },
-    },
-  },
-};
-
-export const Undirected: Story = {
-  args: {
-    graph: graphUndirected,
-    vertexComponent: DemoNode,
-    config: {
-      width: 640,
-      height: 480,
-      defaultEdgeType: 'undirected',
-      layout: 'centered',
-      curveEdges: false,
-      theme: {
-        background: '#0c0f18',
-      },
-    },
-  },
-};
-
-export const NetworkXInput: Story = {
-  args: {
-    graph: graphNx,
-    vertexComponent: DemoNode,
-    config: {
-      width: 640,
-      height: 480,
-      defaultEdgeType: 'undirected',
-      curveStrength: 0.2,
-      padding: 24,
-      layout: 'grid',
-      theme: {
-        background: '#0c0f18',
-      },
-    },
-  },
-};
-
-export const CrossLayerCurved: Story = {
-  args: {
-    graph: graphCrossLayer,
-    vertexComponent: DemoNode,
-    config: {
-      width: 1200,
-      height: 780,
+      width: 960,
+      height: 540,
       padding: 32,
+      layout: LayoutType.Tree,
       curveEdges: true,
       curveStrength: 0.4,
-      layout: 'tree',
-      theme: {
-        background: '#0b0f16',
-      },
+      hoverHighlight: true,
+      theme: { background: '#0d1117' },
     },
   },
 };
 
-export const MixedTypesCentered: Story = {
+export const TreeLTR: Story = {
+  name: 'Tree — left-to-right',
   args: {
-    graph: graphMixedTypes,
-    vertexComponent: DemoNode,
+    graph: graphDag,
     config: {
-      width: 900,
-      height: 620,
-      padding: 28,
+      width: 960,
+      height: 540,
+      padding: 40,
+      layout: LayoutType.Tree,
+      layoutDirection: 'ltr',
       curveEdges: true,
-      curveStrength: 0.32,
-      layout: 'centered',
-      defaultEdgeType: 'directed',
-      theme: {
-        background: '#0c0f18',
-      },
+      curveStrength: 0.35,
+      hoverHighlight: true,
+      theme: { background: '#0b0f16' },
     },
   },
 };
 
-export const DenseMeshStraight: Story = {
+export const DAG: Story = {
+  name: 'DAG — CI pipeline',
   args: {
-    graph: graphMesh,
-    vertexComponent: DemoNode,
+    graph: graphDag,
     config: {
-      width: 1100,
-      height: 720,
-      padding: 24,
+      width: 960,
+      height: 540,
+      padding: 40,
+      layout: LayoutType.Dag,
+      curveEdges: true,
+      curveStrength: 0.3,
+      hoverHighlight: true,
+      theme: { background: '#0b0f16' },
+    },
+  },
+};
+
+export const Radial: Story = {
+  name: 'Radial — hub & spoke',
+  args: {
+    graph: graphRadial,
+    config: {
+      width: 960,
+      height: 540,
+      padding: 40,
+      layout: LayoutType.Radial,
       curveEdges: false,
-      layout: 'grid',
-      theme: {
-        background: '#0b1019',
-      },
+      theme: { background: '#0b0f16' },
+    },
+  },
+};
+
+export const Centered: Story = {
+  name: 'Centered — balanced placement',
+  args: {
+    graph: graphSimple,
+    config: {
+      width: 960,
+      height: 540,
+      padding: 48,
+      layout: LayoutType.Centered,
+      curveEdges: true,
+      curveStrength: 0.25,
+      theme: { background: '#0d1117' },
+    },
+  },
+};
+
+export const Grid: Story = {
+  name: 'Grid — uniform columns',
+  args: {
+    graph: graphGrid,
+    config: {
+      width: 960,
+      height: 540,
+      padding: 32,
+      layout: LayoutType.Grid,
+      curveEdges: false,
+      theme: { background: '#0b0f16' },
+    },
+  },
+};
+
+export const ForceDirected: Story = {
+  name: 'Force-Directed — organic clusters',
+  args: {
+    graph: graphForceDirected,
+    config: {
+      width: 960,
+      height: 540,
+      padding: 32,
+      layout: LayoutType.ForceDirected,
+      curveEdges: false,
+      hoverHighlight: true,
+      theme: { background: '#060b12' },
     },
   },
 };
