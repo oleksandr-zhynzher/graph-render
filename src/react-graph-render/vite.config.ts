@@ -11,7 +11,15 @@ export default defineConfig({
       fileName: () => 'index.js',
     },
     rollupOptions: {
-      external: ['react', 'react-dom', '@graph-render/core', '@graph-render/types'],
+      external: [
+        'react',
+        'react/jsx-runtime',
+        'react/jsx-dev-runtime',
+        'react-dom',
+        'react-dom/client',
+        '@graph-render/core',
+        '@graph-render/types',
+      ],
     },
   },
 });
