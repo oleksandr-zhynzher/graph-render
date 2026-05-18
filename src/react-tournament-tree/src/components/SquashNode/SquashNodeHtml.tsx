@@ -78,6 +78,8 @@ export function SquashNodeHtml(props: SquashNodeVariantProps) {
 function LiveIndicator({ color }: { readonly color: string }) {
   return (
     <div
+      role="status"
+      aria-label="Live match"
       style={{
         position: 'absolute',
         top: 10,
@@ -101,6 +103,21 @@ function LiveIndicator({ color }: { readonly color: string }) {
           animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         }}
       />
+      <span
+        style={{
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          padding: 0,
+          margin: -1,
+          overflow: 'hidden',
+          clip: 'rect(0,0,0,0)',
+          whiteSpace: 'nowrap',
+          borderWidth: 0,
+        }}
+      >
+        Live
+      </span>
     </div>
   );
 }

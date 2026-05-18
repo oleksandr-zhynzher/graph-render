@@ -44,7 +44,7 @@ export function FloatingToolbarButton({
         type="button"
         onClick={onToggleNavigationMode}
         aria-pressed={isNavigationMode}
-        title={isNavigationMode ? 'Exit Navigation Mode' : 'Enter Navigation Mode'}
+        aria-label={isNavigationMode ? 'Exit Navigation Mode' : 'Enter Navigation Mode'}
         style={{
           width: 48,
           height: 48,

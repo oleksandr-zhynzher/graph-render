@@ -40,7 +40,7 @@ export const BracketToolbar = React.memo<BracketToolbarProps>(function BracketTo
         alignItems: 'center',
       }}
     >
-      <button type="button" onClick={onExportSVG} style={buttonBaseStyle} title="Export as SVG">
+      <button type="button" onClick={onExportSVG} style={buttonBaseStyle} aria-label="Export as SVG">
         <DownloadIcon />
       </button>
 
@@ -61,7 +61,8 @@ export const BracketToolbar = React.memo<BracketToolbarProps>(function BracketTo
             : (buttonBaseStyle.border as string),
           color: isNavigationMode ? (isDarkMode ? '#f5f8f2' : '#516347') : buttonBaseStyle.color,
         }}
-        title={isNavigationMode ? 'Exit Navigation Mode' : 'Enter Navigation Mode'}
+        aria-label={isNavigationMode ? 'Exit Navigation Mode' : 'Enter Navigation Mode'}
+        aria-pressed={isNavigationMode}
       >
         <ToolbarNavigationIcon isActive={isNavigationMode} />
       </button>
@@ -70,7 +71,7 @@ export const BracketToolbar = React.memo<BracketToolbarProps>(function BracketTo
         type="button"
         onClick={onToggleDarkMode}
         style={buttonBaseStyle}
-        title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        aria-label={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
       >
         <SunMoonIcon isDarkMode={isDarkMode} />
       </button>

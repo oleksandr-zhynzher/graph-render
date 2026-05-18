@@ -25,7 +25,13 @@ export function useDocumentDarkMode() {
   }, []);
 
   const toggleDarkMode = useCallback(() => {
-    setIsDarkMode((prev) => !prev);
+    setIsDarkMode((prev) => {
+      const next = !prev;
+      if (typeof document !== 'undefined') {
+        document.documentElement.classList.toggle('dark', next);
+      }
+      return next;
+    });
   }, []);
 
   return { isDarkMode, toggleDarkMode };

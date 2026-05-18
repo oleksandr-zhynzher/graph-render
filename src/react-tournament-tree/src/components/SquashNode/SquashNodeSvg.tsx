@@ -59,7 +59,12 @@ export function SquashNodeSvg(props: SquashNodeVariantProps) {
       />
 
       {meta.status === MatchStatus.Live ? (
-        <g transform={`translate(${nodeWidth - 18}, 14)`}>
+        <g
+          transform={`translate(${nodeWidth - 18}, 14)`}
+          role="img"
+          aria-label="Live match"
+        >
+          <title>Live match</title>
           <circle r={4} fill={colors.LIVE_INDICATOR} />
         </g>
       ) : null}
