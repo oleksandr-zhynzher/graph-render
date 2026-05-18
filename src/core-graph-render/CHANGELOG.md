@@ -1,3 +1,15 @@
+## <small>1.3.5 (2026-05-18)</small>
+
+* fix: use HTML badges and fix GitHub URLs in all package READMEs ([d70e39d](https://github.com/graph-render/graph-render/commit/d70e39d))
+
+
+
+
+
+### Dependencies
+
+* **@graph-render/types:** upgraded to 1.2.5
+
 ## <small>1.3.4 (2026-05-18)</small>
 
 * fix: update repository URL to graph-render org in all package manifests ([1e40643](https://github.com/graph-render/graph-render/commit/1e40643))
