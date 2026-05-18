@@ -2,7 +2,6 @@ import { Graph } from '@graph-render/react';
 import type { NxGraphInput, VertexComponentProps } from '@graph-render/types';
 import { LayoutType } from '@graph-render/types';
 import type { Meta, StoryObj } from '@storybook/react';
-import type React from 'react';
 import { useState } from 'react';
 
 // ── Node: dark card ───────────────────────────────────────────────────────
