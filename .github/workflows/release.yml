@@ -61,9 +61,6 @@ jobs:
           -p @semantic-release/release-notes-generator@14.0.0
           multi-semantic-release
 
-      - name: Format changelogs
-        run: yarn prettier --write 'src/**/CHANGELOG.md'
-
       - name: Setup Node.js for GitHub Packages
         uses: actions/setup-node@v4
         with:
