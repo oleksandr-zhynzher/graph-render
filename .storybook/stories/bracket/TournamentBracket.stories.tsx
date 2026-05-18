@@ -1,3 +1,4 @@
+import React from 'react';
 import { TournamentBracket } from '@graph-render/tournament-tree';
 import type { Meta, StoryObj } from '@storybook/react';
 

@@ -1,6 +1,9 @@
+import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 
 import { BracketPlayground } from './BracketPlayground';
+import { LayoutDirection, LayoutType } from '@graph-render/types';
+import { SquashNodeRenderMode } from '@graph-render/tournament-tree';
 import { bracketGraph } from './data/bracket';
 import { bracketGraphLive } from './data/bracket_live';
 import { bracketGraphQF } from './data/bracket_qf';
@@ -13,6 +16,51 @@ const meta: Meta<typeof BracketPlayground> = {
   tags: ['autodocs'],
   args: {
     graph: bracketGraphQF,
+    layout: LayoutType.CompactBracket,
+    layoutDirection: LayoutDirection.LTR,
+    routingStyle: 'orthogonal',
+    curveEdges: true,
+    nodeSizing: 'fixed',
+    selectionMode: 'multiple',
+    renderMode: SquashNodeRenderMode.Export,
+    isDarkMode: false,
+    isCompact: false,
+    highlightMode: 'ancestry',
+    hideUnmatchedSearch: false,
+    marqueeSelectionEnabled: true,
+    hoverHighlight: false,
+    showViewportControls: true,
+    searchQuery: '',
+  },
+  argTypes: {
+    layout: {
+      control: 'select',
+      options: Object.values(LayoutType),
+    },
+    layoutDirection: {
+      control: 'select',
+      options: Object.values(LayoutDirection),
+    },
+    routingStyle: {
+      control: 'select',
+      options: ['smart', 'orthogonal', 'bundled'],
+    },
+    nodeSizing: {
+      control: 'select',
+      options: ['fixed', 'label', 'measured'],
+    },
+    selectionMode: {
+      control: 'select',
+      options: ['single', 'multiple'],
+    },
+    renderMode: {
+      control: 'select',
+      options: Object.values(SquashNodeRenderMode),
+    },
+    highlightMode: {
+      control: 'select',
+      options: ['match', 'ancestry'],
+    },
   },
   parameters: {
     layout: 'fullscreen',

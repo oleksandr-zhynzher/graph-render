@@ -31,6 +31,21 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 
 export interface BracketPlaygroundProps {
   readonly graph: NxGraphInput;
+  readonly layout?: GraphConfig['layout'];
+  readonly layoutDirection?: GraphConfig['layoutDirection'];
+  readonly routingStyle?: GraphConfig['routingStyle'];
+  readonly curveEdges?: boolean;
+  readonly nodeSizing?: GraphConfig['nodeSizing'];
+  readonly selectionMode?: 'single' | 'multiple';
+  readonly renderMode?: SquashNodeRenderMode;
+  readonly isCompact?: boolean;
+  readonly highlightMode?: HighlightMode;
+  readonly hideUnmatchedSearch?: boolean;
+  readonly marqueeSelectionEnabled?: boolean;
+  readonly hoverHighlight?: boolean;
+  readonly showViewportControls?: boolean;
+  readonly searchQuery?: string;
+  readonly isDarkMode?: boolean;
 }
 
 type HighlightMode = 'match' | 'ancestry';
@@ -567,10 +582,26 @@ const getStageViewsForStory = (
   return buildStageViews(positionedNodes, labels, config.labelOffset ?? 40);
 };
 
-export function BracketPlayground({ graph }: BracketPlaygroundProps) {
+export function BracketPlayground({
+  graph,
+  layout = LayoutType.Tree,
+  layoutDirection = LayoutDirection.LTR,
+  routingStyle = 'orthogonal',
+  curveEdges = true,
+  nodeSizing = 'fixed',
+  selectionMode = 'multiple',
+  renderMode = SquashNodeRenderMode.Export,
+  isCompact = false,
+  highlightMode = 'ancestry',
+  hideUnmatchedSearch = false,
+  marqueeSelectionEnabled = true,
+  hoverHighlight = false,
+  showViewportControls = true,
+  searchQuery = '',
+  isDarkMode = false,
+}: BracketPlaygroundProps) {
   const graphRef = useRef<GraphHandle | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [isStageNavigationMode, setIsStageNavigationMode] = useState(false);
   const [isToolbarExpanded, setIsToolbarExpanded] = useState(false);
   const [canvasSize, setCanvasSize] = useState(DEFAULT_CANVAS_SIZE);
@@ -578,25 +609,9 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
   const [selection, setSelection] = useState<GraphSelection>(EMPTY_SELECTION);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [collapsedNodeIds, setCollapsedNodeIds] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GraphSearchResults>(EMPTY_SELECTION);
   const [hoverState, setHoverState] = useState<HoverState>(null);
   const [clickedNode, setClickedNode] = useState<PositionedNode | null>(null);
-  const [layout, setLayout] = useState<GraphConfig['layout']>(LayoutType.Tree);
-  const [layoutDirection, setLayoutDirection] = useState<GraphConfig['layoutDirection']>(
-    LayoutDirection.LTR
-  );
-  const [routingStyle, setRoutingStyle] = useState<GraphConfig['routingStyle']>('orthogonal');
-  const [nodeSizing, setNodeSizing] = useState<GraphConfig['nodeSizing']>('fixed');
-  const [selectionMode, setSelectionMode] = useState<'single' | 'multiple'>('multiple');
-  const [renderMode, setRenderMode] = useState<SquashNodeRenderMode>(SquashNodeRenderMode.Export);
-  const [isCompact, setIsCompact] = useState(false);
-  const [highlightMode, setHighlightMode] = useState<HighlightMode>('ancestry');
-  const [showViewportControls, setShowViewportControls] = useState(true);
-  const [curveEdges, setCurveEdges] = useState(true);
-  const [hideUnmatchedSearch, setHideUnmatchedSearch] = useState(false);
-  const [marqueeSelectionEnabled, setMarqueeSelectionEnabled] = useState(true);
-  const [hoverHighlight, setHoverHighlight] = useState(false);
   const [statusMessage, setStatusMessage] = useState(
     'Double-click a match to collapse or expand its subtree.'
   );
@@ -1046,329 +1061,6 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
           color: isDarkMode ? '#e2e8f0' : '#0f172a',
         }}
       >
-        <aside
-          style={{
-            width: PANEL_WIDTH,
-            padding: 18,
-            boxSizing: 'border-box',
-            borderRight: `1px solid ${isDarkMode ? 'rgba(148,163,184,0.18)' : 'rgba(15,23,42,0.08)'}`,
-            background: isDarkMode ? '#0f172a' : '#ffffff',
-            display: 'grid',
-            gap: 16,
-            alignContent: 'start',
-            position: 'sticky',
-            top: 0,
-            height: '100vh',
-            overflow: 'auto',
-          }}
-        >
-          <div style={{ display: 'grid', gap: 4 }}>
-            <strong style={{ fontSize: 18 }}>Bracket playground</strong>
-            <span style={{ fontSize: 13, color: isDarkMode ? '#94a3b8' : '#64748b' }}>
-              Story UI for viewport, layout, routing, selection, collapse, search, and render modes.
-            </span>
-          </div>
-
-          <section style={controlSectionStyle}>
-            <span style={labelStyle}>Viewport</span>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-              <button style={buttonStyle} onClick={() => graphRef.current?.zoomOut?.()}>
-                −
-              </button>
-              <button style={buttonStyle} onClick={() => graphRef.current?.zoomIn?.()}>
-                +
-              </button>
-              <button style={buttonStyle} onClick={handleStoryFit}>
-                Fit
-              </button>
-              <button style={buttonStyle} onClick={() => graphRef.current?.resetViewport?.()}>
-                1:1
-              </button>
-            </div>
-            <div style={{ fontSize: 13, color: isDarkMode ? '#cbd5e1' : '#334155' }}>
-              Zoom {viewport.zoom.toFixed(2)} · x {Math.round(viewport.x)} · y{' '}
-              {Math.round(viewport.y)}
-            </div>
-            <label style={toggleRowStyle}>
-              <span>Built-in graph controls</span>
-              <input
-                type="checkbox"
-                checked={showViewportControls}
-                onChange={(event) => setShowViewportControls(event.target.checked)}
-              />
-            </label>
-          </section>
-
-          <section style={controlSectionStyle}>
-            <span style={labelStyle}>Layout and routing</span>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Layout</span>
-              <select
-                style={selectStyle}
-                value={layout}
-                onChange={(event) => setLayout(event.target.value as GraphConfig['layout'])}
-              >
-                <option value={LayoutType.Tree}>Tree</option>
-                <option value={LayoutType.Radial}>Radial tree</option>
-                <option value={LayoutType.Dag}>DAG / layered</option>
-                <option value={LayoutType.CompactBracket}>Compact bracket</option>
-                <option value={LayoutType.OrthogonalFlow}>Orthogonal flow</option>
-                <option value={LayoutType.ForceDirected}>Force-directed</option>
-                <option value={LayoutType.Centered}>Centered</option>
-                <option value={LayoutType.Grid}>Grid</option>
-              </select>
-            </label>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Direction</span>
-              <select
-                style={selectStyle}
-                value={layoutDirection}
-                onChange={(event) =>
-                  setLayoutDirection(event.target.value as GraphConfig['layoutDirection'])
-                }
-              >
-                <option value={LayoutDirection.LTR}>Left to right</option>
-                <option value={LayoutDirection.RTL}>Right to left</option>
-              </select>
-            </label>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Routing</span>
-              <select
-                style={selectStyle}
-                value={routingStyle}
-                onChange={(event) =>
-                  setRoutingStyle(event.target.value as GraphConfig['routingStyle'])
-                }
-              >
-                <option value="smart">Smart</option>
-                <option value="orthogonal">Orthogonal</option>
-                <option value="bundled">Bundled</option>
-              </select>
-            </label>
-            <label style={toggleRowStyle}>
-              <span>Curved edges</span>
-              <input
-                type="checkbox"
-                checked={curveEdges}
-                onChange={(event) => setCurveEdges(event.target.checked)}
-              />
-            </label>
-          </section>
-
-          <section style={controlSectionStyle}>
-            <span style={labelStyle}>Node rendering</span>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Render mode</span>
-              <select
-                style={selectStyle}
-                value={renderMode}
-                onChange={(event) => setRenderMode(event.target.value as SquashNodeRenderMode)}
-              >
-                <option value="export">Export-safe SVG</option>
-                <option value="server">Server SVG</option>
-                <option value="svg">Client SVG</option>
-                <option value="html">foreignObject</option>
-              </select>
-            </label>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Node sizing</span>
-              <select
-                style={selectStyle}
-                value={nodeSizing}
-                onChange={(event) => setNodeSizing(event.target.value as GraphConfig['nodeSizing'])}
-              >
-                <option value="fixed">Fixed</option>
-                <option value="label">Label-estimated</option>
-                <option value="measured">Measured</option>
-              </select>
-            </label>
-            <label style={toggleRowStyle}>
-              <span>Dark mode</span>
-              <input
-                type="checkbox"
-                checked={isDarkMode}
-                onChange={(event) => setIsDarkMode(event.target.checked)}
-              />
-            </label>
-            <label style={toggleRowStyle}>
-              <span>Compact mode</span>
-              <input
-                type="checkbox"
-                checked={isCompact}
-                onChange={(event) => setIsCompact(event.target.checked)}
-              />
-            </label>
-            <button style={buttonStyle} onClick={() => serializeSvg(containerRef.current)}>
-              Export SVG
-            </button>
-          </section>
-
-          <section style={controlSectionStyle}>
-            <span style={labelStyle}>Selection and collapse</span>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Selection mode</span>
-              <select
-                style={selectStyle}
-                value={selectionMode}
-                onChange={(event) => setSelectionMode(event.target.value as 'single' | 'multiple')}
-              >
-                <option value="single">Single</option>
-                <option value="multiple">Multiple</option>
-              </select>
-            </label>
-            <label style={toggleRowStyle}>
-              <span>Marquee selection</span>
-              <input
-                type="checkbox"
-                checked={marqueeSelectionEnabled}
-                onChange={(event) => setMarqueeSelectionEnabled(event.target.checked)}
-              />
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <button
-                style={buttonStyle}
-                onClick={() => {
-                  setSelection(EMPTY_SELECTION);
-                  setFocusedNodeId(null);
-                }}
-              >
-                Clear selection
-              </button>
-              <button
-                style={buttonStyle}
-                onClick={() => {
-                  const nextFocusedNodeId = selection.nodeIds[0] ?? null;
-                  if (nextFocusedNodeId) {
-                    setFocusedNodeId(nextFocusedNodeId);
-                    graphRef.current?.centerOnNode?.(nextFocusedNodeId);
-                    setStatusMessage(
-                      `Focused ${nextFocusedNodeId}. Use keyboard navigation to inspect neighbours.`
-                    );
-                  }
-                }}
-              >
-                Focus selected
-              </button>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              <button
-                style={buttonStyle}
-                onClick={() => {
-                  if (!focusedNodeId || collapsedNodeIds.includes(focusedNodeId)) {
-                    return;
-                  }
-                  setCollapsedNodeIds((current) => [...current, focusedNodeId]);
-                  setStatusMessage(`Collapsed subtree for ${focusedNodeId}.`);
-                }}
-              >
-                Collapse focused
-              </button>
-              <button
-                style={buttonStyle}
-                onClick={() => {
-                  setCollapsedNodeIds([]);
-                  setStatusMessage('Expanded all subtrees.');
-                }}
-              >
-                Expand all
-              </button>
-            </div>
-            <div style={{ fontSize: 13, color: isDarkMode ? '#cbd5e1' : '#334155' }}>
-              Focused: {focusedNodeId ?? 'none'}
-            </div>
-            <div style={{ fontSize: 13, color: isDarkMode ? '#cbd5e1' : '#334155' }}>
-              Selected nodes: {selection.nodeIds.length} · Selected edges:{' '}
-              {selection.edgeIds.length}
-            </div>
-          </section>
-
-          <section style={controlSectionStyle}>
-            <span style={labelStyle}>Search and highlight</span>
-            <input
-              style={inputStyle}
-              placeholder="Search player, stage, or node id"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-            />
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span>Highlight mode</span>
-              <select
-                style={selectStyle}
-                value={highlightMode}
-                onChange={(event) => setHighlightMode(event.target.value as HighlightMode)}
-              >
-                <option value="match">Direct matches only</option>
-                <option value="ancestry">Highlight path to root</option>
-              </select>
-            </label>
-            <label style={toggleRowStyle}>
-              <span>Hide unmatched nodes</span>
-              <input
-                type="checkbox"
-                checked={hideUnmatchedSearch}
-                onChange={(event) => setHideUnmatchedSearch(event.target.checked)}
-              />
-            </label>
-            <label style={toggleRowStyle}>
-              <span>Hover highlight</span>
-              <input
-                type="checkbox"
-                checked={hoverHighlight}
-                onChange={(event) => setHoverHighlight(event.target.checked)}
-              />
-            </label>
-            <div style={{ fontSize: 13, color: isDarkMode ? '#cbd5e1' : '#334155' }}>
-              Matches: {searchResults.nodeIds.length} nodes · {searchResults.edgeIds.length} edges
-            </div>
-            <div style={{ fontSize: 13, color: isDarkMode ? '#cbd5e1' : '#334155' }}>
-              Hover: {hoverState ? `${hoverState.kind} ${hoverState.id}` : 'none'}
-            </div>
-          </section>
-
-          <section style={{ display: 'grid', gap: 6 }}>
-            <span style={labelStyle}>Output</span>
-            <div
-              style={{ fontSize: 13, lineHeight: 1.5, color: isDarkMode ? '#cbd5e1' : '#334155' }}
-            >
-              Click a squash match to emit its node data.
-            </div>
-            <pre
-              style={{
-                margin: 0,
-                maxHeight: 220,
-                overflow: 'auto',
-                padding: 12,
-                borderRadius: 10,
-                background: isDarkMode ? '#020617' : '#f8fafc',
-                border: `1px solid ${
-                  isDarkMode ? 'rgba(148,163,184,0.18)' : 'rgba(15,23,42,0.08)'
-                }`,
-                color: isDarkMode ? '#d8d2c7' : '#334155',
-                fontSize: 11,
-                lineHeight: 1.45,
-                whiteSpace: 'pre-wrap',
-              }}
-            >
-              {clickedNode ? JSON.stringify(clickedNode, null, 2) : 'No match clicked yet.'}
-            </pre>
-          </section>
-
-          <section style={{ display: 'grid', gap: 6 }}>
-            <span style={labelStyle}>Hints</span>
-            <div
-              style={{ fontSize: 13, lineHeight: 1.5, color: isDarkMode ? '#cbd5e1' : '#334155' }}
-            >
-              {statusMessage}
-            </div>
-            <div
-              style={{ fontSize: 12, lineHeight: 1.5, color: isDarkMode ? '#94a3b8' : '#64748b' }}
-            >
-              Shift + drag for marquee selection. Arrow keys pan or move focus. Enter toggles the
-              focused node selection.
-            </div>
-          </section>
-        </aside>
-
         <main
           style={{
             flex: 1,
@@ -1552,12 +1244,6 @@ export function BracketPlayground({ graph }: BracketPlaygroundProps) {
                         title: 'Download SVG',
                         icon: <DownloadIcon />,
                         onClick: () => serializeSvg(containerRef.current),
-                      },
-                      {
-                        key: 'toggle-dark-mode',
-                        title: isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
-                        icon: <DarkModeIcon active={isDarkMode} />,
-                        onClick: () => setIsDarkMode((current) => !current),
                       },
                     ].map((control) => (
                       <button
