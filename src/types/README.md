@@ -1,8 +1,10 @@
 # @graph-render/types
 
-[![npm](https://img.shields.io/npm/v/@graph-render/types.svg)](https://www.npmjs.com/package/@graph-render/types)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/oleksandr-zhynzher/graph-render/blob/main/LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178c6.svg)](https://www.typescriptlang.org/)
+<p>
+  <a href="https://www.npmjs.com/package/@graph-render/types"><img src="https://img.shields.io/npm/v/@graph-render/types" alt="npm version" /></a>
+  <a href="https://github.com/graph-render/graph-render/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT" /></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-ready-3178c6" alt="TypeScript" /></a>
+</p>
 
 **Shared TypeScript types for Graph Render packages.**
 
@@ -51,4 +53,4 @@ const match: SquashMatchMeta = {
 
 ## License
 
-MIT — free for personal and commercial use. See [LICENSE](https://github.com/oleksandr-zhynzher/graph-render/blob/main/LICENSE).
+MIT — free for personal and commercial use. See [LICENSE](https://github.com/graph-render/graph-render/blob/main/LICENSE).

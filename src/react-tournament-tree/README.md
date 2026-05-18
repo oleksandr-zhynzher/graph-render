@@ -1,9 +1,11 @@
 # @graph-render/tournament-tree
 
-[![npm](https://img.shields.io/npm/v/@graph-render/tournament-tree.svg)](https://www.npmjs.com/package/@graph-render/tournament-tree)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/oleksandr-zhynzher/graph-render/blob/main/LICENSE)
-[![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-ready-3178c6.svg)](https://www.typescriptlang.org/)
+<p>
+  <a href="https://www.npmjs.com/package/@graph-render/tournament-tree"><img src="https://img.shields.io/npm/v/@graph-render/tournament-tree" alt="npm version" /></a>
+  <a href="https://github.com/graph-render/graph-render/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT" /></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-61dafb" alt="React 19" /></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-ready-3178c6" alt="TypeScript" /></a>
+</p>
 
 **A complete tournament bracket component for React.**
 
@@ -476,4 +478,4 @@ function MyMatchCard({ node }: VertexComponentProps) {
 
 ## License
 
-MIT — free for personal and commercial use. See [LICENSE](https://github.com/oleksandr-zhynzher/graph-render/blob/main/LICENSE).
+MIT — free for personal and commercial use. See [LICENSE](https://github.com/graph-render/graph-render/blob/main/LICENSE).
