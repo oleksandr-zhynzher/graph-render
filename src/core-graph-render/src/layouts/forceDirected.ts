@@ -103,10 +103,14 @@ const clampPoint = (
 ): Point => {
   const nodeWidth = node.size?.width ?? DEFAULT_NODE_SIZE.width;
   const nodeHeight = node.size?.height ?? DEFAULT_NODE_SIZE.height;
+  // `point` is the node center in force-directed simulation space.
+  // Clamp so that the full node rectangle stays within the padded viewport.
+  const halfW = nodeWidth / 2;
+  const halfH = nodeHeight / 2;
 
   return {
-    x: Math.min(Math.max(point.x, pad), width - pad - nodeWidth),
-    y: Math.min(Math.max(point.y, pad), height - pad - nodeHeight),
+    x: Math.min(Math.max(point.x, pad + halfW), width - pad - halfW),
+    y: Math.min(Math.max(point.y, pad + halfH), height - pad - halfH),
   };
 };
 

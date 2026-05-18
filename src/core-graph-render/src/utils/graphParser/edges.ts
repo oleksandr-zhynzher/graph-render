@@ -63,7 +63,10 @@ const createEdgeData = <TEdgeMeta extends Record<string, unknown>, TEdgeLabel>(
   const sanitizedPoints = sanitizeEdgePoints(points);
   const sanitizedMeta = sanitizeRecord<TEdgeMeta>(meta);
 
+  // Spread rest first so that canonical source/target/type cannot be overridden
+  // by arbitrary user-supplied attributes.
   return {
+    ...rest,
     id: assertUniqueEdgeId(baseId, usedEdgeIds),
     source,
     target,
@@ -73,7 +76,6 @@ const createEdgeData = <TEdgeMeta extends Record<string, unknown>, TEdgeLabel>(
         : defaultEdgeType,
     ...(sanitizedPoints ? { points: sanitizedPoints } : {}),
     ...(sanitizedMeta ? { meta: sanitizedMeta } : {}),
-    ...rest,
   };
 };
 

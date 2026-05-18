@@ -16,6 +16,11 @@ export const buildNodeMap = <TNodeData, TNodeMeta extends Record<string, unknown
       }
 
       const sanitizedId = sanitizeNodeId(id, 'node');
+      if (nodeMap.has(sanitizedId)) {
+        throw new TypeError(
+          `Graph node identifiers must be unique after normalization. Duplicate node id "${sanitizedId}" was produced from raw id "${id}".`
+        );
+      }
       nodeMap.set(
         sanitizedId,
         sanitizeNodeData<TNodeData, TNodeMeta, TNodeLabel>(sanitizedId, attrs ?? {})
