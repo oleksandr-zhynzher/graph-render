@@ -26,6 +26,13 @@
         "command": "prettier --write src",
         "cwd": "{projectRoot}"
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
+        "cwd": "{projectRoot}"
+      }
     }
   },
   "tags": ["type:library"]
