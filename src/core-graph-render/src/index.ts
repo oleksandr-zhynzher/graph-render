@@ -4,19 +4,14 @@ export * from './model';
 export * from './rendering';
 export * from './utils';
 export type {
-  DragState,
-  EdgeComponent,
   EdgeData,
   EdgeId,
   EdgePathProps,
   EdgeRenderer,
   EdgeRoutingContext,
   GraphConfig,
-  GraphControlsPosition,
-  GraphHandle,
+  GraphErrorContext,
   GraphHoverMeta,
-  GraphProps,
-  GraphRenderContext,
   GraphSearchResults,
   GraphSelection,
   GraphTheme,
@@ -43,16 +38,18 @@ export type {
   RouteEdgesOptions,
   Size,
   TreeMetrics,
-  VertexComponent,
   VertexComponentProps,
 } from '@graph-render/types';
 export {
   EdgeType,
+  GraphErrorPhase,
   GraphFailureBehavior,
+  GraphHoverTrigger,
   GraphInputValidationMode,
   LayoutDirection,
   LayoutType,
   NodeSide,
   NodeSizingMode,
   RoutingStyle,
+  SelectionMode,
 } from '@graph-render/types';
