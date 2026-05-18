@@ -31,6 +31,7 @@
     "dev": "vite",
     "build": "vite build && tsc --emitDeclarationOnly --declaration --declarationMap",
     "preview": "vite preview",
+    "test": "vitest run",
     "lint": "eslint src --ext .ts,.tsx"
   },
   "dependencies": {
