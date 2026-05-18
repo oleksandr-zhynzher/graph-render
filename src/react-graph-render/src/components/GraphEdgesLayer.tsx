@@ -75,10 +75,7 @@ const GraphEdgeItem = React.memo(function GraphEdgeItem({
     (value: boolean) => onEdgeHoverChange(edge.id, value),
     [edge.id, onEdgeHoverChange]
   );
-  const handleClick = useCallback(
-    () => onEdgeSelection(edge),
-    [edge, onEdgeSelection]
-  );
+  const handleClick = useCallback(() => onEdgeSelection(edge), [edge, onEdgeSelection]);
 
   return (
     <EdgeComponent

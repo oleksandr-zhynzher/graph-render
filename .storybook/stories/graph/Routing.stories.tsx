@@ -1,4 +1,3 @@
-import React from 'react';
 import { Graph } from '@graph-render/react';
 import type { NxGraphInput, VertexComponentProps } from '@graph-render/types';
 import { LayoutType, RoutingStyle } from '@graph-render/types';

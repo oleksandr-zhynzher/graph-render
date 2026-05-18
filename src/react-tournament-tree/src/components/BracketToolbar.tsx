@@ -40,7 +40,12 @@ export const BracketToolbar = React.memo<BracketToolbarProps>(function BracketTo
         alignItems: 'center',
       }}
     >
-      <button type="button" onClick={onExportSVG} style={buttonBaseStyle} aria-label="Export as SVG">
+      <button
+        type="button"
+        onClick={onExportSVG}
+        style={buttonBaseStyle}
+        aria-label="Export as SVG"
+      >
         <DownloadIcon />
       </button>
 

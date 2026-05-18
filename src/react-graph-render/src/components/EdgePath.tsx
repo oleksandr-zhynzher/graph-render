@@ -56,11 +56,7 @@ export const EdgePath = React.memo(function EdgePath({
         role={onClick ? 'button' : undefined}
         tabIndex={onClick ? 0 : undefined}
         aria-label={
-          onClick
-            ? edge.label != null
-              ? `Edge: ${String(edge.label)}`
-              : 'Graph edge'
-            : undefined
+          onClick ? (edge.label != null ? `Edge: ${String(edge.label)}` : 'Graph edge') : undefined
         }
         aria-pressed={onClick ? isSelected : undefined}
         onMouseEnter={() => hoverEnabled && onHoverChange?.(true)}

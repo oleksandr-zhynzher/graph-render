@@ -22,6 +22,7 @@ export function SquashNodeHtml(props: SquashNodeVariantProps) {
       width={nodeWidth}
       height={nodeHeight}
       requiredExtensions="http://www.w3.org/1999/xhtml"
+      data-testid="squash-node-html"
     >
       <div
         style={{

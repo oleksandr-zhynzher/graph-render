@@ -36,6 +36,7 @@ export function SquashPlayerHtmlRow(props: SquashPlayerHtmlRowProps) {
       }}
       onMouseEnter={() => props.onPlayerEnter(playerIndex, player)}
       onMouseLeave={props.onPlayerLeave}
+      data-testid="player-html-row"
     >
       <div
         style={{

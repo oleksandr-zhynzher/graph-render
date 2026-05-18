@@ -37,8 +37,15 @@ export function SquashPlayerSvgRow(props: SquashPlayerSvgRowProps) {
       opacity={playerOpacity}
       onMouseEnter={() => props.onPlayerEnter(playerIndex, player)}
       onMouseLeave={props.onPlayerLeave}
+      data-testid="player-svg-row"
     >
-      <rect x={0} width={props.nodeWidth} height={props.rowHeight} fill={rowFill} />
+      <rect
+        x={0}
+        width={props.nodeWidth}
+        height={props.rowHeight}
+        fill={rowFill}
+        data-testid="player-svg-bg"
+      />
       <rect
         x={props.insetX}
         y={(props.rowHeight - props.badgeSize) / 2}
@@ -78,6 +85,7 @@ export function SquashPlayerSvgRow(props: SquashPlayerSvgRowProps) {
         y2={props.rowHeight / 2 + 8}
         stroke={colors.DARK_BORDER}
         strokeWidth={1}
+        data-testid="player-svg-divider"
       />
       <SquashSvgScoreSegments {...props} />
       <text

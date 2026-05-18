@@ -1,9 +1,8 @@
-import React from 'react';
+import { SquashNodeRenderMode } from '@graph-render/tournament-tree';
+import { LayoutDirection, LayoutType } from '@graph-render/types';
 import type { Meta, StoryObj } from '@storybook/react';
 
 import { BracketPlayground } from './BracketPlayground';
-import { LayoutDirection, LayoutType } from '@graph-render/types';
-import { SquashNodeRenderMode } from '@graph-render/tournament-tree';
 import { bracketGraph } from './data/bracket';
 import { bracketGraphLive } from './data/bracket_live';
 import { bracketGraphQF } from './data/bracket_qf';

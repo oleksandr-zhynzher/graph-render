@@ -57,6 +57,7 @@ export function SquashSvgScoreSegments({
                 y2={rowHeight / 2 + SCORE_SEPARATOR_HEIGHT / 2}
                 stroke={colors.BORDER}
                 strokeWidth={1}
+                data-testid="score-divider"
               />
             ) : null}
           </g>

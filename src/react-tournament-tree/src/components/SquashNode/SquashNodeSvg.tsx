@@ -44,7 +44,7 @@ export function SquashNodeSvg(props: SquashNodeVariantProps) {
   return (
     <g>
       <defs>
-        <clipPath id={clipId}>
+        <clipPath id={clipId} data-testid="squash-node-svg-clip">
           <rect width={nodeWidth} height={nodeHeight} rx={borderRadius} ry={borderRadius} />
         </clipPath>
       </defs>
@@ -56,14 +56,11 @@ export function SquashNodeSvg(props: SquashNodeVariantProps) {
         fill={props.isHovered ? colors.HOVER_BG : colors.BASE_BG}
         stroke={colors.CARD_BORDER}
         strokeWidth={NODE_BORDER_WIDTH}
+        data-testid="squash-node-svg-rect"
       />
 
       {meta.status === MatchStatus.Live ? (
-        <g
-          transform={`translate(${nodeWidth - 18}, 14)`}
-          role="img"
-          aria-label="Live match"
-        >
+        <g transform={`translate(${nodeWidth - 18}, 14)`} role="img" aria-label="Live match">
           <title>Live match</title>
           <circle r={4} fill={colors.LIVE_INDICATOR} />
         </g>

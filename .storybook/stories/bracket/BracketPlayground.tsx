@@ -68,7 +68,7 @@ const DARK_THEME: NonNullable<GraphConfig['theme']> = {
 
 const INITIAL_VIEWPORT: GraphViewport = { x: 0, y: 0, zoom: 1 };
 const EMPTY_SELECTION: GraphSelection = { nodeIds: [], edgeIds: [] };
-const PANEL_WIDTH = 320;
+const _PANEL_WIDTH = 320;
 /** Extra layout inset around bracket edges inside layout bounds (inside the canvas). */
 const BRACKET_STORY_LAYOUT_PADDING = 10;
 /** Padding around the graph frame in the playground main column. */
@@ -85,14 +85,14 @@ const FIT_PADDING = {
   left: 14,
 };
 
-const controlSectionStyle: React.CSSProperties = {
+const _controlSectionStyle: React.CSSProperties = {
   display: 'grid',
   gap: 10,
   paddingBottom: 14,
   borderBottom: '1px solid rgba(148, 163, 184, 0.18)',
 };
 
-const labelStyle: React.CSSProperties = {
+const _labelStyle: React.CSSProperties = {
   fontSize: 12,
   fontWeight: 700,
   letterSpacing: '0.02em',
@@ -111,12 +111,12 @@ const inputStyle: React.CSSProperties = {
   boxSizing: 'border-box',
 };
 
-const selectStyle: React.CSSProperties = {
+const _selectStyle: React.CSSProperties = {
   ...inputStyle,
   appearance: 'none',
 };
 
-const buttonStyle: React.CSSProperties = {
+const _buttonStyle: React.CSSProperties = {
   border: '1px solid rgba(148, 163, 184, 0.28)',
   borderRadius: 8,
   background: '#fff',
@@ -141,7 +141,7 @@ const iconButtonBaseStyle: React.CSSProperties = {
   boxShadow: '0 10px 24px rgba(15, 23, 42, 0.12)',
 };
 
-const toggleRowStyle: React.CSSProperties = {
+const _toggleRowStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -208,7 +208,7 @@ function DownloadIcon() {
   );
 }
 
-function DarkModeIcon({ active }: { readonly active: boolean }) {
+function _DarkModeIcon({ active }: { readonly active: boolean }) {
   return (
     <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       {active ? (
@@ -607,11 +607,16 @@ export function BracketPlayground({
   const [canvasSize, setCanvasSize] = useState(DEFAULT_CANVAS_SIZE);
   const [viewport, setViewport] = useState<GraphViewport>(INITIAL_VIEWPORT);
   const [selection, setSelection] = useState<GraphSelection>(EMPTY_SELECTION);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars -- state value written by setter callbacks; display is pending implementation
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [collapsedNodeIds, setCollapsedNodeIds] = useState<string[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars -- state value written by setter callbacks; display is pending implementation
   const [searchResults, setSearchResults] = useState<GraphSearchResults>(EMPTY_SELECTION);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars -- state value written by setter callbacks; display is pending implementation
   const [hoverState, setHoverState] = useState<HoverState>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars -- state value written by setter callbacks; display is pending implementation
   const [clickedNode, setClickedNode] = useState<PositionedNode | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars -- state value written by setter callbacks; display is pending implementation
   const [statusMessage, setStatusMessage] = useState(
     'Double-click a match to collapse or expand its subtree.'
   );
