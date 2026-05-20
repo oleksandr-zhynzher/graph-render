@@ -1,6 +1,7 @@
 import path from 'node:path';
 
 import type { StorybookConfig } from '@storybook/react-vite';
+import react from '@vitejs/plugin-react';
 import { mergeConfig } from 'vite';
 
 const config: StorybookConfig = {
@@ -17,8 +18,18 @@ const config: StorybookConfig = {
     reactDocgen: 'react-docgen-typescript',
     check: false,
   },
-  viteFinal: async (config) =>
-    mergeConfig(config, {
+  viteFinal: async (config) => {
+    const plugins = config.plugins ?? [];
+    const hasReactPlugin = plugins.some(
+      (plugin) =>
+        plugin != null &&
+        typeof plugin === 'object' &&
+        'name' in plugin &&
+        String(plugin.name).includes('vite:react')
+    );
+
+    return mergeConfig(config, {
+      plugins: hasReactPlugin ? [] : [react({ jsxRuntime: 'automatic' })],
       esbuild: {
         jsx: 'automatic',
         jsxImportSource: 'react',
@@ -34,7 +45,8 @@ const config: StorybookConfig = {
           ),
         },
       },
-    }),
+    });
+  },
 };
 
 export default config;
