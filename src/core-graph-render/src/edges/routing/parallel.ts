@@ -17,8 +17,16 @@ export const buildParallelEdgeIndex = (
   edges: readonly EdgeData[]
 ): ReadonlyMap<string, ParallelEdgeMeta> => {
   const groups = new Map<string, EdgeData[]>();
+  const seenIds = new Set<string>();
 
   for (const edge of edges) {
+    if (seenIds.has(edge.id)) {
+      throw new Error(
+        `Parallel edge routing requires unique edge ids. Duplicate edge id "${edge.id}".`
+      );
+    }
+    seenIds.add(edge.id);
+
     const key = getParallelGroupKey(edge);
     groups.set(key, [...(groups.get(key) ?? []), edge]);
   }

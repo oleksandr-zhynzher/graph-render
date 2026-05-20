@@ -4,6 +4,8 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "composite": true,
+    "outDir": "../../.cache/tsc/react-graph-render-node",
+    "tsBuildInfoFile": "../../.cache/tsc/react-graph-render-node.tsbuildinfo",
     "allowSyntheticDefaultImports": true,
     "types": []
   },

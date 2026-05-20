@@ -1,16 +1,17 @@
 import { fromTypedNxGraph, normalizeEdges } from '@graph-render/core';
 import type { PositionedEdge, PositionedNode, Size } from '@graph-render/types';
 import { GraphFailureBehavior, NodeSizingMode } from '@graph-render/types';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 
+import type { GraphModelResult, UseGraphModelOptions } from '../models/graph';
 import { resolvePositionedNodes } from '../utils/graphModelLayout';
 import { buildEdgeRoutingOptions, buildGraphLayoutOptions } from '../utils/graphModelOptions';
 import { resolvePositionedEdges } from '../utils/graphModelRouting';
 import { applyMeasuredNodeSizes, pruneMeasuredNodeSizes } from '../utils/graphNodeMeasurements';
-import type { GraphModelResult, UseGraphModelOptions } from './graphModelTypes';
 import { useGraphSearchState } from './useGraphSearchState';
+import { useLatestRef } from './useLatestRef';
 
-export type { GraphModelResult } from './graphModelTypes';
+export type { GraphModelResult, UseGraphModelOptions } from '../models/graph';
 
 export const useGraphModel = ({
   graph,
@@ -30,6 +31,9 @@ export const useGraphModel = ({
   onError,
 }: UseGraphModelOptions): GraphModelResult => {
   const [measuredNodeSizes, setMeasuredNodeSizes] = useState<Record<string, Size>>({});
+  const onErrorRef = useLatestRef(onError);
+  const reportedErrorsRef = useRef<WeakSet<Error>>(new WeakSet());
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const { nodes: sourceNodes, edges: sourceEdges } = useMemo(
     () =>
@@ -60,7 +64,7 @@ export const useGraphModel = ({
     edges: normalizedEdges,
     collapsedIds,
     hiddenNodeIds,
-    searchQuery,
+    searchQuery: deferredSearchQuery,
     hideUnmatchedSearch,
     searchPredicate,
     highlightedNodeIds,
@@ -105,28 +109,37 @@ export const useGraphModel = ({
     [config.nodeSizing]
   );
 
-  const positionedNodes: readonly PositionedNode[] = useMemo(
+  const positionedNodeResult = useMemo(
     () =>
       resolvePositionedNodes({
         allowDegradedGraph,
         graph,
         layoutNodesOverride,
         layoutOptions,
-        onError,
         visibleNodes,
       }),
-    [allowDegradedGraph, graph, layoutNodesOverride, layoutOptions, onError, visibleNodes]
+    [allowDegradedGraph, graph, layoutNodesOverride, layoutOptions, visibleNodes]
   );
+  const positionedNodes: readonly PositionedNode[] = positionedNodeResult.nodes;
+
+  useEffect(() => {
+    for (const { context, error } of positionedNodeResult.errors) {
+      if (reportedErrorsRef.current.has(error)) {
+        continue;
+      }
+      reportedErrorsRef.current.add(error);
+      onErrorRef.current?.(error, context);
+    }
+  }, [onErrorRef, positionedNodeResult.errors]);
 
   const edgeRoutingOptions = useMemo(() => buildEdgeRoutingOptions(config), [config]);
 
-  const positionedEdges: readonly PositionedEdge[] = useMemo(
+  const positionedEdgeResult = useMemo(
     () =>
       resolvePositionedEdges({
         allowDegradedGraph,
         edgeRoutingOptions,
         graph,
-        onError,
         positionedNodes,
         routeEdgesOverride,
         visibleEdges,
@@ -135,12 +148,22 @@ export const useGraphModel = ({
       allowDegradedGraph,
       edgeRoutingOptions,
       graph,
-      onError,
       positionedNodes,
       routeEdgesOverride,
       visibleEdges,
     ]
   );
+  const positionedEdges: readonly PositionedEdge[] = positionedEdgeResult.edges;
+
+  useEffect(() => {
+    for (const { context, error } of positionedEdgeResult.errors) {
+      if (reportedErrorsRef.current.has(error)) {
+        continue;
+      }
+      reportedErrorsRef.current.add(error);
+      onErrorRef.current?.(error, context);
+    }
+  }, [onErrorRef, positionedEdgeResult.errors]);
 
   return {
     childNodeIdsByParent,

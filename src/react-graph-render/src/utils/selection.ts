@@ -1,7 +1,7 @@
 import type { PositionedEdge, PositionedNode } from '@graph-render/types';
-import { SelectionMode } from '@graph-render/types';
+import { SelectionMode } from '@graph-render/types/react';
 
-import type { Rect, SelectionBox } from '../models/utils';
+import type { Rect, SelectionBox } from '../models/domain';
 
 export const toggleId = (
   values: readonly string[],

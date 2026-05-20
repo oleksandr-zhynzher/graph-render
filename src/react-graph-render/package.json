@@ -1,6 +1,19 @@
 {
   "name": "@graph-render/react",
   "version": "1.4.5",
+  "description": "Interactive React SVG graph canvas for graph-render.",
+  "keywords": [
+    "graph",
+    "react",
+    "svg",
+    "visualization",
+    "canvas"
+  ],
+  "homepage": "https://github.com/graph-render/graph-render#readme",
+  "bugs": {
+    "url": "https://github.com/graph-render/graph-render/issues"
+  },
+  "author": "graph-render maintainers",
   "private": false,
   "repository": {
     "type": "git",
@@ -11,14 +24,19 @@
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
+  "license": "MIT",
   "type": "module",
   "sideEffects": false,
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist",
-    "README.md"
+    "dist/**/*.d.ts",
+    "dist/**/*.js",
+    "dist/**/*.map",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "exports": {
     ".": {
@@ -29,7 +47,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build && tsc --emitDeclarationOnly --declaration --declarationMap",
+    "build": "rm -rf dist && vite build && rm -f tsconfig.build.tsbuildinfo && tsc -p tsconfig.build.json --emitDeclarationOnly --declaration",
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint src --ext .ts,.tsx"
@@ -39,20 +57,24 @@
     "@graph-render/types": "1.2.5"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19.0"
   },
   "peerDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.4",
+    "jsdom": "^29.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "typescript": "^5.3.3",
     "vite": "^5.0.10",
-    "vitest": "^3.0.0"
+    "vitest": "^3.0.0",
+    "@vitest/coverage-v8": "^3.0.0"
   }
 }

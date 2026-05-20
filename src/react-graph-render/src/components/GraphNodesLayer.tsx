@@ -1,12 +1,15 @@
-import type { PositionedNode, Size, VertexComponent } from '@graph-render/types';
+import type { PositionedNode, Size } from '@graph-render/types';
+import type { VertexComponent } from '@graph-render/types/react';
 import React from 'react';
 
+import type { NodeMeasurementScheduler } from '../utils/nodeMeasurementScheduler';
 import { GraphNode } from './GraphNode';
 
 interface GraphNodesLayerProps {
   readonly nodes: readonly PositionedNode[];
   readonly Vertex: VertexComponent;
   readonly selectedNodeSet: ReadonlySet<string>;
+  readonly nodeSelectionEnabled: boolean;
   readonly focusedNodeId: string | null;
   readonly highlightedNodeSet: ReadonlySet<string>;
   readonly activePathKey?: string | undefined;
@@ -23,6 +26,7 @@ interface GraphNodesLayerProps {
   readonly hoveredNodeStates:
     | ReadonlyMap<string, { readonly in?: boolean; readonly out?: boolean }>
     | undefined;
+  readonly measurementScheduler: NodeMeasurementScheduler;
   readonly onNodeMeasure?: ((nodeId: string, size: Size) => void) | undefined;
   readonly onNodeFocus: (nodeId: string) => void;
   readonly onNodeClick: (node: PositionedNode) => void;
@@ -31,12 +35,19 @@ interface GraphNodesLayerProps {
   readonly onNodeMouseLeave: () => void;
   readonly onPathHover: (nodeId: string, sourceIndex: number, pathKey?: string) => void;
   readonly onPathLeave: () => void;
+  readonly nodeFill: string;
+  readonly nodeStroke: string;
+  readonly nodeTextColor: string;
+  readonly nodeTextSize: number;
+  readonly nodeRadius: number;
+  readonly fontFamily: string;
 }
 
 export const GraphNodesLayer = React.memo(function GraphNodesLayer({
   nodes,
   Vertex,
   selectedNodeSet,
+  nodeSelectionEnabled,
   focusedNodeId,
   highlightedNodeSet,
   activePathKey,
@@ -51,6 +62,7 @@ export const GraphNodesLayer = React.memo(function GraphNodesLayer({
   hoverNodeOutColor,
   hoverNodeHighlight,
   hoveredNodeStates,
+  measurementScheduler,
   onNodeMeasure,
   onNodeFocus,
   onNodeClick,
@@ -59,39 +71,59 @@ export const GraphNodesLayer = React.memo(function GraphNodesLayer({
   onNodeMouseLeave,
   onPathHover,
   onPathLeave,
+  nodeFill,
+  nodeStroke,
+  nodeTextColor,
+  nodeTextSize,
+  nodeRadius,
+  fontFamily,
 }: GraphNodesLayerProps) {
   return (
     <g aria-label="nodes">
-      {nodes.map((node) => (
-        <GraphNode
-          key={node.id}
-          node={node}
-          Vertex={Vertex}
-          isSelected={selectedNodeSet.has(node.id)}
-          isFocused={focusedNodeId === node.id}
-          isHighlighted={highlightedNodeSet.has(node.id)}
-          activePathKey={activePathKey}
-          activePathNodeIds={activePathNodeIds}
-          highlightColor={highlightColor}
-          selectionColor={selectionColor}
-          nodeBorderColor={nodeBorderColor}
-          nodeBorderWidth={nodeBorderWidth}
-          hoverNodeBorderColor={hoverNodeBorderColor}
-          hoverNodeBothColor={hoverNodeBothColor}
-          hoverNodeInColor={hoverNodeInColor}
-          hoverNodeOutColor={hoverNodeOutColor}
-          hoverNodeHighlight={hoverNodeHighlight}
-          hoveredNodeStates={hoveredNodeStates}
-          onNodeMeasure={onNodeMeasure}
-          onNodeFocus={onNodeFocus}
-          onNodeClick={onNodeClick}
-          onNodeDoubleClick={onNodeDoubleClick}
-          onNodeMouseEnter={onNodeMouseEnter}
-          onNodeMouseLeave={onNodeMouseLeave}
-          onPathHover={onPathHover}
-          onPathLeave={onPathLeave}
-        />
-      ))}
+      {nodes.map((node) => {
+        const hoverState = hoveredNodeStates?.get(node.id);
+
+        return (
+          <GraphNode
+            key={node.id}
+            node={node}
+            Vertex={Vertex}
+            isSelected={selectedNodeSet.has(node.id)}
+            nodeSelectionEnabled={nodeSelectionEnabled}
+            isFocused={focusedNodeId === node.id}
+            isHighlighted={highlightedNodeSet.has(node.id)}
+            activePathKey={activePathKey}
+            activePathNodeIds={activePathNodeIds}
+            isActivePathNode={activePathNodeIds?.has(node.id) ?? false}
+            highlightColor={highlightColor}
+            selectionColor={selectionColor}
+            nodeBorderColor={nodeBorderColor}
+            nodeBorderWidth={nodeBorderWidth}
+            hoverNodeBorderColor={hoverNodeBorderColor}
+            hoverNodeBothColor={hoverNodeBothColor}
+            hoverNodeInColor={hoverNodeInColor}
+            hoverNodeOutColor={hoverNodeOutColor}
+            hoverNodeHighlight={hoverNodeHighlight}
+            isHoveredIn={hoverState?.in ?? false}
+            isHoveredOut={hoverState?.out ?? false}
+            measurementScheduler={measurementScheduler}
+            onNodeMeasure={onNodeMeasure}
+            onNodeFocus={onNodeFocus}
+            onNodeClick={onNodeClick}
+            onNodeDoubleClick={onNodeDoubleClick}
+            onNodeMouseEnter={onNodeMouseEnter}
+            onNodeMouseLeave={onNodeMouseLeave}
+            onPathHover={onPathHover}
+            onPathLeave={onPathLeave}
+            nodeFill={nodeFill}
+            nodeStroke={nodeStroke}
+            nodeTextColor={nodeTextColor}
+            nodeTextSize={nodeTextSize}
+            nodeRadius={nodeRadius}
+            fontFamily={fontFamily}
+          />
+        );
+      })}
     </g>
   );
 });

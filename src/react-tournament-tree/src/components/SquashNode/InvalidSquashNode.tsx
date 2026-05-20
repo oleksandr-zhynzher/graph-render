@@ -1,4 +1,4 @@
-import type { SquashNodeRenderMode } from '@graph-render/types';
+import type { SquashNodeRenderMode } from '@graph-render/types/tournament';
 import type React from 'react';
 
 import { BODY_FONT_FAMILY } from '../../constants';

@@ -1,6 +1,6 @@
 import type { PositionedNode } from '@graph-render/types';
 
-import { KeyboardDirection } from '../models/utils';
+import { KeyboardDirection } from '../constants/keyboard';
 
 const getNodeCenter = (node: PositionedNode) => ({
   x: node.position.x + (node.size?.width ?? 0) / 2,
@@ -42,4 +42,4 @@ export const getNearestNodeInDirection = (
   return nearest;
 };
 
-export { KeyboardDirection } from '../models/utils';
+export { KeyboardDirection } from '../constants/keyboard';

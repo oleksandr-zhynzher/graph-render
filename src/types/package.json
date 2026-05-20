@@ -1,6 +1,19 @@
 {
   "name": "@graph-render/types",
   "version": "1.2.5",
+  "description": "Shared TypeScript contracts for graph-render packages.",
+  "keywords": [
+    "graph",
+    "react",
+    "typescript",
+    "visualization",
+    "types"
+  ],
+  "homepage": "https://github.com/graph-render/graph-render#readme",
+  "bugs": {
+    "url": "https://github.com/graph-render/graph-render/issues"
+  },
+  "author": "graph-render maintainers",
   "private": false,
   "repository": {
     "type": "git",
@@ -14,17 +27,46 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*.d.ts",
+    "dist/**/*.js",
+    "dist/**/*.map",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js"
+    },
+    "./tournament": {
+      "types": "./dist/tournament.d.ts",
+      "import": "./dist/tournament.js"
     }
   },
   "license": "MIT",
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "rm -rf dist && vite build && rm -f tsconfig.build.tsbuildinfo && tsc -p tsconfig.build.json --emitDeclarationOnly --declaration",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "typescript": "^5.3.3"
+    "@types/react": "^19.0.0",
+    "@vitest/coverage-v8": "^3.0.0",
+    "react": "^19.0.0",
+    "typescript": "^5.3.3",
+    "vitest": "^3.0.0"
   }
 }

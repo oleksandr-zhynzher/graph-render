@@ -137,9 +137,17 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+**/vite.config.js
+**/vite.config.js.map
+**/vite.config.d.ts
+**/vite.config.d.ts.map
 static/
 tmp/
 .nx/
+
+# OS metadata
+.DS_Store
+**/.DS_Store
 
 # Ephemeral auth config created by scripts/publish-github-packages.mjs
 **/.npmrc.publish

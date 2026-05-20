@@ -139,7 +139,7 @@ export interface BracketStageLabelsAppearance {
 
 /**
  * Visual customization for tournament bracket UI (match cards, chrome, colors, typography).
- * Graph layout and engine options remain on {@link GraphConfig} via `TournamentBracketProps.config`.
+ * Graph layout and engine options remain on {@link GraphConfig} via the tournament package props.
  */
 export interface TournamentBracketAppearance {
   readonly colors?: BracketColorsAppearance | undefined;

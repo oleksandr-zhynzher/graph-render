@@ -43,10 +43,6 @@ export const positionNodesInLevels = (
   });
 };
 
-// FIX: deleted the file-private `getParentNodes` helper.  It was replaced by
-// the `incomingByTarget` Map built inside `alignNodesToParents` (O(n+e) vs the
-// previous O(n×e)) and was never exported, so no external callers exist.
-
 /**
  * Calculate average Y center of parent nodes
  */
@@ -75,8 +71,7 @@ export const alignNodesToParents = (
   const posMap = new Map<string, PositionedNode>();
   for (const n of positioned) posMap.set(n.id, n);
 
-  // FIX: build a target→sources index once instead of calling
-  // edges.filter(e => e.target === id) for every node (was O(nodes × edges)).
+  // Index incoming edges once so parent lookup stays linear in graph size.
   const incomingByTarget = new Map<string, string[]>();
   for (const e of edges) {
     incomingByTarget.set(e.target, [...(incomingByTarget.get(e.target) ?? []), e.source]);

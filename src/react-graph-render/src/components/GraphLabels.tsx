@@ -45,8 +45,7 @@ export const GraphLabels = React.memo(function GraphLabels({
 
   if (orderedXs.length === 0 || orderedLabels.length === 0) return null;
 
-  // FIX: avoid spreading a potentially large array into Math.min, which can
-  // throw a RangeError when the argument count exceeds the JS engine limit.
+  // Reduce avoids spreading large graph arrays into Math.min.
   const minY = positionedNodes.reduce(
     (min, n) => Math.min(min, n.position.y),
     Number.POSITIVE_INFINITY

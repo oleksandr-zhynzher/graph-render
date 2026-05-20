@@ -1,4 +1,5 @@
-import type { GraphConfig, StageView, TournamentBracketProps } from '@graph-render/types';
+import type { GraphConfig } from '@graph-render/types';
+import type { StageView } from '@graph-render/types/tournament';
 
 import {
   COMPACT_TOURNAMENT_CONFIG,
@@ -6,6 +7,7 @@ import {
   DARK_TOURNAMENT_CONFIG,
   DEFAULT_TOURNAMENT_CONFIG,
 } from '../constants';
+import type { TournamentBracketProps } from '../models/tournamentBracket';
 import { injectTournamentPathKeys } from './pathKeys';
 import type { ResolvedMatchCardStyle } from './resolveBracketAppearance';
 

@@ -10,38 +10,19 @@ on:
       - main
       - master
 
+permissions:
+  contents: read
+
 jobs:
-  code-style:
-    name: Code Style
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'yarn'
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: ESLint
-        run: yarn lint
-
-      - name: Prettier
-        run: yarn format:check
-
   tests:
     name: Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
           cache: 'yarn'
@@ -52,5 +33,46 @@ jobs:
       - name: Build
         run: yarn build
 
+      - name: Package export smoke test
+        run: yarn smoke:exports
+
+      - name: Storybook build
+        run: yarn build-storybook
+
       - name: Test
         run: yarn test
+
+      - name: Test with coverage (react)
+        working-directory: src/react-graph-render
+        run: yarn test -- --coverage
+
+      - name: Test with coverage (core)
+        working-directory: src/core-graph-render
+        run: yarn test -- --coverage
+
+      - name: Test with coverage (tournament)
+        working-directory: src/react-tournament-tree
+        run: yarn test -- --coverage
+
+      - name: Test with coverage (types)
+        working-directory: src/types
+        run: yarn test -- --coverage
+
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Audit dependencies
+        run: yarn audit:high

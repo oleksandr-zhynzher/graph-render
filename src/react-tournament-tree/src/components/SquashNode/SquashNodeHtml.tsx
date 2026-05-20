@@ -1,4 +1,4 @@
-import { MatchStatus } from '@graph-render/types';
+import { MatchStatus } from '@graph-render/types/tournament';
 
 import { DEFAULT_PLAYERS, NODE_BORDER_WIDTH } from '../../constants';
 import { useBracketAppearance } from '../../contexts/BracketAppearanceContext';
@@ -80,6 +80,7 @@ function LiveIndicator({ color }: { readonly color: string }) {
   return (
     <div
       role="status"
+      aria-live="polite"
       aria-label="Live match"
       style={{
         position: 'absolute',

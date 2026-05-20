@@ -1,8 +1,6 @@
 import type {
   EdgeData,
   GraphConfig,
-  GraphErrorPhase,
-  GraphSearchResults,
   LayoutOptions,
   NodeData,
   NormalizedGraphConfig,
@@ -12,8 +10,12 @@ import type {
   RouteEdgesOptions,
   Size,
 } from '@graph-render/types';
+import type { GraphErrorPhase, GraphSearchResults } from '@graph-render/types/react';
 
-export type GraphModelErrorPhase = Exclude<GraphErrorPhase, GraphErrorPhase.Interaction>;
+export type GraphModelErrorPhase = Exclude<
+  GraphErrorPhase,
+  GraphErrorPhase.Interaction | GraphErrorPhase.Render
+>;
 
 export type GraphModelErrorHandler = (
   error: Error,
@@ -22,6 +24,14 @@ export type GraphModelErrorHandler = (
     readonly phase: GraphModelErrorPhase;
   }
 ) => void;
+
+export interface GraphModelError {
+  readonly context: {
+    readonly graph: NxGraphInput;
+    readonly phase: GraphModelErrorPhase;
+  };
+  readonly error: Error;
+}
 
 export interface UseGraphModelOptions {
   readonly graph: NxGraphInput;

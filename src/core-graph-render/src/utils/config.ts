@@ -14,6 +14,10 @@ import {
 import {
   CSS_COLOR_PATTERN,
   DEFAULT_ARROW_PADDING,
+  DEFAULT_CONTROL_FILL,
+  DEFAULT_CONTROL_FOCUS_STROKE,
+  DEFAULT_CONTROL_STROKE,
+  DEFAULT_CONTROL_TEXT_COLOR,
   DEFAULT_CURVE_STRENGTH,
   DEFAULT_EDGE_LABEL_COLOR,
   DEFAULT_EDGE_SEPARATION,
@@ -29,8 +33,15 @@ import {
   DEFAULT_LABEL_PILL_BACKGROUND,
   DEFAULT_LABEL_PILL_BORDER_COLOR,
   DEFAULT_LABEL_PILL_TEXT_COLOR,
+  DEFAULT_MARQUEE_FILL,
+  DEFAULT_MARQUEE_STROKE,
+  DEFAULT_NODE_FILL,
+  DEFAULT_NODE_RADIUS,
   DEFAULT_NODE_SIZE,
+  DEFAULT_NODE_STROKE,
   DEFAULT_SELF_LOOP_RADIUS,
+  DEFAULT_TEXT_FILL,
+  DEFAULT_TEXT_SIZE,
   DEFAULT_THEME,
   DEFAULT_WIDTH,
   MAX_DIMENSION,
@@ -128,6 +139,20 @@ const normalizeTheme = (theme?: GraphTheme): GraphTheme => {
       ? theme.nodeBorderWidth
       : undefined;
 
+  const nodeTextSize =
+    typeof theme?.nodeTextSize === 'number' &&
+    Number.isFinite(theme.nodeTextSize) &&
+    theme.nodeTextSize > 0
+      ? theme.nodeTextSize
+      : DEFAULT_TEXT_SIZE;
+
+  const nodeRadius =
+    typeof theme?.nodeRadius === 'number' &&
+    Number.isFinite(theme.nodeRadius) &&
+    theme.nodeRadius >= 0
+      ? theme.nodeRadius
+      : DEFAULT_NODE_RADIUS;
+
   return {
     ...theme,
     background: theme?.background ?? DEFAULT_THEME.background,
@@ -135,6 +160,17 @@ const normalizeTheme = (theme?: GraphTheme): GraphTheme => {
     edgeWidth: getFinitePositive(theme?.edgeWidth, DEFAULT_THEME.edgeWidth ?? 2),
     nodeGap: getFinitePositive(theme?.nodeGap, DEFAULT_THEME.nodeGap),
     fontFamily: theme?.fontFamily ?? DEFAULT_THEME.fontFamily,
+    nodeFill: theme?.nodeFill ?? DEFAULT_NODE_FILL,
+    nodeStroke: theme?.nodeStroke ?? DEFAULT_NODE_STROKE,
+    nodeTextColor: theme?.nodeTextColor ?? DEFAULT_TEXT_FILL,
+    nodeTextSize,
+    nodeRadius,
+    marqueeFill: theme?.marqueeFill ?? DEFAULT_MARQUEE_FILL,
+    marqueeStroke: theme?.marqueeStroke ?? DEFAULT_MARQUEE_STROKE,
+    controlFill: theme?.controlFill ?? DEFAULT_CONTROL_FILL,
+    controlStroke: theme?.controlStroke ?? DEFAULT_CONTROL_STROKE,
+    controlTextColor: theme?.controlTextColor ?? DEFAULT_CONTROL_TEXT_COLOR,
+    controlFocusStroke: theme?.controlFocusStroke ?? DEFAULT_CONTROL_FOCUS_STROKE,
     ...(theme?.nodeBorderColor ? { nodeBorderColor: theme.nodeBorderColor } : {}),
     ...(nodeBorderWidth !== undefined ? { nodeBorderWidth } : {}),
   };

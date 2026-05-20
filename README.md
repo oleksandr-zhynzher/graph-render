@@ -24,6 +24,43 @@ Graph Render is a composable set of fully-typed TypeScript packages — from a f
 
 ---
 
+## Quick Start
+
+```bash
+yarn add @graph-render/react @graph-render/core @graph-render/types
+```
+
+```tsx
+import { DefaultGraphVertex, Graph } from '@graph-render/react';
+
+const graph = {
+  nodes: {
+    start: { label: 'Start' },
+    finish: { label: 'Finish' },
+  },
+  adj: {
+    start: { finish: { id: 'path' } },
+    finish: {},
+  },
+};
+
+export function Example() {
+  return <Graph graph={graph} vertexComponent={DefaultGraphVertex} />;
+}
+```
+
+For the ready-made bracket UI:
+
+```bash
+yarn add @graph-render/tournament-tree @graph-render/react @graph-render/core @graph-render/types
+```
+
+React-specific public types are exported from `@graph-render/types/react`. Tournament-specific
+public types are exported from `@graph-render/types/tournament`. The root `@graph-render/types`
+package stays framework-neutral and domain-neutral.
+
+---
+
 ## License
 
 MIT — free for personal and commercial use.

@@ -1,8 +1,9 @@
 import type { PositionedNode } from '@graph-render/types';
-import { GraphHoverTrigger } from '@graph-render/types';
+import { GraphHoverTrigger } from '@graph-render/types/react';
 import { useCallback, useRef } from 'react';
 
-import type { UseGraphHoverHandlersOptions } from '../models/hooks';
+import type { UseGraphHoverHandlersOptions } from '../models/hookContracts';
+import { useLatestRef } from './useLatestRef';
 
 export const useGraphHoverHandlers = ({
   hoverHighlight,
@@ -17,6 +18,8 @@ export const useGraphHoverHandlers = ({
   viewport,
 }: UseGraphHoverHandlersOptions) => {
   const hoveredNodeIdRef = useRef<string | null>(null);
+  const onNodeHoverChangeRef = useLatestRef(onNodeHoverChange);
+  const onEdgeHoverChangeRef = useLatestRef(onEdgeHoverChange);
   // Keep latest selection and viewport in refs so hover callbacks always read
   // the current values without being recreated on every pan/zoom interaction.
   const selectionRef = useRef(selection);
@@ -30,13 +33,13 @@ export const useGraphHoverHandlers = ({
       hovered: boolean,
       trigger: GraphHoverTrigger = GraphHoverTrigger.Pointer
     ) => {
-      onNodeHoverChange?.(node, hovered, {
+      onNodeHoverChangeRef.current?.(node, hovered, {
         viewport: viewportRef.current,
         selection: selectionRef.current,
         trigger,
       });
     },
-    [onNodeHoverChange]
+    [onNodeHoverChangeRef]
   );
 
   const handleNodeMouseEnter = useCallback(
@@ -75,7 +78,7 @@ export const useGraphHoverHandlers = ({
     (edgeId: string, isHovered: boolean) => {
       const edge = positionedEdgeMap.get(edgeId);
       if (edge)
-        onEdgeHoverChange?.(edge, isHovered, {
+        onEdgeHoverChangeRef.current?.(edge, isHovered, {
           viewport: viewportRef.current,
           selection: selectionRef.current,
           trigger: GraphHoverTrigger.Pointer,
@@ -89,7 +92,7 @@ export const useGraphHoverHandlers = ({
         setHoveredNodeId(null);
       }
     },
-    [hoverHighlight, onEdgeHoverChange, positionedEdgeMap, setHoveredEdgeId, setHoveredNodeId]
+    [hoverHighlight, onEdgeHoverChangeRef, positionedEdgeMap, setHoveredEdgeId, setHoveredNodeId]
   );
 
   return {

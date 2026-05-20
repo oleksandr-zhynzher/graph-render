@@ -8,7 +8,12 @@
       "executor": "nx:run-commands",
       "outputs": ["{projectRoot}/dist"],
       "options": {
-        "commands": ["vite build", "tsc --emitDeclarationOnly --declaration --declarationMap"],
+        "commands": [
+          "rm -rf dist",
+          "vite build",
+          "rm -f tsconfig.build.tsbuildinfo",
+          "tsc -p tsconfig.build.json --emitDeclarationOnly --declaration"
+        ],
         "cwd": "{projectRoot}",
         "parallel": false
       },

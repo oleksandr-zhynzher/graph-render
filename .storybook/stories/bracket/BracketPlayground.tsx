@@ -16,17 +16,19 @@ import {
 } from '@graph-render/tournament-tree';
 import type {
   GraphConfig,
+  NxGraphInput,
+  PositionedEdge,
+  PositionedNode,
+} from '@graph-render/types';
+import { EdgeType, LayoutDirection, LayoutType } from '@graph-render/types';
+import type {
   GraphHandle,
   GraphSearchResults,
   GraphSelection,
   GraphViewport,
-  NxGraphInput,
-  PositionedEdge,
-  PositionedNode,
   VertexComponent,
   VertexComponentProps,
-} from '@graph-render/types';
-import { EdgeType, LayoutDirection, LayoutType } from '@graph-render/types';
+} from '@graph-render/types/react';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 export interface BracketPlaygroundProps {

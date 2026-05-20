@@ -1,4 +1,4 @@
-import type { StageView, VerticalStagePosition } from '@graph-render/types';
+import type { StageView, VerticalStagePosition } from '@graph-render/types/tournament';
 
 import { useBracketAppearance } from '../../contexts/BracketAppearanceContext';
 import { BracketHeader } from './BracketHeader';

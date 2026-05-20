@@ -30,13 +30,29 @@ export function SquashPlayerSvgRow(props: SquashPlayerSvgRowProps) {
   const rowFill = isPlayerHovered ? colors.ROW_HOVER_BG : colors.ROW_BG;
   const badgeFill = isWinner ? colors.WINNER_CREST_BG : colors.CREST_BG;
   const badgeTextColor = isWinner ? colors.WINNER_CREST_TEXT : colors.CREST_TEXT;
+  const handlePlayerEnter = () => props.onPlayerEnter(playerIndex, player);
+  const handleKeyDown = (event: React.KeyboardEvent<SVGGElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handlePlayerEnter();
+    }
+  };
 
   return (
     <g
+      role="button"
+      tabIndex={0}
+      aria-label={`${player.name}, ${props.setCount} sets won`}
       transform={`translate(0, ${props.rowY})`}
       opacity={playerOpacity}
-      onMouseEnter={() => props.onPlayerEnter(playerIndex, player)}
+      onFocus={handlePlayerEnter}
+      onBlur={props.onPlayerLeave}
+      onKeyDown={handleKeyDown}
+      onMouseEnter={handlePlayerEnter}
       onMouseLeave={props.onPlayerLeave}
+      onTouchStart={handlePlayerEnter}
+      onTouchEnd={props.onPlayerLeave}
+      onTouchCancel={props.onPlayerLeave}
       data-testid="player-svg-row"
     >
       <rect

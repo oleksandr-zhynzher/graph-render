@@ -1,4 +1,4 @@
-import type { SquashNodeRenderMode } from '@graph-render/types';
+import type { SquashNodeRenderMode } from '@graph-render/types/tournament';
 import React from 'react';
 
 import { InvalidSquashNode } from './InvalidSquashNode';

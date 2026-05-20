@@ -41,6 +41,21 @@ export interface GraphTheme {
   readonly fontFamily?: string | undefined;
   readonly nodeBorderColor?: string | undefined;
   readonly nodeBorderWidth?: number | undefined;
+  /** Default vertex body fill for built-in and custom vertex renderers. */
+  readonly nodeFill?: string | undefined;
+  /** Default vertex body stroke when not using the selection/hover frame border. */
+  readonly nodeStroke?: string | undefined;
+  readonly nodeTextColor?: string | undefined;
+  readonly nodeTextSize?: number | undefined;
+  readonly nodeRadius?: number | undefined;
+  /** Marquee (shift-drag) selection rectangle colors. */
+  readonly marqueeFill?: string | undefined;
+  readonly marqueeStroke?: string | undefined;
+  /** Viewport control button chrome (zoom / fit / reset). */
+  readonly controlFill?: string | undefined;
+  readonly controlStroke?: string | undefined;
+  readonly controlTextColor?: string | undefined;
+  readonly controlFocusStroke?: string | undefined;
 }
 
 export interface GraphConfig {

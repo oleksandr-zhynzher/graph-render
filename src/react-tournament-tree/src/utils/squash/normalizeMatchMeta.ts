@@ -1,5 +1,5 @@
-import type { SquashMatchMeta } from '@graph-render/types';
-import { MatchStatus } from '@graph-render/types';
+import type { SquashMatchMeta } from '@graph-render/types/tournament';
+import { MatchStatus } from '@graph-render/types/tournament';
 
 import type { NormalizedSquashMatchMeta } from '../../models/squash';
 import { normalizePlayers } from './normalizePlayer';

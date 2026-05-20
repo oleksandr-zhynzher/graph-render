@@ -1,4 +1,4 @@
-import type { TournamentBracketAppearance } from '@graph-render/types';
+import type { TournamentBracketAppearance } from '@graph-render/types/tournament';
 import type React from 'react';
 
 import { ThemeMode } from '../constants/themeMode';

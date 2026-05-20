@@ -93,10 +93,7 @@ const buildMultiPointPath = (points: readonly Point[]): string => {
     const next = getPointAt(rest, i + 1);
     const isLastCurve = i === rest.length - 2;
     if (isLastCurve) {
-      // FIX: removed the trailing `L rest[last]` that duplicated the Q endpoint.
-      // When isLastCurve is true, `next === rest[rest.length - 1]`, so the Q
-      // command already terminates at the final point.  The extra L produced a
-      // zero-length segment that misplaced SVG `marker-end` arrowheads.
+      // The final Q command already terminates at the edge endpoint.
       commands.push(`Q ${ctrl.x} ${ctrl.y} ${next.x} ${next.y}`);
       break;
     }
@@ -125,8 +122,6 @@ export const buildEdgePath = (
   curveEdges: boolean,
   curveStrength: number
 ): string | null => {
-  // FIX: was `throw new Error(...)` — returning null lets callers handle
-  // the bad edge gracefully without an unhandled exception in render.
   if (edge.points.length < 2) {
     return null;
   }

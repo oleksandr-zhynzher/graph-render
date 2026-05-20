@@ -1,4 +1,4 @@
-import { SquashNodeRenderMode } from '@graph-render/types';
+import { SquashNodeRenderMode } from '@graph-render/types/tournament';
 import { render, renderHook } from '@testing-library/react';
 import { createElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
@@ -12,12 +12,12 @@ const EMPTY_NODE = {
   meta: {},
 } as never;
 
-const BASE_PROPS = {
+const BASE_PROPS: Parameters<typeof useBracketVertexComponents>[0] = {
   compact: true,
   nodeRenderMode: SquashNodeRenderMode.Html,
   onInvalidNode: undefined,
   vertexComponent: undefined,
-} as const;
+};
 
 describe('useBracketVertexComponents', () => {
   it('returns exportVertexComponent and resolvedVertexComponent', () => {
@@ -67,7 +67,7 @@ describe('useBracketVertexComponents', () => {
     expect(result.current.exportVertexComponent).toBe(result.current.resolvedVertexComponent);
   });
 
-  it('resolvedVertexComponent updates when nodeRenderMode changes', () => {
+  it('keeps resolvedVertexComponent stable when nodeRenderMode changes', () => {
     type Props = Parameters<typeof useBracketVertexComponents>[0];
     const { result, rerender } = renderHook((props: Props) => useBracketVertexComponents(props), {
       initialProps: BASE_PROPS,
@@ -75,7 +75,8 @@ describe('useBracketVertexComponents', () => {
     const first = result.current.resolvedVertexComponent;
 
     rerender({ ...BASE_PROPS, nodeRenderMode: SquashNodeRenderMode.Svg });
-    expect(result.current.resolvedVertexComponent).not.toBe(first);
+    expect(result.current.resolvedVertexComponent).toBe(first);
+    expect(result.current.vertexOptions.nodeRenderMode).toBe(SquashNodeRenderMode.Svg);
   });
 
   it('components render without throwing (smoke test)', () => {

@@ -1,12 +1,17 @@
-import type { GraphHandle, StageView, TournamentBracketProps } from '@graph-render/types';
-import { SquashNodeRenderMode } from '@graph-render/types';
+import type { GraphHandle } from '@graph-render/types/react';
+import type { StageView } from '@graph-render/types/tournament';
+import { SquashNodeRenderMode } from '@graph-render/types/tournament';
 import React, { useMemo, useRef, useState } from 'react';
 
 import { BracketAppearanceProvider } from '../contexts/BracketAppearanceContext';
 import { useBracketSvgExport } from '../hooks/useBracketSvgExport';
-import { useBracketVertexComponents } from '../hooks/useBracketVertexComponents';
+import {
+  BracketVertexOptionsProvider,
+  useBracketVertexComponents,
+} from '../hooks/useBracketVertexComponents';
 import { useDocumentDarkMode } from '../hooks/useDocumentDarkMode';
 import { useStageNavigation } from '../hooks/useStageNavigation';
+import type { TournamentBracketProps } from '../models/tournamentBracket';
 import {
   buildBracketGraph,
   buildGraphConfig,
@@ -27,20 +32,39 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
   nodeRenderMode = SquashNodeRenderMode.Export,
   title = 'Tournament Bracket',
   badgeText,
-  showToolbar = true,
-  showViewportControls = false,
+  toolbar,
+  showToolbar,
+  showViewportControls,
   defaultNavigationMode = true,
+  theme,
+  isDarkMode: controlledDarkMode,
+  defaultDarkMode,
+  onDarkModeChange,
+  syncDarkModeToDocument,
+  interaction,
   panEnabled,
   zoomEnabled,
   pinchZoomEnabled,
   compact = true,
   onMatchClick,
   onInvalidNode,
+  onExportError,
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<GraphHandle>(null);
   const contentViewportRef = useRef<HTMLDivElement>(null);
-  const { isDarkMode, toggleDarkMode } = useDocumentDarkMode();
+  const resolvedShowToolbar = showToolbar ?? toolbar?.showToolbar ?? true;
+  const resolvedShowViewportControls =
+    showViewportControls ?? toolbar?.showViewportControls ?? false;
+  const resolvedPanEnabled = panEnabled ?? interaction?.panEnabled;
+  const resolvedZoomEnabled = zoomEnabled ?? interaction?.zoomEnabled;
+  const resolvedPinchZoomEnabled = pinchZoomEnabled ?? interaction?.pinchZoomEnabled;
+  const { isDarkMode, toggleDarkMode } = useDocumentDarkMode({
+    defaultDarkMode: defaultDarkMode ?? theme?.defaultDarkMode,
+    isDarkMode: controlledDarkMode ?? theme?.isDarkMode,
+    onDarkModeChange: onDarkModeChange ?? theme?.onDarkModeChange,
+    syncToDocument: syncDarkModeToDocument ?? theme?.syncToDocument,
+  });
   const [stageViews, setStageViews] = useState<readonly StageView[]>([]);
 
   const labels = useMemo(
@@ -74,12 +98,13 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
     setStageViews,
   });
 
-  const { exportVertexComponent, resolvedVertexComponent } = useBracketVertexComponents({
-    compact,
-    nodeRenderMode,
-    onInvalidNode,
-    vertexComponent,
-  });
+  const { exportVertexComponent, resolvedVertexComponent, vertexOptions } =
+    useBracketVertexComponents({
+      compact,
+      nodeRenderMode,
+      onInvalidNode,
+      vertexComponent,
+    });
   const handleExportSVG = useBracketSvgExport({
     wrapperRef,
     nodeRenderMode,
@@ -90,6 +115,8 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
     mergedConfig,
     appearance,
     compact,
+    vertexOptions,
+    onExportError,
   });
 
   return (
@@ -105,7 +132,7 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
         verticalStagePosition={navigation.verticalStagePosition}
         canPagePlayersVertically={navigation.canPagePlayersVertically}
         contentViewportRef={contentViewportRef}
-        showToolbar={showToolbar}
+        showToolbar={resolvedShowToolbar}
         compact={compact}
         onToggleNavigationMode={navigation.handleToggleNavigationMode}
         onPreviousStage={navigation.handlePreviousStage}
@@ -115,23 +142,26 @@ export const TournamentBracket = React.memo<TournamentBracketProps>(function Tou
         onToggleDarkMode={toggleDarkMode}
         onExportSVG={handleExportSVG}
       >
-        <BracketGraphCanvas
-          graphRef={graphRef}
-          wrapperRef={wrapperRef}
-          graph={enrichedGraph}
-          vertexComponent={resolvedVertexComponent}
-          config={mergedConfig}
-          defaultViewport={defaultViewport}
-          isNavigationMode={navigation.isNavigationMode}
-          translateExtent={translateExtent}
-          showViewportControls={showViewportControls}
-          panEnabled={panEnabled}
-          zoomEnabled={zoomEnabled}
-          pinchZoomEnabled={pinchZoomEnabled}
-          labels={labels}
-          onStagesChange={navigation.handleStagesChange}
-          onMatchClick={onMatchClick}
-        />
+        <BracketVertexOptionsProvider value={vertexOptions}>
+          <BracketGraphCanvas
+            graphRef={graphRef}
+            wrapperRef={wrapperRef}
+            graph={enrichedGraph}
+            vertexComponent={resolvedVertexComponent}
+            config={mergedConfig}
+            defaultViewport={defaultViewport}
+            isNavigationMode={navigation.isNavigationMode}
+            translateExtent={translateExtent}
+            showViewportControls={resolvedShowViewportControls}
+            panEnabled={resolvedPanEnabled}
+            zoomEnabled={resolvedZoomEnabled}
+            pinchZoomEnabled={resolvedPinchZoomEnabled}
+            labels={labels}
+            onStagesChange={navigation.handleStagesChange}
+            onMatchClick={onMatchClick}
+            onInvalidNode={onInvalidNode}
+          />
+        </BracketVertexOptionsProvider>
       </BracketFrame>
     </BracketAppearanceProvider>
   );

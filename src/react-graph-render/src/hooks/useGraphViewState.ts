@@ -1,8 +1,8 @@
-import type { GraphHandle, GraphSelection, GraphViewport } from '@graph-render/types';
+import type { GraphHandle, GraphSelection, GraphViewport } from '@graph-render/types/react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { DEFAULT_VIEWPORT } from '../constants/graph';
-import type { UseGraphViewStateOptions, UseGraphViewStateResult } from '../models/hooks';
+import type { UseGraphViewStateOptions, UseGraphViewStateResult } from '../models/hookContracts';
 import { normalizeViewport } from '../utils/viewport';
 
 export const useGraphViewState = ({

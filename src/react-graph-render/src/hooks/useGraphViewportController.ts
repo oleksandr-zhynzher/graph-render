@@ -1,8 +1,8 @@
 import type { NormalizedGraphConfig, PositionedEdge, PositionedNode } from '@graph-render/types';
-import { useCallback, useEffect, useImperativeHandle, useRef } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 
 import { DEFAULT_VIEWPORT, FIT_BOUNDS_MARGIN } from '../constants/graph';
-import type { UseGraphViewportControllerOptions } from '../models/hooks';
+import type { UseGraphViewportControllerOptions } from '../models/hookContracts';
 import {
   expandBounds,
   getEdgeLabelBounds,
@@ -58,7 +58,10 @@ export const useGraphViewportController = ({
   zoomStep,
 }: UseGraphViewportControllerOptions) => {
   const hasAppliedInitialFitViewRef = useRef(false);
-  const contentBounds = getContentBounds(cfg, positionedEdges, positionedNodes);
+  const contentBounds = useMemo(
+    () => getContentBounds(cfg, positionedEdges, positionedNodes),
+    [cfg, positionedEdges, positionedNodes]
+  );
 
   const getViewportDimensions = useCallback(() => {
     const svgElement = svgRef.current;

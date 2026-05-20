@@ -1,7 +1,25 @@
-import type { GraphViewport, PositionedNode } from '@graph-render/types';
+import type { PositionedNode } from '@graph-render/types';
+import type { GraphViewport } from '@graph-render/types/react';
 
-import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from '../constants/graph';
-import type { GraphBounds } from '../models/utils';
+import {
+  DEFAULT_MAX_ZOOM,
+  DEFAULT_MIN_ZOOM,
+  DEFAULT_NODE_HEIGHT,
+  DEFAULT_NODE_WIDTH,
+} from '../constants/graph';
+import type { GraphBounds } from '../models/domain';
+
+export const normalizeZoomRange = (
+  minZoom: number,
+  maxZoom: number
+): { readonly minZoom: number; readonly maxZoom: number } => {
+  const safeMinZoom = Number.isFinite(minZoom) && minZoom > 0 ? minZoom : DEFAULT_MIN_ZOOM;
+  const safeMaxZoom = Number.isFinite(maxZoom) && maxZoom > 0 ? maxZoom : DEFAULT_MAX_ZOOM;
+
+  return safeMinZoom <= safeMaxZoom
+    ? { minZoom: safeMinZoom, maxZoom: safeMaxZoom }
+    : { minZoom: safeMaxZoom, maxZoom: safeMinZoom };
+};
 
 export const clampZoom = (zoom: number, minZoom: number, maxZoom: number): number => {
   return Math.min(Math.max(zoom, minZoom), maxZoom);
@@ -126,4 +144,4 @@ export const centerViewportOnNode = (
   };
 };
 
-export { type GraphBounds } from '../models/utils';
+export { type GraphBounds } from '../models/domain';

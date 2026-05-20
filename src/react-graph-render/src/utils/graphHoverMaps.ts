@@ -1,7 +1,7 @@
 import { groupEdgesByTarget, sortEdgesBySourcePosition } from '@graph-render/core';
 import type { PositionedEdge } from '@graph-render/types';
 
-import type { PositionedHoverNode } from '../models/utils';
+import type { PositionedHoverNode } from '../models/domain';
 
 export const buildEdgeById = (edges: readonly PositionedEdge[]) =>
   new Map(edges.map((edge) => [edge.id, edge]));
@@ -36,4 +36,4 @@ export const buildIncomingEdgesByTarget = (
   return map;
 };
 
-export { type PositionedHoverNode } from '../models/utils';
+export { type PositionedHoverNode } from '../models/domain';

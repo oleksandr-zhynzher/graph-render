@@ -1,16 +1,13 @@
 import { Graph } from '@graph-render/react';
-import type {
-  GraphConfig,
-  GraphHandle,
-  PositionedNode,
-  SquashPositionedNode,
-  StageView,
-  TournamentBracketProps,
-} from '@graph-render/types';
+import type { GraphConfig, PositionedNode } from '@graph-render/types';
+import type { GraphHandle, GraphRenderContext } from '@graph-render/types/react';
+import type { StageView } from '@graph-render/types/tournament';
 import { useCallback } from 'react';
 
+import type { TournamentBracketProps } from '../../models/tournamentBracket';
 import { routeBracketEdges } from '../../utils/bracketRouting';
-import { GraphStageSync } from './GraphStageSync';
+import { toSquashPositionedNode } from '../../utils/isSquashPositionedNode';
+import { buildStageViews } from '../../utils/stageViews';
 
 interface BracketGraphCanvasProps {
   readonly graphRef: React.RefObject<GraphHandle | null>;
@@ -30,6 +27,7 @@ interface BracketGraphCanvasProps {
   readonly labels: readonly string[];
   readonly onStagesChange: (stages: readonly StageView[]) => void;
   readonly onMatchClick: TournamentBracketProps['onMatchClick'];
+  readonly onInvalidNode: TournamentBracketProps['onInvalidNode'];
 }
 
 export function BracketGraphCanvas({
@@ -48,12 +46,34 @@ export function BracketGraphCanvas({
   labels,
   onStagesChange,
   onMatchClick,
+  onInvalidNode,
 }: BracketGraphCanvasProps) {
   const handleMatchClick = useCallback(
     (node: PositionedNode) => {
-      onMatchClick?.(node as SquashPositionedNode);
+      if (!onMatchClick) {
+        return;
+      }
+
+      const squashNode = toSquashPositionedNode(node);
+      if (!squashNode) {
+        onInvalidNode?.(
+          node.id,
+          new TypeError(`Node "${node.id}" is not a valid squash match node.`)
+        );
+        return;
+      }
+
+      onMatchClick(squashNode);
     },
-    [onMatchClick]
+    [onInvalidNode, onMatchClick]
+  );
+
+  const handleLayoutChange = useCallback(
+    (context: GraphRenderContext) => {
+      const stages = buildStageViews(context.nodes, labels, config.labelOffset ?? 46);
+      onStagesChange(stages);
+    },
+    [config.labelOffset, labels, onStagesChange]
   );
 
   return (
@@ -70,15 +90,8 @@ export function BracketGraphCanvas({
         translateExtent={isNavigationMode ? undefined : translateExtent}
         showControls={showViewportControls}
         onNodeClick={handleMatchClick}
+        onLayoutChange={handleLayoutChange}
         routeEdgesOverride={routeBracketEdges}
-        renderOverlay={(context) => (
-          <GraphStageSync
-            context={context}
-            labels={labels}
-            labelOffset={config.labelOffset ?? 46}
-            onStagesChange={onStagesChange}
-          />
-        )}
       />
     </div>
   );

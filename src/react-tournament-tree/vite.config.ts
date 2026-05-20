@@ -1,6 +1,15 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+const externalPackages = /^@graph-render\/(?:core|react|types)(?:\/.*)?$/;
+const reactExternals = new Set([
+  'react',
+  'react/jsx-runtime',
+  'react/jsx-dev-runtime',
+  'react-dom',
+  'react-dom/client',
+]);
+
 export default defineConfig({
   plugins: [react()],
   build: {
@@ -11,15 +20,7 @@ export default defineConfig({
       fileName: () => 'index.js',
     },
     rollupOptions: {
-      external: [
-        'react',
-        'react/jsx-runtime',
-        'react/jsx-dev-runtime',
-        'react-dom',
-        'react-dom/client',
-        '@graph-render/react',
-        '@graph-render/types',
-      ],
+      external: (id) => reactExternals.has(id) || externalPackages.test(id),
     },
   },
   server: {

@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { DEFAULT_MARQUEE_FILL, DEFAULT_MARQUEE_STROKE } from '../constants/graph';
+
 interface GraphSelectionOverlayProps {
   readonly rect: {
     readonly x: number;
@@ -7,10 +9,14 @@ interface GraphSelectionOverlayProps {
     readonly width: number;
     readonly height: number;
   } | null;
+  readonly fill?: string | undefined;
+  readonly stroke?: string | undefined;
 }
 
 export const GraphSelectionOverlay = React.memo(function GraphSelectionOverlay({
   rect,
+  fill = DEFAULT_MARQUEE_FILL,
+  stroke = DEFAULT_MARQUEE_STROKE,
 }: GraphSelectionOverlayProps) {
   if (!rect) {
     return null;
@@ -22,8 +28,8 @@ export const GraphSelectionOverlay = React.memo(function GraphSelectionOverlay({
       y={rect.y}
       width={rect.width}
       height={rect.height}
-      fill="rgba(59, 130, 246, 0.12)"
-      stroke="rgba(59, 130, 246, 0.8)"
+      fill={fill}
+      stroke={stroke}
       strokeDasharray="6 4"
       pointerEvents="none"
     />

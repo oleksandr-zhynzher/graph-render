@@ -1,8 +1,7 @@
-import type { TournamentBracketAppearance } from './bracketAppearance';
-import type { GraphConfig } from './config';
-import type { NxGraphInput } from './graph';
 import type { NodeData, PositionedNode } from './node';
-import type { GraphViewport, VertexComponent } from './react';
+import type { GraphViewport } from './viewport';
+
+export type * from './bracketAppearance';
 
 export interface SquashPlayer {
   readonly name: string;
@@ -60,30 +59,4 @@ export enum VerticalStagePosition {
 export interface StageViewportResult {
   readonly viewport: GraphViewport;
   readonly canPageVertically: boolean;
-}
-
-export interface TournamentBracketProps {
-  readonly graph: NxGraphInput;
-  /**
-   * Graph layout, routing, and canvas options (merged with tournament defaults).
-   */
-  readonly config?: Partial<GraphConfig> | undefined;
-  /**
-   * Match-card, header, stage-label, frame, color, and typography overrides.
-   */
-  readonly appearance?: TournamentBracketAppearance | undefined;
-  readonly defaultViewport?: Partial<GraphViewport> | undefined;
-  readonly vertexComponent?: VertexComponent | undefined;
-  readonly nodeRenderMode?: SquashNodeRenderMode | undefined;
-  readonly title?: string | undefined;
-  readonly badgeText?: string | undefined;
-  readonly showToolbar?: boolean | undefined;
-  readonly showViewportControls?: boolean | undefined;
-  readonly defaultNavigationMode?: boolean | undefined;
-  readonly panEnabled?: boolean | undefined;
-  readonly zoomEnabled?: boolean | undefined;
-  readonly pinchZoomEnabled?: boolean | undefined;
-  readonly compact?: boolean | undefined;
-  readonly onMatchClick?: ((node: SquashPositionedNode) => void) | undefined;
-  readonly onInvalidNode?: ((nodeId: string, error: Error) => void) | undefined;
 }

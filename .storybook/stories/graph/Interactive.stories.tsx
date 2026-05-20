@@ -147,7 +147,6 @@ function SearchWrapper() {
             padding: '6px 12px',
             color: '#e5ecff',
             fontSize: 13,
-            outline: 'none',
             width: 260,
           }}
         />

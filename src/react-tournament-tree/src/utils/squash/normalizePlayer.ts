@@ -1,4 +1,4 @@
-import type { SquashPlayer } from '@graph-render/types';
+import type { SquashPlayer } from '@graph-render/types/tournament';
 
 import { DEFAULT_PLAYERS } from '../../constants';
 

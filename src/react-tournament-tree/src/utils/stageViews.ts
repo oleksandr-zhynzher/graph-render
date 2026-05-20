@@ -1,5 +1,6 @@
 import { groupPositionedNodesByColumn } from '@graph-render/react';
-import type { PositionedNode, StageView } from '@graph-render/types';
+import type { PositionedNode } from '@graph-render/types';
+import type { StageView } from '@graph-render/types/tournament';
 
 import { NODE_DIMENSIONS } from '../constants';
 import { STAGE_LABEL_HEIGHT } from '../constants/stageNavigation';

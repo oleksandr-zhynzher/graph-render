@@ -1,7 +1,7 @@
 import type { EdgeData, NodeData } from '@graph-render/types';
 import { useEffect, useMemo, useRef } from 'react';
 
-import type { UseGraphSearchStateOptions } from '../models/hooks';
+import type { UseGraphSearchStateOptions } from '../models/hookContracts';
 import {
   findSearchMatchedEdgeIds,
   findSearchMatchedNodeIds,

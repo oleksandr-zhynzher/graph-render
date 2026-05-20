@@ -1,7 +1,7 @@
 import { buildEdgePath } from '@graph-render/core';
-import type { EdgePathProps } from '@graph-render/types';
 import { EdgeType } from '@graph-render/types';
-import React from 'react';
+import type { EdgePathProps } from '@graph-render/types/react';
+import React, { useState } from 'react';
 
 // Memoised so that unchanged edges are skipped during re-renders of the parent
 // Graph component (e.g. when hover/selection state changes for a different edge).
@@ -22,12 +22,14 @@ export const EdgePath = React.memo(function EdgePath({
   selectionMarker,
   hoverMarker,
   hoverEnabled,
+  selectionEnabled,
   hoverStrokeWidth,
   selectedStrokeWidth,
   hitStrokeWidth,
   onHoverChange,
   onClick,
 }: EdgePathProps) {
+  const [isFocused, setIsFocused] = useState(false);
   const d = buildEdgePath(edge, curveEdges, curveStrength);
   if (!d) return null;
 
@@ -52,15 +54,17 @@ export const EdgePath = React.memo(function EdgePath({
         strokeWidth={hitStrokeWidth ?? width + 8}
         fill="none"
         pointerEvents="stroke"
-        data-graph-edge-interactive="true"
+        data-graph-edge-interactive={onClick ? 'true' : undefined}
         role={onClick ? 'button' : undefined}
         tabIndex={onClick ? 0 : undefined}
         aria-label={
           onClick ? (edge.label != null ? `Edge: ${String(edge.label)}` : 'Graph edge') : undefined
         }
-        aria-pressed={onClick ? isSelected : undefined}
+        aria-pressed={onClick && selectionEnabled ? isSelected : undefined}
         onMouseEnter={() => hoverEnabled && onHoverChange?.(true)}
         onMouseLeave={() => hoverEnabled && onHoverChange?.(false)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         onClick={onClick}
         onKeyDown={
           onClick
@@ -73,6 +77,16 @@ export const EdgePath = React.memo(function EdgePath({
             : undefined
         }
       />
+      {isFocused ? (
+        <path
+          d={d}
+          stroke={selectionColor ?? hoverColor}
+          strokeWidth={strokeWidth + 5}
+          strokeOpacity={0.35}
+          fill="none"
+          pointerEvents="none"
+        />
+      ) : null}
       <path
         d={d}
         stroke={strokeColor}

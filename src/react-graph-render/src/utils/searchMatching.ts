@@ -1,6 +1,7 @@
-import type { EdgeData, GraphSearchResults, NodeData } from '@graph-render/types';
+import type { EdgeData, NodeData } from '@graph-render/types';
+import type { GraphSearchResults } from '@graph-render/types/react';
 
-import type { HighlightContext } from '../models/utils';
+import type { HighlightContext } from '../models/domain';
 
 export const findSearchMatchedNodeIds = <TNode extends NodeData>(
   nodes: readonly TNode[],

@@ -1,8 +1,18 @@
-import type { TournamentBracketProps, VertexComponentProps } from '@graph-render/types';
-import { SquashNodeRenderMode } from '@graph-render/types';
+import type { VertexComponent } from '@graph-render/types/react';
 import { useMemo } from 'react';
 
-import { SquashNode } from '../components/SquashNode';
+import {
+  type BracketVertexOptions,
+  createDefaultExportVertexComponent,
+  createDefaultResolvedVertexComponent,
+} from '../contexts/BracketVertexOptionsContext';
+import type { TournamentBracketProps } from '../models/tournamentBracket';
+
+export type { BracketVertexOptions } from '../contexts/BracketVertexOptionsContext';
+export { BracketVertexOptionsProvider } from '../contexts/BracketVertexOptionsContext';
+
+const defaultExportVertexComponent = createDefaultExportVertexComponent();
+const defaultResolvedVertexComponent = createDefaultResolvedVertexComponent();
 
 export function useBracketVertexComponents({
   compact,
@@ -13,32 +23,13 @@ export function useBracketVertexComponents({
   TournamentBracketProps,
   'compact' | 'nodeRenderMode' | 'onInvalidNode' | 'vertexComponent'
 >) {
-  const exportVertexComponent = useMemo(
-    () =>
-      vertexComponent ??
-      ((props: VertexComponentProps) => (
-        <SquashNode
-          {...props}
-          renderMode={SquashNodeRenderMode.Export}
-          compact={compact}
-          onRenderError={onInvalidNode}
-        />
-      )),
-    [compact, onInvalidNode, vertexComponent]
+  const vertexOptions = useMemo<BracketVertexOptions>(
+    () => ({ compact, nodeRenderMode, onInvalidNode }),
+    [compact, nodeRenderMode, onInvalidNode]
   );
-  const resolvedVertexComponent = useMemo(
-    () =>
-      vertexComponent ??
-      ((props: VertexComponentProps) => (
-        <SquashNode
-          {...props}
-          renderMode={nodeRenderMode ?? SquashNodeRenderMode.Export}
-          compact={compact}
-          onRenderError={onInvalidNode}
-        />
-      )),
-    [compact, nodeRenderMode, onInvalidNode, vertexComponent]
-  );
+  const exportVertexComponent: VertexComponent = vertexComponent ?? defaultExportVertexComponent;
+  const resolvedVertexComponent: VertexComponent =
+    vertexComponent ?? defaultResolvedVertexComponent;
 
-  return { exportVertexComponent, resolvedVertexComponent };
+  return { exportVertexComponent, resolvedVertexComponent, vertexOptions };
 }

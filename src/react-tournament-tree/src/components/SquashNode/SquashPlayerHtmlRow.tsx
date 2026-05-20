@@ -18,9 +18,19 @@ export function SquashPlayerHtmlRow(props: SquashPlayerHtmlRowProps) {
   const badgeColor = isWinner ? colors.WINNER_CREST_TEXT : colors.CREST_TEXT;
   const rowBackground = isPlayerHovered ? colors.ROW_HOVER_BG : colors.ROW_BG;
   const badgeRadius = props.compact ? 3 : 6;
+  const handlePlayerEnter = () => props.onPlayerEnter(playerIndex, player);
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handlePlayerEnter();
+    }
+  };
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`${player.name}, ${props.setCount} sets won`}
       style={{
         display: 'grid',
         gridTemplateColumns: `${matchCard.badgeSize}px minmax(0, 1fr) ${props.scoreGroupWidth}px ${matchCard.matchCountWidth}px`,
@@ -34,8 +44,14 @@ export function SquashPlayerHtmlRow(props: SquashPlayerHtmlRowProps) {
         borderTop: playerIndex === 1 ? `1px solid ${colors.BORDER}` : 'none',
         boxSizing: 'border-box',
       }}
-      onMouseEnter={() => props.onPlayerEnter(playerIndex, player)}
+      onFocus={handlePlayerEnter}
+      onBlur={props.onPlayerLeave}
+      onKeyDown={handleKeyDown}
+      onMouseEnter={handlePlayerEnter}
       onMouseLeave={props.onPlayerLeave}
+      onTouchStart={handlePlayerEnter}
+      onTouchEnd={props.onPlayerLeave}
+      onTouchCancel={props.onPlayerLeave}
       data-testid="player-html-row"
     >
       <div

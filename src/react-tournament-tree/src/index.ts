@@ -1,3 +1,5 @@
+'use client';
+
 export { BracketToolbar } from './components/BracketToolbar';
 export { SquashNode } from './components/SquashNode';
 export { TournamentBracket } from './components/TournamentBracket';
@@ -17,9 +19,13 @@ export {
 } from './contexts/BracketAppearanceContext';
 /* eslint-disable @typescript-eslint/no-deprecated -- legacy theme API kept for backward compatibility */
 export { BracketThemeProvider, useBracketTheme } from './contexts/BracketThemeContext';
+export type {
+  TournamentBracketInteractionOptions,
+  TournamentBracketProps,
+  TournamentBracketThemeOptions,
+  TournamentBracketToolbarOptions,
+} from './models/tournamentBracket';
 /* eslint-enable @typescript-eslint/no-deprecated -- legacy theme API kept for backward compatibility */
-export { routeBracketEdges } from './utils/bracketRouting';
-export { injectTournamentPathKeys } from './utils/pathKeys';
 export type {
   ResolvedBracketAppearance,
   ResolvedBracketFrameStyle,
@@ -29,14 +35,11 @@ export type {
   ResolvedMatchCardScoreStyle,
   ResolvedMatchCardStyle,
 } from './utils/resolveBracketAppearance';
-export { resolveBracketAppearance } from './utils/resolveBracketAppearance';
 export {
   roundLabelsForGraph,
   roundLabelsForMatchCount,
   roundLabelsForRoundCount,
 } from './utils/roundLabels';
-export { getStageViewport } from './utils/stageViewport';
-export { buildStageViews } from './utils/stageViews';
 export type {
   SquashMatchMeta,
   SquashNodeData,
@@ -46,6 +49,9 @@ export type {
   StageView,
   StageViewportResult,
   TournamentBracketAppearance,
-  TournamentBracketProps,
-} from '@graph-render/types';
-export { MatchStatus, SquashNodeRenderMode, VerticalStagePosition } from '@graph-render/types';
+} from '@graph-render/types/tournament';
+export {
+  MatchStatus,
+  SquashNodeRenderMode,
+  VerticalStagePosition,
+} from '@graph-render/types/tournament';

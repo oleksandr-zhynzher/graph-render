@@ -1,9 +1,10 @@
 import type { PositionedEdge, PositionedNode } from '@graph-render/types';
-import { SelectionMode } from '@graph-render/types';
+import { SelectionMode } from '@graph-render/types/react';
 import { useCallback } from 'react';
 
-import type { UseGraphSelectionHandlersOptions } from '../models/hooks';
+import type { UseGraphSelectionHandlersOptions } from '../models/hookContracts';
 import { toggleId } from '../utils/selection';
+import { useLatestRef } from './useLatestRef';
 
 export const useGraphSelectionHandlers = ({
   edgeSelectionEnabled,
@@ -14,11 +15,14 @@ export const useGraphSelectionHandlers = ({
   updateFocusedNode,
   updateSelection,
 }: UseGraphSelectionHandlersOptions) => {
+  const onNodeClickRef = useLatestRef(onNodeClick);
+  const onEdgeClickRef = useLatestRef(onEdgeClick);
+
   const handleNodeSelection = useCallback(
     (node: PositionedNode) => {
       if (!nodeSelectionEnabled) {
         updateFocusedNode(node.id);
-        onNodeClick?.(node);
+        onNodeClickRef.current?.(node);
         return;
       }
 
@@ -27,15 +31,15 @@ export const useGraphSelectionHandlers = ({
         edgeIds: selectionMode === SelectionMode.Single ? [] : current.edgeIds,
       }));
       updateFocusedNode(node.id);
-      onNodeClick?.(node);
+      onNodeClickRef.current?.(node);
     },
-    [nodeSelectionEnabled, onNodeClick, selectionMode, updateFocusedNode, updateSelection]
+    [nodeSelectionEnabled, onNodeClickRef, selectionMode, updateFocusedNode, updateSelection]
   );
 
   const handleEdgeSelection = useCallback(
     (edge: PositionedEdge) => {
       if (!edgeSelectionEnabled) {
-        onEdgeClick?.(edge);
+        onEdgeClickRef.current?.(edge);
         return;
       }
 
@@ -43,9 +47,9 @@ export const useGraphSelectionHandlers = ({
         nodeIds: selectionMode === SelectionMode.Single ? [] : current.nodeIds,
         edgeIds: toggleId(current.edgeIds, edge.id, selectionMode),
       }));
-      onEdgeClick?.(edge);
+      onEdgeClickRef.current?.(edge);
     },
-    [edgeSelectionEnabled, onEdgeClick, selectionMode, updateSelection]
+    [edgeSelectionEnabled, onEdgeClickRef, selectionMode, updateSelection]
   );
 
   return { handleEdgeSelection, handleNodeSelection };

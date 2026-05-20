@@ -1,4 +1,4 @@
-import type { NodeWithPathMeta } from '../models/utils';
+import type { NodeWithPathMeta } from '../models/domain';
 
 const getPathKeyName = (entry: unknown): string | null => {
   if (typeof entry === 'string') {

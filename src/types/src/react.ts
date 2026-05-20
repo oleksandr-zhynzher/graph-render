@@ -6,6 +6,7 @@ import type { NxGraphInput } from './graph';
 import type { LayoutOptions } from './layout';
 import type { NodeData, PositionedNode as CorePositionedNode } from './node';
 import type { RouteEdgesOptions } from './routing';
+import type { GraphViewport } from './viewport';
 
 type AnyNode = CorePositionedNode;
 type AnyEdge = CorePositionedEdge;
@@ -29,6 +30,14 @@ export interface VertexComponentProps<TNode extends AnyNode = CorePositionedNode
   readonly hoverInColor?: string | undefined;
   readonly hoverOutColor?: string | undefined;
   readonly hoverBothColor?: string | undefined;
+  /** Resolved from `Graph` `config.theme` — override per-vertex in custom renderers if needed. */
+  readonly nodeFill?: string | undefined;
+  readonly nodeStroke?: string | undefined;
+  readonly nodeTextColor?: string | undefined;
+  readonly nodeTextSize?: number | undefined;
+  readonly nodeRadius?: number | undefined;
+  readonly nodeBorderWidth?: number | undefined;
+  readonly fontFamily?: string | undefined;
   readonly onPathHover?:
     | ((sourceIndex: number | null, opts?: PathHoverOptions) => void)
     | undefined;
@@ -50,6 +59,7 @@ export interface EdgePathProps<TEdge extends PositionedEdge = PositionedEdge> {
   readonly selectionMarker?: string | undefined;
   readonly hoverMarker?: string | undefined;
   readonly hoverEnabled: boolean;
+  readonly selectionEnabled?: boolean | undefined;
   readonly hoverStrokeWidth?: number | undefined;
   readonly selectedStrokeWidth?: number | undefined;
   readonly hitStrokeWidth?: number | undefined;
@@ -64,11 +74,7 @@ export type EdgeComponent<TEdge extends PositionedEdge = PositionedEdge> = Compo
   EdgePathProps<TEdge>
 >;
 
-export interface GraphViewport {
-  readonly x: number;
-  readonly y: number;
-  readonly zoom: number;
-}
+export type { GraphViewport } from './viewport';
 
 export interface GraphSelection {
   readonly nodeIds: readonly string[];
@@ -109,14 +115,13 @@ export interface GraphSearchResults {
   readonly edgeIds: readonly string[];
 }
 
-// FIX: added 'layout' and 'routing' for errors thrown by the built-in
-// layout/routing functions (not just user-supplied overrides).
 export enum GraphErrorPhase {
   Layout = 'layout',
   LayoutOverride = 'layout-override',
   Routing = 'routing',
   RoutingOverride = 'routing-override',
   Interaction = 'interaction',
+  Render = 'render',
 }
 
 export interface GraphErrorContext<TGraph extends NxGraphInput = NxGraphInput> {
@@ -155,6 +160,27 @@ export enum GraphControlsPosition {
   BottomRight = 'bottom-right',
 }
 
+/** Grouped interaction flags (flat props on {@link GraphProps} remain supported). */
+export interface GraphInteractionOptions {
+  readonly panEnabled?: boolean | undefined;
+  readonly zoomEnabled?: boolean | undefined;
+  readonly pinchZoomEnabled?: boolean | undefined;
+  readonly keyboardNavigation?: boolean | undefined;
+  readonly marqueeSelectionEnabled?: boolean | undefined;
+}
+
+/** Grouped viewport / control options (flat props on {@link GraphProps} remain supported). */
+export interface GraphViewportOptions {
+  readonly minZoom?: number | undefined;
+  readonly maxZoom?: number | undefined;
+  readonly zoomStep?: number | undefined;
+  readonly translateExtent?:
+    | readonly [readonly [number, number], readonly [number, number]]
+    | undefined;
+  readonly showControls?: boolean | undefined;
+  readonly controlsPosition?: GraphControlsPosition | undefined;
+}
+
 export interface GraphProps<
   TGraph extends NxGraphInput = NxGraphInput,
   TNode extends AnyNode = CorePositionedNode,
@@ -177,6 +203,16 @@ export interface GraphProps<
   /** World-space bounding box `[[minX, minY], [maxX, maxY]]` the user cannot pan outside of. */
   readonly translateExtent?:
     | readonly [readonly [number, number], readonly [number, number]]
+    | undefined;
+  /** Prefer grouped {@link GraphInteractionOptions}; flat props override these when both are set. */
+  readonly interaction?: GraphInteractionOptions | undefined;
+  /** Prefer grouped {@link GraphViewportOptions}; flat props override these when both are set. */
+  readonly viewportOptions?: GraphViewportOptions | undefined;
+  /** When true (default), nodes and edges outside the viewport are not mounted. */
+  readonly viewportCulling?: boolean | undefined;
+  /** Called after layout when positioned nodes/edges change. */
+  readonly onLayoutChange?:
+    | ((context: GraphRenderContext<TGraph, TNode, TEdge>) => void)
     | undefined;
   readonly panEnabled?: boolean | undefined;
   readonly zoomEnabled?: boolean | undefined;

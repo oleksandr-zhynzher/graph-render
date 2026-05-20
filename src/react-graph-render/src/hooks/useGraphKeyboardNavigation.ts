@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 
 import { DEFAULT_SELECTION } from '../constants/graph';
-import type { UseGraphKeyboardNavigationOptions } from '../models/hooks';
-import { KeyboardDirection } from '../models/utils';
+import { KeyboardDirection } from '../constants/keyboard';
+import type { UseGraphKeyboardNavigationOptions } from '../models/hookContracts';
 import { getNearestNodeInDirection } from '../utils/keyboardNavigation';
 
 const getArrowDirection = (key: string): KeyboardDirection => {
@@ -29,23 +29,28 @@ export const useGraphKeyboardNavigation = ({
     (event: React.KeyboardEvent<SVGSVGElement>) => {
       if (!keyboardNavigation) return;
 
-      if (event.key === '+' || event.key === '=') {
+      const markHandled = () => {
         event.preventDefault();
+        event.stopPropagation();
+      };
+
+      if (event.key === '+' || event.key === '=') {
+        markHandled();
         updateViewport((current) => ({ zoom: current.zoom + zoomStep }));
         return;
       }
       if (event.key === '-' || event.key === '_') {
-        event.preventDefault();
+        markHandled();
         updateViewport((current) => ({ zoom: current.zoom - zoomStep }));
         return;
       }
       if (event.key === '0') {
-        event.preventDefault();
+        markHandled();
         fitView();
         return;
       }
       if (event.key.startsWith('Arrow')) {
-        event.preventDefault();
+        markHandled();
         const currentNode = focusedNodeId ? positionedNodeMap.get(focusedNodeId) : undefined;
         if (currentNode) {
           const nextNode = getNearestNodeInDirection(
@@ -68,13 +73,13 @@ export const useGraphKeyboardNavigation = ({
         return;
       }
       if ((event.key === 'Enter' || event.key === ' ') && focusedNodeId) {
-        event.preventDefault();
+        markHandled();
         const focusedNode = positionedNodeMap.get(focusedNodeId);
         if (focusedNode) handleNodeSelection(focusedNode);
         return;
       }
       if (event.key === 'Escape') {
-        event.preventDefault();
+        markHandled();
         setFocusedPath(null);
         updateSelection(DEFAULT_SELECTION);
         updateFocusedNode(null);

@@ -1,4 +1,5 @@
-import { MatchStatus } from '@graph-render/types';
+import { MatchStatus } from '@graph-render/types/tournament';
+import { useId } from 'react';
 
 import { DEFAULT_PLAYERS, NODE_BORDER_WIDTH, NODE_DIMENSIONS } from '../../constants';
 import { getSquashScoreLayout } from '../../constants/squashNode';
@@ -39,7 +40,9 @@ export function SquashNodeSvg(props: SquashNodeVariantProps) {
     scoreGroupRightX - scoreSectionWidth - playerTextX - 4
   );
   const maxNameLength = Math.max(compact ? 6 : 10, Math.floor(maxNameWidth / (compact ? 6 : 7)));
-  const clipId = `ds-${nodeId.replaceAll(/[^\da-z]/gi, '')}`;
+  const stableId = useId().replaceAll(':', '');
+  const sanitizedNodeId = nodeId.replaceAll(/[^\da-z]/gi, '') || 'node';
+  const clipId = `ds-${sanitizedNodeId}-${stableId}`;
 
   return (
     <g>
@@ -60,7 +63,12 @@ export function SquashNodeSvg(props: SquashNodeVariantProps) {
       />
 
       {meta.status === MatchStatus.Live ? (
-        <g transform={`translate(${nodeWidth - 18}, 14)`} role="img" aria-label="Live match">
+        <g
+          transform={`translate(${nodeWidth - 18}, 14)`}
+          role="img"
+          aria-label="Live match"
+          aria-live="polite"
+        >
           <title>Live match</title>
           <circle r={4} fill={colors.LIVE_INDICATOR} />
         </g>
