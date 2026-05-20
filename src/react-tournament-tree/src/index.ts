@@ -25,6 +25,8 @@ export type {
   TournamentBracketThemeOptions,
   TournamentBracketToolbarOptions,
 } from './models/tournamentBracket';
+export { routeBracketEdges } from './utils/bracketRouting';
+export { injectTournamentPathKeys } from './utils/pathKeys';
 /* eslint-enable @typescript-eslint/no-deprecated -- legacy theme API kept for backward compatibility */
 export type {
   ResolvedBracketAppearance,
@@ -35,8 +37,6 @@ export type {
   ResolvedMatchCardScoreStyle,
   ResolvedMatchCardStyle,
 } from './utils/resolveBracketAppearance';
-export { routeBracketEdges } from './utils/bracketRouting';
-export { injectTournamentPathKeys } from './utils/pathKeys';
 export {
   roundLabelsForGraph,
   roundLabelsForMatchCount,
