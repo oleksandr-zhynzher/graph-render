@@ -35,11 +35,15 @@ export type {
   ResolvedMatchCardScoreStyle,
   ResolvedMatchCardStyle,
 } from './utils/resolveBracketAppearance';
+export { routeBracketEdges } from './utils/bracketRouting';
+export { injectTournamentPathKeys } from './utils/pathKeys';
 export {
   roundLabelsForGraph,
   roundLabelsForMatchCount,
   roundLabelsForRoundCount,
 } from './utils/roundLabels';
+export { getStageViewport } from './utils/stageViewport';
+export { buildStageViews } from './utils/stageViews';
 export type {
   SquashMatchMeta,
   SquashNodeData,
