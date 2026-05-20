@@ -74,6 +74,9 @@ web_modules/
 .cache
 .parcel-cache
 
+# Storybook build output
+storybook-static/
+
 # Next.js build output
 .next
 out
