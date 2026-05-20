@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-import type { UseGraphCollapseOptions, UseGraphCollapseResult } from '../models/hooks';
+import type { UseGraphCollapseOptions, UseGraphCollapseResult } from '../models/hookContracts';
 
 export const useGraphCollapse = ({
   collapsedNodeIds,

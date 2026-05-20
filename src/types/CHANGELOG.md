@@ -1,11 +1,11 @@
 ## <small>1.2.5 (2026-05-18)</small>
 
-* fix: use HTML badges and fix GitHub URLs in all package READMEs ([d70e39d](https://github.com/graph-render/graph-render/commit/d70e39d))
+- fix: use HTML badges and fix GitHub URLs in all package READMEs ([d70e39d](https://github.com/graph-render/graph-render/commit/d70e39d))
 
 ## <small>1.2.4 (2026-05-18)</small>
 
-* fix: update repository URL to graph-render org in all package manifests ([1e40643](https://github.com/graph-render/graph-render/commit/1e40643))
-* docs(ci): clarify GitHub Packages sidebar names and format changelogs in CI (#14) ([dc5f0e4](https://github.com/graph-render/graph-render/commit/dc5f0e4)), closes [#14](https://github.com/graph-render/graph-render/issues/14)
+- fix: update repository URL to graph-render org in all package manifests ([1e40643](https://github.com/graph-render/graph-render/commit/1e40643))
+- docs(ci): clarify GitHub Packages sidebar names and format changelogs in CI (#14) ([dc5f0e4](https://github.com/graph-render/graph-render/commit/dc5f0e4)), closes [#14](https://github.com/graph-render/graph-render/issues/14)
 
 ## <small>1.2.3 (2026-05-17)</small>
 

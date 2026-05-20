@@ -3,12 +3,19 @@
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build"],
+      "inputs": ["production", "^production"],
       "cache": true
     },
     "lint": {
+      "inputs": [
+        "default",
+        "{workspaceRoot}/.eslintrc.json",
+        "{workspaceRoot}/.eslintrc.react.json"
+      ],
       "cache": true
     },
     "test": {
+      "inputs": ["default", "^production"],
       "cache": true
     }
   },
@@ -22,7 +29,16 @@
       "!{projectRoot}/.eslintrc.json",
       "!{projectRoot}/vite.config.ts"
     ],
-    "sharedGlobals": []
+    "sharedGlobals": [
+      "{workspaceRoot}/package.json",
+      "{workspaceRoot}/yarn.lock",
+      "{workspaceRoot}/nx.json",
+      "{workspaceRoot}/tsconfig.json",
+      "{workspaceRoot}/tsconfig.base.json",
+      "{workspaceRoot}/tsconfig.typecheck.json",
+      "{workspaceRoot}/.storybook/main.ts",
+      "{workspaceRoot}/tailwind.config.js"
+    ]
   },
   "affected": {
     "defaultBase": "main"

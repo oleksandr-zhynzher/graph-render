@@ -1,4 +1,4 @@
-import type { SquashNodeRenderMode } from '@graph-render/types';
+import type { SquashNodeRenderMode } from '@graph-render/types/tournament';
 import type React from 'react';
 
 import { BODY_FONT_FAMILY } from '../../constants';
@@ -29,6 +29,7 @@ export function InvalidSquashNode({
           fill="#fff7ed"
           stroke="#f97316"
           strokeWidth={2}
+          data-testid="invalid-node-svg-rect"
         />
         <text
           x={16}
@@ -48,7 +49,12 @@ export function InvalidSquashNode({
   }
 
   return (
-    <foreignObject width={width} height={height} requiredExtensions="http://www.w3.org/1999/xhtml">
+    <foreignObject
+      width={width}
+      height={height}
+      requiredExtensions="http://www.w3.org/1999/xhtml"
+      data-testid="invalid-node-html"
+    >
       <div
         style={{
           boxSizing: 'border-box',

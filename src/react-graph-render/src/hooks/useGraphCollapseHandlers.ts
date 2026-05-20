@@ -1,8 +1,8 @@
 import type { PositionedNode } from '@graph-render/types';
-import { GraphErrorPhase } from '@graph-render/types';
+import { GraphErrorPhase } from '@graph-render/types/react';
 import { useCallback } from 'react';
 
-import type { UseGraphCollapseHandlersOptions } from '../models/hooks';
+import type { UseGraphCollapseHandlersOptions } from '../models/hookContracts';
 
 const toError = (error: unknown): Error => {
   return error instanceof Error ? error : new Error(String(error));

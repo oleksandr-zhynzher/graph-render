@@ -5,19 +5,19 @@ import {
   validatePositionedEdges,
 } from '@graph-render/core';
 import type { EdgeData, PositionedEdge, PositionedNode } from '@graph-render/types';
-import { GraphErrorPhase } from '@graph-render/types';
+import { GraphErrorPhase } from '@graph-render/types/react';
 
-import type { ResolvePositionedEdgesOptions } from '../models/utils';
+import type { ResolvePositionedEdgesOptions, ResolvePositionedEdgesResult } from '../models/domain';
+import type { GraphModelError } from '../models/graph';
 
 export const resolvePositionedEdges = ({
   allowDegradedGraph,
   edgeRoutingOptions,
   graph,
-  onError,
   positionedNodes,
   routeEdgesOverride,
   visibleEdges,
-}: ResolvePositionedEdgesOptions): readonly PositionedEdge[] => {
+}: ResolvePositionedEdgesOptions): ResolvePositionedEdgesResult => {
   const nodeIds = new Set(positionedNodes.map((node) => node.id));
 
   if (!routeEdgesOverride) {
@@ -26,31 +26,37 @@ export const resolvePositionedEdges = ({
       edgeRoutingOptions,
       graph,
       nodeIds,
-      onError,
       positionedNodes,
       visibleEdges,
     });
   }
 
+  const errors: GraphModelErrors = [];
   try {
     const overrideEdges = routeEdgesOverride(positionedNodes, visibleEdges, edgeRoutingOptions);
     validatePositionedEdges(overrideEdges, nodeIds, 'routing override');
-    return overrideEdges;
+    return { edges: overrideEdges, errors };
   } catch (error) {
     const normalizedError = toError(error);
-    onError?.(normalizedError, { graph, phase: GraphErrorPhase.RoutingOverride });
     if (!allowDegradedGraph) {
       throw normalizedError;
     }
+    errors.push({
+      context: { graph, phase: GraphErrorPhase.RoutingOverride },
+      error: normalizedError,
+    });
   }
 
   try {
     const fallbackEdges = routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions);
     validatePositionedEdges(fallbackEdges, nodeIds, 'routing');
-    return fallbackEdges;
+    return { edges: fallbackEdges, errors };
   } catch (fallbackError) {
-    onError?.(toError(fallbackError), { graph, phase: GraphErrorPhase.Routing });
-    return buildValidatedFallbackEdges(positionedNodes, visibleEdges, nodeIds);
+    errors.push({
+      context: { graph, phase: GraphErrorPhase.Routing },
+      error: toError(fallbackError),
+    });
+    return { edges: buildValidatedFallbackEdges(positionedNodes, visibleEdges, nodeIds), errors };
   }
 };
 
@@ -59,23 +65,23 @@ const resolveDefaultRouting = ({
   edgeRoutingOptions,
   graph,
   nodeIds,
-  onError,
   positionedNodes,
   visibleEdges,
 }: Omit<ResolvePositionedEdgesOptions, 'routeEdgesOverride'> & {
   readonly nodeIds: ReadonlySet<string>;
-}): readonly PositionedEdge[] => {
+}): ResolvePositionedEdgesResult => {
+  const errors: GraphModelErrors = [];
   try {
     const routedEdges = routeEdges(positionedNodes, visibleEdges, edgeRoutingOptions);
     validatePositionedEdges(routedEdges, nodeIds, 'routing');
-    return routedEdges;
+    return { edges: routedEdges, errors };
   } catch (error) {
     const normalizedError = toError(error);
-    onError?.(normalizedError, { graph, phase: GraphErrorPhase.Routing });
     if (!allowDegradedGraph) {
       throw normalizedError;
     }
-    return buildValidatedFallbackEdges(positionedNodes, visibleEdges, nodeIds);
+    errors.push({ context: { graph, phase: GraphErrorPhase.Routing }, error: normalizedError });
+    return { edges: buildValidatedFallbackEdges(positionedNodes, visibleEdges, nodeIds), errors };
   }
 };
 
@@ -88,3 +94,5 @@ const buildValidatedFallbackEdges = (
   validatePositionedEdges(fallbackEdges, nodeIds, 'routing');
   return fallbackEdges;
 };
+
+type GraphModelErrors = GraphModelError[];

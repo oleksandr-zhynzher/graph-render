@@ -1,7 +1,7 @@
 import type { PositionedNode } from '@graph-render/types';
 
 import { DEFAULT_COLUMN_TOLERANCE, DEFAULT_NODE_WIDTH } from '../constants/graph';
-import type { NodeColumn } from '../models/utils';
+import type { NodeColumn } from '../models/domain';
 
 const getNodeWidth = (node: PositionedNode): number => node.size?.width ?? DEFAULT_NODE_WIDTH;
 
@@ -33,10 +33,8 @@ export const groupPositionedNodesByColumn = <TNode extends PositionedNode = Posi
     }
 
     current.nodes.push(node);
-    // FIX: replaced O(k) reduce-based recompute with an O(1) incremental
-    // running average.  The previous approach re-summed the entire column on
-    // every push, making the full grouping O(n×k) for large graphs.
-    const newCount = current.nodes.length; // length after push
+    // Maintain a running average so column grouping remains linear.
+    const newCount = current.nodes.length;
     current.centerX = (current.centerX * (newCount - 1) + nodeCenterX) / newCount;
     current.avgWidth = (current.avgWidth * (newCount - 1) + nodeWidth) / newCount;
   }
@@ -48,4 +46,4 @@ export const groupPositionedNodesByColumn = <TNode extends PositionedNode = Posi
 };
 
 export { DEFAULT_NODE_WIDTH } from '../constants/graph';
-export { type NodeColumn } from '../models/utils';
+export { type NodeColumn } from '../models/domain';

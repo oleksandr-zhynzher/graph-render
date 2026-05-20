@@ -1,4 +1,4 @@
-import type { MatchStatus, SquashPlayer } from '@graph-render/types';
+import type { MatchStatus, SquashPlayer } from '@graph-render/types/tournament';
 
 export interface NormalizedSquashMatchMeta {
   readonly stage: string;

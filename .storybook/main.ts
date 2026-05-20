@@ -1,6 +1,8 @@
 import path from 'node:path';
 
 import type { StorybookConfig } from '@storybook/react-vite';
+import react from '@vitejs/plugin-react';
+import { mergeConfig } from 'vite';
 
 const config: StorybookConfig = {
   stories: ['./stories/**/*.stories.@(ts|tsx)'],
@@ -12,16 +14,38 @@ const config: StorybookConfig = {
   docs: {
     autodocs: 'tag',
   },
+  typescript: {
+    reactDocgen: 'react-docgen-typescript',
+    check: false,
+  },
   viteFinal: async (config) => {
-    config.resolve = config.resolve || {};
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@graph-render/types': path.resolve(__dirname, '../src/types/src'),
-      '@graph-render/core': path.resolve(__dirname, '../src/core-graph-render/src'),
-      '@graph-render/react': path.resolve(__dirname, '../src/react-graph-render/src'),
-      '@graph-render/tournament-tree': path.resolve(__dirname, '../src/react-tournament-tree/src'),
-    };
-    return config;
+    const plugins = config.plugins ?? [];
+    const hasReactPlugin = plugins.some(
+      (plugin) =>
+        plugin != null &&
+        typeof plugin === 'object' &&
+        'name' in plugin &&
+        String(plugin.name).includes('vite:react')
+    );
+
+    return mergeConfig(config, {
+      plugins: hasReactPlugin ? [] : [react({ jsxRuntime: 'automatic' })],
+      esbuild: {
+        jsx: 'automatic',
+        jsxImportSource: 'react',
+      },
+      resolve: {
+        alias: {
+          '@graph-render/types': path.resolve(__dirname, '../src/types/src'),
+          '@graph-render/core': path.resolve(__dirname, '../src/core-graph-render/src'),
+          '@graph-render/react': path.resolve(__dirname, '../src/react-graph-render/src'),
+          '@graph-render/tournament-tree': path.resolve(
+            __dirname,
+            '../src/react-tournament-tree/src'
+          ),
+        },
+      },
+    });
   },
 };
 

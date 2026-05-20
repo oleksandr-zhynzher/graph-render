@@ -1,4 +1,5 @@
 import type { LayoutDirection, LayoutType, PositionedNode } from '@graph-render/types';
+import React from 'react';
 
 import {
   LABEL_PILL_FONT_SIZE,
@@ -23,7 +24,7 @@ export interface GraphLabelsProps {
   readonly pillTextColor?: string | undefined;
 }
 
-export function GraphLabels({
+export const GraphLabels = React.memo(function GraphLabels({
   positionedNodes,
   layout,
   layoutDirection,
@@ -44,8 +45,7 @@ export function GraphLabels({
 
   if (orderedXs.length === 0 || orderedLabels.length === 0) return null;
 
-  // FIX: avoid spreading a potentially large array into Math.min, which can
-  // throw a RangeError when the argument count exceeds the JS engine limit.
+  // Reduce avoids spreading large graph arrays into Math.min.
   const minY = positionedNodes.reduce(
     (min, n) => Math.min(min, n.position.y),
     Number.POSITIVE_INFINITY
@@ -88,7 +88,7 @@ export function GraphLabels({
       })}
     </g>
   );
-}
+});
 
 export { LABEL_PILL_HEIGHT, LABEL_PILL_MIN_WIDTH, LABEL_PILL_RADIUS } from '../constants/labels';
 export { getEffectiveGraphLabels, getLabelPillWidth } from '../utils/graphLabels';

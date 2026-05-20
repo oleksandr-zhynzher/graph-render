@@ -8,7 +8,12 @@
       "executor": "nx:run-commands",
       "outputs": ["{projectRoot}/dist"],
       "options": {
-        "commands": ["vite build", "tsc --emitDeclarationOnly --declaration --declarationMap"],
+        "commands": [
+          "rm -rf dist",
+          "vite build",
+          "rm -f tsconfig.build.tsbuildinfo",
+          "tsc -p tsconfig.build.json --emitDeclarationOnly --declaration"
+        ],
         "cwd": "{projectRoot}",
         "parallel": false
       },
@@ -24,6 +29,13 @@
       "executor": "@nx/vite:preview-server",
       "options": {
         "buildTarget": "@graph-render/react:build"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
+        "cwd": "{projectRoot}"
       }
     },
     "lint": {

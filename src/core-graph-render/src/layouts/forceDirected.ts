@@ -16,6 +16,23 @@ interface MutablePoint {
 // topologies and see layout lag, increase FORCE_LAYOUT_CACHE_LIMIT.
 const forceLayoutCache = new Map<string, readonly PositionedNode[]>();
 
+const finitePositive = (value: number, fallback: number): number => {
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+};
+
+const serializeNodeLabel = (label: unknown): string | number | boolean | null => {
+  if (typeof label === 'string') {
+    return label.slice(0, 160);
+  }
+  if (typeof label === 'number' && Number.isFinite(label)) {
+    return label;
+  }
+  if (typeof label === 'boolean') {
+    return label;
+  }
+  return null;
+};
+
 const buildForceLayoutCacheKey = (
   nodes: readonly NodeData[],
   edges: readonly EdgeData[],
@@ -33,7 +50,7 @@ const buildForceLayoutCacheKey = (
       nodes: nodes.map((node) => ({
         id: node.id,
         size: node.size,
-        label: node.label,
+        label: serializeNodeLabel(node.label),
       })),
       edges: edges.map((edge) => ({
         id: edge.id,
@@ -103,10 +120,14 @@ const clampPoint = (
 ): Point => {
   const nodeWidth = node.size?.width ?? DEFAULT_NODE_SIZE.width;
   const nodeHeight = node.size?.height ?? DEFAULT_NODE_SIZE.height;
+  // `point` is the node center in force-directed simulation space.
+  // Clamp so that the full node rectangle stays within the padded viewport.
+  const halfW = nodeWidth / 2;
+  const halfH = nodeHeight / 2;
 
   return {
-    x: Math.min(Math.max(point.x, pad), width - pad - nodeWidth),
-    y: Math.min(Math.max(point.y, pad), height - pad - nodeHeight),
+    x: Math.min(Math.max(point.x, pad + halfW), width - pad - halfW),
+    y: Math.min(Math.max(point.y, pad + halfH), height - pad - halfH),
   };
 };
 
@@ -131,38 +152,45 @@ export const forceDirectedLayout = (
   height = 720,
   gap: number = DEFAULT_NODE_GAP
 ): readonly PositionedNode[] => {
+  const resolvedPad = finitePositive(pad, DEFAULT_PADDING);
+  const resolvedWidth = finitePositive(width, 960);
+  const resolvedHeight = finitePositive(height, 720);
+  const resolvedGap = finitePositive(gap, DEFAULT_NODE_GAP);
+
   if (nodes.length === 0) {
     return [];
   }
 
   if (nodes.length > MAX_SYNC_FORCE_NODES) {
-    return gridLayout(nodes, pad, gap);
+    return gridLayout(nodes, resolvedPad, resolvedGap);
   }
 
-  const cacheKey = buildForceLayoutCacheKey(nodes, edges, pad, width, height, gap);
+  const cacheKey = buildForceLayoutCacheKey(
+    nodes,
+    edges,
+    resolvedPad,
+    resolvedWidth,
+    resolvedHeight,
+    resolvedGap
+  );
   const cached = getCachedForceLayout(cacheKey);
   if (cached) {
     return cached;
   }
 
-  const area = Math.max((width - pad * 2) * (height - pad * 2), 1);
+  const area = Math.max((resolvedWidth - resolvedPad * 2) * (resolvedHeight - resolvedPad * 2), 1);
   const k = Math.sqrt(area / Math.max(nodes.length, 1));
   const positions = new Map<string, MutablePoint>();
-  // FIX: removed the `adjacency` Map that was built here but never read by the
-  // algorithm.  Repulsion iterates node pairs directly; attraction iterates the
-  // `edges` array directly.  Building the map was O(e) wasted work per layout call.
 
   for (const [index, node] of nodes.entries()) {
     const angle = (2 * Math.PI * index) / Math.max(nodes.length, 1);
-    const radius = Math.min(width, height) * 0.25;
+    const radius = Math.min(resolvedWidth, resolvedHeight) * 0.25;
     positions.set(node.id, {
-      x: width / 2 + radius * Math.cos(angle),
-      y: height / 2 + radius * Math.sin(angle),
+      x: resolvedWidth / 2 + radius * Math.cos(angle),
+      y: resolvedHeight / 2 + radius * Math.sin(angle),
     });
   }
 
-  // FIX: removed the edges.forEach that populated `adjacency` (now deleted).
-  // The attraction-force loop below already iterates `edges` directly.
   for (let iteration = 0; iteration < 80; iteration += 1) {
     const displacement = new Map<string, MutablePoint>();
     for (const node of nodes) displacement.set(node.id, { x: 0, y: 0 });
@@ -208,7 +236,7 @@ export const forceDirectedLayout = (
       targetDisp.y += offsetY;
     }
 
-    const temperature = Math.max(2, gap * (1 - iteration / 80));
+    const temperature = Math.max(2, resolvedGap * (1 - iteration / 80));
     for (const node of nodes) {
       const point = getRequiredPoint(positions, node.id);
       const disp = getRequiredPoint(displacement, node.id);
@@ -217,7 +245,10 @@ export const forceDirectedLayout = (
         x: point.x + (disp.x / magnitude) * Math.min(magnitude, temperature),
         y: point.y + (disp.y / magnitude) * Math.min(magnitude, temperature),
       };
-      positions.set(node.id, clampPoint(nextPoint, width, height, pad, node));
+      positions.set(
+        node.id,
+        clampPoint(nextPoint, resolvedWidth, resolvedHeight, resolvedPad, node)
+      );
     }
   }
 

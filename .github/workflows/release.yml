@@ -11,6 +11,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    environment: release
     # Prevent running on the version-bump commit that semantic-release itself pushes
     if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip ci]')
     permissions:
@@ -22,47 +23,36 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           # Full history is required — semantic-release reads every commit since
           # the last release tag to determine the next version.
           fetch-depth: 0
-          # Prefer a PAT (GH_TOKEN) so the release commit can be pushed when
-          # branch protection rules are enabled. Falls back to the built-in
-          # GITHUB_TOKEN when GH_TOKEN has not been configured yet.
-          token: ${{ secrets.GH_TOKEN || github.token }}
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
           cache: 'yarn'
+          registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
-        run: HUSKY=0 yarn install
+        run: HUSKY=0 yarn install --frozen-lockfile
 
-      - name: Build all packages
-        run: yarn build
+      - name: Quality gate
+        run: yarn quality
 
       - name: Release to npm and GitHub Releases
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           HUSKY: '0'
-        run: >-
-          npx --yes
-          -p multi-semantic-release@3.0.2
-          -p semantic-release@24.2.0
-          -p @semantic-release/changelog@6.0.3
-          -p @semantic-release/commit-analyzer@13.0.0
-          -p @semantic-release/git@10.0.1
-          -p @semantic-release/github@11.0.0
-          -p @semantic-release/npm@12.0.2
-          -p @semantic-release/release-notes-generator@14.0.0
-          multi-semantic-release
+          NPM_CONFIG_PROVENANCE: 'true'
+        run: yarn multi-semantic-release
 
       - name: Setup Node.js for GitHub Packages
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
           registry-url: https://npm.pkg.github.com
@@ -70,6 +60,6 @@ jobs:
 
       - name: Publish to GitHub Packages
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
-          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: node scripts/publish-github-packages.mjs

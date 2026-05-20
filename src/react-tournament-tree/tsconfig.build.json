@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declarationDir": "./dist",
+    "declarationMap": false,
+    "rootDir": "./src",
+    "paths": {
+      "@graph-render/core": ["../core-graph-render/dist/index.d.ts"],
+      "@graph-render/core/*": ["../core-graph-render/dist/*.d.ts"],
+      "@graph-render/react": ["../react-graph-render/dist/index.d.ts"],
+      "@graph-render/react/*": ["../react-graph-render/dist/*.d.ts"],
+      "@graph-render/types": ["../types/dist/index.d.ts"],
+      "@graph-render/types/*": ["../types/dist/*.d.ts"]
+    },
+    "tsBuildInfoFile": "./tsconfig.build.tsbuildinfo"
+  },
+  "exclude": [
+    "dist",
+    "node_modules",
+    "src/**/__tests__/**",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/test-globals.d.ts"
+  ]
+}

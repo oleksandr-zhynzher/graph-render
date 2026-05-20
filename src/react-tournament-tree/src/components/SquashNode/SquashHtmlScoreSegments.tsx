@@ -61,6 +61,7 @@ export function SquashHtmlScoreSegments({
                 background: colors.BORDER,
                 flexShrink: 0,
               }}
+              data-testid="score-divider"
             />
           ) : null}
         </React.Fragment>

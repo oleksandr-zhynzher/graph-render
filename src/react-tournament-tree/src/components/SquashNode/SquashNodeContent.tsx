@@ -1,4 +1,4 @@
-import { SquashNodeRenderMode } from '@graph-render/types';
+import { SquashNodeRenderMode } from '@graph-render/types/tournament';
 import React, { useEffect, useState } from 'react';
 
 import { DEFAULT_PLAYER_ONE, DEFAULT_PLAYER_TWO, NODE_DIMENSIONS } from '../../constants';

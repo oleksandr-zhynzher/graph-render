@@ -1,4 +1,4 @@
-import { MatchStatus } from '@graph-render/types';
+import { MatchStatus } from '@graph-render/types/tournament';
 
 import type { SetWins } from '../../models/squash';
 

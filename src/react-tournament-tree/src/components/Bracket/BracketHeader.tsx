@@ -53,16 +53,17 @@ export function BracketHeader({
       >
         <TrophyIcon />
       </div>
-      <div
+      <h2
         style={{
           fontFamily: typography.bodyFontFamily,
           fontSize: header.titleFontSize,
           fontWeight: 600,
           color: colors.HEADER_TITLE,
+          margin: 0,
         }}
       >
         {title}
-      </div>
+      </h2>
       <div style={{ flex: 1 }} />
       <div
         style={{

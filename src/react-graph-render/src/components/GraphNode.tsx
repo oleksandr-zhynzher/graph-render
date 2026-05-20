@@ -1,19 +1,23 @@
-import type { PositionedNode, Size, VertexComponent } from '@graph-render/types';
+import type { PositionedNode, Size } from '@graph-render/types';
+import type { VertexComponent } from '@graph-render/types/react';
 import React, { useCallback } from 'react';
 
-import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_RADIUS, DEFAULT_NODE_WIDTH } from '../constants/graph';
+import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from '../constants/graph';
 import { useGraphNodeMeasurement } from '../hooks/useGraphNodeMeasurement';
 import { getGraphNodeFrameState } from '../utils/graphNodeFrame';
+import type { NodeMeasurementScheduler } from '../utils/nodeMeasurementScheduler';
 import { GraphNodeFrame } from './GraphNodeFrame';
 
 interface GraphNodeProps {
   readonly node: PositionedNode;
   readonly Vertex: VertexComponent;
   readonly isSelected: boolean;
+  readonly nodeSelectionEnabled: boolean;
   readonly isFocused: boolean;
   readonly isHighlighted: boolean;
   readonly activePathKey?: string | undefined;
   readonly activePathNodeIds?: ReadonlySet<string> | undefined;
+  readonly isActivePathNode: boolean;
   readonly highlightColor: string;
   readonly selectionColor: string;
   readonly nodeBorderColor?: string | undefined;
@@ -23,9 +27,9 @@ interface GraphNodeProps {
   readonly hoverNodeInColor: string;
   readonly hoverNodeOutColor: string;
   readonly hoverNodeHighlight: boolean;
-  readonly hoveredNodeStates:
-    | ReadonlyMap<string, { readonly in?: boolean; readonly out?: boolean }>
-    | undefined;
+  readonly isHoveredIn: boolean;
+  readonly isHoveredOut: boolean;
+  readonly measurementScheduler: NodeMeasurementScheduler;
   readonly onNodeMeasure?: ((nodeId: string, size: Size) => void) | undefined;
   readonly onNodeFocus?: ((nodeId: string) => void) | undefined;
   readonly onNodeClick?: ((node: PositionedNode) => void) | undefined;
@@ -34,6 +38,12 @@ interface GraphNodeProps {
   readonly onNodeMouseLeave: () => void;
   readonly onPathHover: (nodeId: string, sourceIndex: number, playerKey?: string) => void;
   readonly onPathLeave: () => void;
+  readonly nodeFill: string;
+  readonly nodeStroke: string;
+  readonly nodeTextColor: string;
+  readonly nodeTextSize: number;
+  readonly nodeRadius: number;
+  readonly fontFamily: string;
 }
 
 export const GraphNode = React.memo<GraphNodeProps>(
@@ -41,11 +51,13 @@ export const GraphNode = React.memo<GraphNodeProps>(
     node,
     Vertex,
     isSelected,
+    nodeSelectionEnabled,
     isFocused,
     selectionColor,
     isHighlighted,
     activePathKey,
     activePathNodeIds,
+    isActivePathNode,
     highlightColor,
     nodeBorderColor,
     nodeBorderWidth,
@@ -54,7 +66,9 @@ export const GraphNode = React.memo<GraphNodeProps>(
     hoverNodeInColor,
     hoverNodeOutColor,
     hoverNodeHighlight,
-    hoveredNodeStates,
+    isHoveredIn,
+    isHoveredOut,
+    measurementScheduler,
     onNodeMeasure,
     onNodeFocus,
     onNodeClick,
@@ -63,14 +77,23 @@ export const GraphNode = React.memo<GraphNodeProps>(
     onNodeMouseLeave,
     onPathHover,
     onPathLeave,
+    nodeFill,
+    nodeStroke,
+    nodeTextColor,
+    nodeTextSize,
+    nodeRadius,
+    fontFamily,
   }) => {
     const width = node.size?.width ?? DEFAULT_NODE_WIDTH;
     const height = node.size?.height ?? DEFAULT_NODE_HEIGHT;
-    const radius = DEFAULT_NODE_RADIUS;
-    const hoverState = hoveredNodeStates?.get(node.id);
-    const isHoveredIn = hoverState?.in ?? false;
-    const isHoveredOut = hoverState?.out ?? false;
-    const groupRef = useGraphNodeMeasurement({ node, width, height, onNodeMeasure });
+    const radius = nodeRadius;
+    const groupRef = useGraphNodeMeasurement({
+      node,
+      width,
+      height,
+      measurementScheduler,
+      onNodeMeasure,
+    });
     const { borderOpacity, borderStroke, borderWidth, isHoveredBoth, isHoveredNode } =
       getGraphNodeFrameState({
         isSelected,
@@ -138,7 +161,8 @@ export const GraphNode = React.memo<GraphNodeProps>(
         data-graph-node-interactive="true"
         role="button"
         tabIndex={0}
-        aria-pressed={isSelected}
+        aria-label={typeof node.label === 'string' ? node.label : String(node.id)}
+        aria-pressed={nodeSelectionEnabled ? isSelected : undefined}
         onMouseDown={handleMouseDown}
         onFocus={handleFocus}
         onClick={handleClick}
@@ -166,10 +190,17 @@ export const GraphNode = React.memo<GraphNodeProps>(
           isHoveredOut={isHoveredOut}
           isHoveredBoth={isHoveredBoth}
           activePathKey={activePathKey}
-          activePathNodeIds={activePathNodeIds}
+          activePathNodeIds={isActivePathNode ? activePathNodeIds : undefined}
           hoverInColor={hoverNodeInColor}
           hoverOutColor={hoverNodeOutColor}
           hoverBothColor={hoverNodeBothColor}
+          nodeFill={nodeFill}
+          nodeStroke={nodeStroke}
+          nodeTextColor={nodeTextColor}
+          nodeTextSize={nodeTextSize}
+          nodeRadius={nodeRadius}
+          nodeBorderWidth={nodeBorderWidth}
+          fontFamily={fontFamily}
           onPathHover={handlePathHover}
           onPathLeave={onPathLeave}
         />

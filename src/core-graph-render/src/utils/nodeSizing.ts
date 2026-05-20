@@ -17,6 +17,10 @@ const clampSize = (value: Size, fallback: Size): Size => ({
   height: Number.isFinite(value.height) && value.height > 0 ? value.height : fallback.height,
 });
 
+const finitePositive = (value: number | undefined, fallback: number): number => {
+  return value !== undefined && Number.isFinite(value) && value > 0 ? value : fallback;
+};
+
 const getNodeLabel = (node: NodeData): string => {
   if (typeof node.measurementHints?.label === 'string') {
     return node.measurementHints.label;
@@ -53,18 +57,22 @@ const getMeasuredLines = (label: string): readonly string[] => {
 const estimateLabelSize = (node: NodeData, options: LayoutOptions): Size => {
   const label = getNodeLabel(node);
   const lines = getMeasuredLines(label);
-  const paddingX =
-    node.measurementHints?.paddingX ?? options.labelMeasurementPaddingX ?? DEFAULT_LABEL_PADDING_X;
-  const paddingY =
-    node.measurementHints?.paddingY ?? options.labelMeasurementPaddingY ?? DEFAULT_LABEL_PADDING_Y;
-  const charWidth =
-    node.measurementHints?.estimatedCharWidth ??
-    options.labelMeasurementCharWidth ??
-    DEFAULT_LABEL_CHAR_WIDTH;
-  const lineHeight =
-    node.measurementHints?.lineHeight ??
-    options.labelMeasurementLineHeight ??
-    DEFAULT_LABEL_LINE_HEIGHT;
+  const paddingX = finitePositive(
+    node.measurementHints?.paddingX,
+    finitePositive(options.labelMeasurementPaddingX, DEFAULT_LABEL_PADDING_X)
+  );
+  const paddingY = finitePositive(
+    node.measurementHints?.paddingY,
+    finitePositive(options.labelMeasurementPaddingY, DEFAULT_LABEL_PADDING_Y)
+  );
+  const charWidth = finitePositive(
+    node.measurementHints?.estimatedCharWidth,
+    options.labelMeasurementCharWidth ?? DEFAULT_LABEL_CHAR_WIDTH
+  );
+  const lineHeight = finitePositive(
+    node.measurementHints?.lineHeight,
+    options.labelMeasurementLineHeight ?? DEFAULT_LABEL_LINE_HEIGHT
+  );
   let maxChars = 1;
   for (const line of lines) {
     const lineLength = [...line].length;
@@ -82,7 +90,9 @@ const estimateLabelSize = (node: NodeData, options: LayoutOptions): Size => {
 
 const getResolvedSize = (node: NodeData, options: LayoutOptions): Size => {
   const mode = node.sizeMode ?? options.nodeSizing ?? NodeSizingMode.Fixed;
-  const fixedSize = options.fixedNodeSize ?? DEFAULT_NODE_SIZE;
+  const fixedSize = options.fixedNodeSize
+    ? clampSize(options.fixedNodeSize, DEFAULT_NODE_SIZE)
+    : DEFAULT_NODE_SIZE;
   const explicitSize = node.size ? clampSize(node.size, fixedSize) : null;
   const measuredSize = node.measuredSize ? clampSize(node.measuredSize, fixedSize) : null;
   const estimatedSize = estimateLabelSize(node, options);

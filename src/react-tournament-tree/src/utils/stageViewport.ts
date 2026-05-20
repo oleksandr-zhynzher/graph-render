@@ -1,5 +1,5 @@
-import type { StageBounds, StageViewportResult } from '@graph-render/types';
-import { VerticalStagePosition } from '@graph-render/types';
+import type { StageBounds, StageViewportResult } from '@graph-render/types/tournament';
+import { VerticalStagePosition } from '@graph-render/types/tournament';
 
 import {
   NAVIGATION_MAX_ZOOM,

@@ -1,5 +1,5 @@
 import { escapeXml } from '../utils';
-import type { SvgDocumentParts } from './models';
+import type { SvgDocumentParts } from './svgTypes';
 
 export const createArrowMarkerDef = (markerId: string, edgeColor: string): string => {
   return [

@@ -1,5 +1,6 @@
-import type { EdgeComponent, PositionedEdge } from '@graph-render/types';
-import React from 'react';
+import type { PositionedEdge } from '@graph-render/types';
+import type { EdgeComponent } from '@graph-render/types/react';
+import React, { useCallback } from 'react';
 
 import { getEdgeRenderState } from '../utils/edgeRenderState';
 
@@ -21,6 +22,8 @@ interface GraphEdgesLayerProps {
   readonly hoveredNodeId: string | null;
   readonly pathHighlightEdges?: ReadonlySet<string> | undefined;
   readonly selectedEdgeSet: ReadonlySet<string>;
+  readonly edgeSelectionEnabled: boolean;
+  readonly edgeInteractive: boolean;
   readonly highlightedEdgeSet: ReadonlySet<string>;
   readonly hoverEdgeColor: string;
   readonly hoverNodeOutColor: string;
@@ -29,6 +32,83 @@ interface GraphEdgesLayerProps {
   readonly onEdgeHoverChange: (edgeId: string, hovered: boolean) => void;
   readonly onEdgeSelection: (edge: PositionedEdge) => void;
 }
+
+interface GraphEdgeItemProps {
+  readonly edge: PositionedEdge;
+  readonly EdgeComponent: EdgeComponent;
+  readonly edgeColor: string;
+  readonly edgeWidth: number;
+  readonly curveEdges: boolean;
+  readonly curveStrength: number;
+  readonly edgeLabelColor?: string | undefined;
+  readonly showArrows: boolean;
+  readonly arrowMarkerId: string;
+  readonly hoverMarker: string | undefined;
+  readonly selectionMarker: string | undefined;
+  readonly edgeHovered: boolean;
+  readonly isSelected: boolean;
+  readonly edgeSelectionEnabled: boolean;
+  readonly edgeInteractive: boolean;
+  readonly hoverColor: string;
+  readonly selectionColor: string;
+  readonly hoverEnabled: boolean;
+  readonly onEdgeHoverChange: (edgeId: string, hovered: boolean) => void;
+  readonly onEdgeSelection: (edge: PositionedEdge) => void;
+}
+
+const GraphEdgeItem = React.memo(function GraphEdgeItem({
+  edge,
+  EdgeComponent,
+  edgeColor,
+  edgeWidth,
+  curveEdges,
+  curveStrength,
+  edgeLabelColor,
+  showArrows,
+  arrowMarkerId,
+  hoverMarker,
+  selectionMarker,
+  edgeHovered,
+  isSelected,
+  edgeSelectionEnabled,
+  edgeInteractive,
+  hoverColor,
+  selectionColor,
+  hoverEnabled,
+  onEdgeHoverChange,
+  onEdgeSelection,
+}: GraphEdgeItemProps) {
+  const handleHoverChange = useCallback(
+    (value: boolean) => onEdgeHoverChange(edge.id, value),
+    [edge.id, onEdgeHoverChange]
+  );
+  const handleClick = useCallback(() => onEdgeSelection(edge), [edge, onEdgeSelection]);
+
+  return (
+    <EdgeComponent
+      edge={edge}
+      color={edgeColor}
+      width={edgeWidth}
+      curveEdges={curveEdges}
+      curveStrength={curveStrength}
+      markerEnd={showArrows ? `url(#${arrowMarkerId})` : undefined}
+      isHovered={edgeHovered}
+      isSelected={isSelected}
+      hoverColor={hoverColor}
+      selectionColor={selectionColor}
+      selectionEnabled={edgeSelectionEnabled}
+      labelColor={edgeLabelColor}
+      selectionMarker={selectionMarker}
+      hoverMarker={hoverMarker}
+      hoverEnabled={hoverEnabled}
+      hitStrokeWidth={edgeWidth + 8}
+      hoverStrokeWidth={edgeWidth + 1.5}
+      selectedStrokeWidth={edgeWidth + 1.5}
+      onHoverChange={handleHoverChange}
+      onClick={edgeInteractive ? handleClick : undefined}
+    />
+  );
+});
 
 export const GraphEdgesLayer = React.memo(function GraphEdgesLayer({
   edges,
@@ -48,6 +128,8 @@ export const GraphEdgesLayer = React.memo(function GraphEdgesLayer({
   hoveredNodeId,
   pathHighlightEdges,
   selectedEdgeSet,
+  edgeSelectionEnabled,
+  edgeInteractive,
   highlightedEdgeSet,
   hoverEdgeColor,
   hoverNodeOutColor,
@@ -67,20 +149,17 @@ export const GraphEdgesLayer = React.memo(function GraphEdgesLayer({
         });
 
         return (
-          <EdgeComponent
+          <GraphEdgeItem
             key={edge.id}
             edge={edge}
-            color={edgeColor}
-            width={edgeWidth}
+            EdgeComponent={EdgeComponent}
+            edgeColor={edgeColor}
+            edgeWidth={edgeWidth}
             curveEdges={curveEdges}
             curveStrength={curveStrength}
-            markerEnd={showArrows ? `url(#${arrowMarkerId})` : undefined}
-            isHovered={edgeHovered}
-            isSelected={selectedEdgeSet.has(edge.id) || highlightedEdgeSet.has(edge.id)}
-            hoverColor={isIncomingToHovered ? hoverNodeOutColor : hoverEdgeColor}
-            selectionColor={selectedEdgeSet.has(edge.id) ? selectionEdgeColor : highlightColor}
-            labelColor={edgeLabelColor}
-            selectionMarker={showArrows ? `url(#${selectionArrowMarkerId})` : undefined}
+            edgeLabelColor={edgeLabelColor}
+            showArrows={showArrows}
+            arrowMarkerId={arrowMarkerId}
             hoverMarker={
               showArrows
                 ? isIncomingToHovered
@@ -88,12 +167,16 @@ export const GraphEdgesLayer = React.memo(function GraphEdgesLayer({
                   : `url(#${hoverArrowMarkerId})`
                 : undefined
             }
+            selectionMarker={showArrows ? `url(#${selectionArrowMarkerId})` : undefined}
+            edgeHovered={edgeHovered}
+            isSelected={selectedEdgeSet.has(edge.id) || highlightedEdgeSet.has(edge.id)}
+            edgeSelectionEnabled={edgeSelectionEnabled}
+            edgeInteractive={edgeInteractive}
+            hoverColor={isIncomingToHovered ? hoverNodeOutColor : hoverEdgeColor}
+            selectionColor={selectedEdgeSet.has(edge.id) ? selectionEdgeColor : highlightColor}
             hoverEnabled={hoverHighlight}
-            hitStrokeWidth={edgeWidth + 8}
-            hoverStrokeWidth={edgeWidth + 1.5}
-            selectedStrokeWidth={edgeWidth + 1.5}
-            onHoverChange={(value) => onEdgeHoverChange(edge.id, value)}
-            onClick={() => onEdgeSelection(edge)}
+            onEdgeHoverChange={onEdgeHoverChange}
+            onEdgeSelection={onEdgeSelection}
           />
         );
       })}

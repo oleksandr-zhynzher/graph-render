@@ -1,5 +1,5 @@
-import type { GraphViewport, StageView } from '@graph-render/types';
-import { VerticalStagePosition } from '@graph-render/types';
+import type { GraphViewport } from '@graph-render/types';
+import { type StageView, VerticalStagePosition } from '@graph-render/types/tournament';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { UseStageNavigationParams } from '../models/bracket';

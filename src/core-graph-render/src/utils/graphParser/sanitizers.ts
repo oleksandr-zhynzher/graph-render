@@ -106,8 +106,15 @@ export const sanitizeEdgePoints = (value: unknown): EdgeData['points'] | undefin
     return undefined;
   }
 
-  const points = value
-    .map((point) => sanitizePoint(point))
-    .filter((point): point is NonNullable<EdgeData['points']>[number] => point !== undefined);
+  const points: Array<{ readonly x: number; readonly y: number }> = [];
+  for (const item of value) {
+    const point = sanitizePoint(item);
+    if (point === undefined) {
+      // If any point is invalid, reject the entire array rather than silently
+      // producing a different path shape.
+      return undefined;
+    }
+    points.push(point);
+  }
   return points.length >= 2 ? points : undefined;
 };

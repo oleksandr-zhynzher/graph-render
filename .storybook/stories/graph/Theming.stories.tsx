@@ -1,8 +1,9 @@
-import React from 'react';
 import { Graph } from '@graph-render/react';
 import type { NxGraphInput, VertexComponentProps } from '@graph-render/types';
 import { LayoutType, RoutingStyle } from '@graph-render/types';
 import type { Meta, StoryObj } from '@storybook/react';
+
+import { graphStoryActionArgs } from '../../graphStoryArgs';
 
 // ── Shared graph ──────────────────────────────────────────────────────────
 
@@ -199,6 +200,7 @@ const meta: Meta<typeof Graph> = {
   component: Graph,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
+  args: graphStoryActionArgs,
 };
 
 export default meta;

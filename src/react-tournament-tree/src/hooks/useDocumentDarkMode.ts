@@ -1,32 +1,66 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState, useSyncExternalStore } from 'react';
 
 import { detectDocumentDarkMode } from '../utils/documentTheme';
 
-export function useDocumentDarkMode() {
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(detectDocumentDarkMode);
+const subscribeToDocumentTheme = (onStoreChange: () => void) => {
+  if (typeof document === 'undefined' || typeof MutationObserver === 'undefined') {
+    return () => undefined;
+  }
 
-  useEffect(() => {
-    if (typeof document === 'undefined' || typeof MutationObserver === 'undefined') {
-      return;
-    }
+  const observer = new MutationObserver(onStoreChange);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class', 'style'],
+  });
+  const body = document.body;
+  if (body) {
+    observer.observe(body, { attributes: true, attributeFilter: ['class'] });
+  }
 
-    const sync = () => setIsDarkMode(detectDocumentDarkMode());
-    const observer = new MutationObserver(sync);
-    const root = document.documentElement;
-    const body = document.body;
+  return () => observer.disconnect();
+};
 
-    observer.observe(root, { attributes: true, attributeFilter: ['class', 'style'] });
-    if (body) {
-      observer.observe(body, { attributes: true, attributeFilter: ['class'] });
-    }
-    sync();
+const getDocumentThemeSnapshot = () => detectDocumentDarkMode();
 
-    return () => observer.disconnect();
-  }, []);
+export interface UseDocumentDarkModeOptions {
+  /**
+   * When true, toggling dark mode updates `document.documentElement` class `dark`.
+   * Defaults to false so embedded brackets do not fight app-level theme providers.
+   */
+  readonly syncToDocument?: boolean | undefined;
+  /** Controlled dark mode (skips internal state). */
+  readonly isDarkMode?: boolean | undefined;
+  /** Initial uncontrolled dark mode before document theme changes are observed. */
+  readonly defaultDarkMode?: boolean | undefined;
+  readonly onDarkModeChange?: ((isDarkMode: boolean) => void) | undefined;
+}
+
+export function useDocumentDarkMode(options: UseDocumentDarkModeOptions = {}) {
+  const {
+    syncToDocument = false,
+    defaultDarkMode,
+    isDarkMode: controlledDarkMode,
+    onDarkModeChange,
+  } = options;
+  const documentDarkMode = useSyncExternalStore(
+    subscribeToDocumentTheme,
+    getDocumentThemeSnapshot,
+    () => false
+  );
+
+  const [localOverride, setLocalOverride] = useState<boolean | null>(() => defaultDarkMode ?? null);
+  const isDarkMode = controlledDarkMode ?? localOverride ?? documentDarkMode;
 
   const toggleDarkMode = useCallback(() => {
-    setIsDarkMode((prev) => !prev);
-  }, []);
+    const next = !isDarkMode;
+    if (controlledDarkMode === undefined) {
+      setLocalOverride(next);
+    }
+    if (syncToDocument && typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', next);
+    }
+    onDarkModeChange?.(next);
+  }, [controlledDarkMode, isDarkMode, onDarkModeChange, syncToDocument]);
 
   return { isDarkMode, toggleDarkMode };
 }

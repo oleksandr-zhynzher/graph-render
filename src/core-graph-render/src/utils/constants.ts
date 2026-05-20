@@ -23,6 +23,13 @@ export const DEFAULT_NODE_STROKE = '#d7dbe3';
 export const DEFAULT_TEXT_FILL = '#111827';
 export const DEFAULT_TEXT_SIZE = 14;
 
+export const DEFAULT_MARQUEE_FILL = 'rgba(59, 130, 246, 0.12)';
+export const DEFAULT_MARQUEE_STROKE = 'rgba(59, 130, 246, 0.8)';
+export const DEFAULT_CONTROL_FILL = 'rgba(255,255,255,0.92)';
+export const DEFAULT_CONTROL_STROKE = 'rgba(15,23,42,0.18)';
+export const DEFAULT_CONTROL_TEXT_COLOR = '#0f172a';
+export const DEFAULT_CONTROL_FOCUS_STROKE = '#2563eb';
+
 // Graph dimensions
 export const DEFAULT_WIDTH = 960;
 export const DEFAULT_HEIGHT = 720;

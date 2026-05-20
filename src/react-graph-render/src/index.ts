@@ -1,68 +1,31 @@
+'use client';
+
+export { DefaultGraphVertex } from './components/DefaultGraphVertex';
 export { EdgePath } from './components/EdgePath';
 export { Graph } from './components/Graph';
+export { GraphErrorBoundary } from './components/GraphErrorBoundary';
+export { KeyboardDirection } from './constants/keyboard';
 export { groupPositionedNodesByColumn } from './utils/columns';
-export { KeyboardDirection } from './utils/keyboardNavigation';
-// Re-export core functionality
-export {
-  buildEdgePath,
-  fromNxGraph,
-  layoutNodes,
-  renderGraphToSvg,
-  routeEdges,
-} from '@graph-render/core';
 export type {
   DragState,
   EdgeComponent,
-  EdgeData,
-  EdgeId,
   EdgePathProps,
-  EdgeRenderer,
-  EdgeRoutingContext,
-  GraphConfig,
-  GraphControlsPosition,
   GraphHandle,
   GraphHoverMeta,
+  GraphInteractionOptions,
   GraphProps,
   GraphRenderContext,
   GraphSearchResults,
   GraphSelection,
-  GraphTheme,
-  GraphTopology,
   GraphViewport,
-  LayoutOptions,
-  NodeData,
-  NodeId,
-  NodeMeasurementHints,
-  NodeRenderer,
-  NxEdgeAttrs,
-  NxGraphInput,
-  NxNodeAttrs,
+  GraphViewportOptions,
   PathHoverOptions,
-  PathTraversalOptions,
-  PathTraversalResult,
-  Point,
-  PositionedEdge,
-  PositionedNode,
-  RenderConfig,
-  RenderGraphToSvgOptions,
-  RenderGraphToSvgResult,
-  RenderTheme,
-  RouteEdgesOptions,
-  Size,
-  TreeMetrics,
   VertexComponent,
   VertexComponentProps,
-} from '@graph-render/types';
+} from '@graph-render/types/react';
 export {
-  EdgeType,
+  GraphControlsPosition,
   GraphErrorPhase,
-  GraphFailureBehavior,
   GraphHoverTrigger,
-  GraphInputValidationMode,
-  LayoutDirection,
-  LayoutType,
-  NodeSide,
-  NodeSizingMode,
-  RoutingStyle,
   SelectionMode,
-} from '@graph-render/types';
+} from '@graph-render/types/react';

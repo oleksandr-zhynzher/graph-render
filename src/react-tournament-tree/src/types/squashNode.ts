@@ -1,11 +1,11 @@
+import type { VertexComponentProps } from '@graph-render/types/react';
 import type {
   SquashNodeRenderMode,
   SquashPlayer,
   SquashThemeColors,
-  VertexComponentProps,
-} from '@graph-render/types';
+} from '@graph-render/types/tournament';
 
-import type { NormalizedSquashMatchMeta, SetWins } from '../utils/squash';
+import type { NormalizedSquashMatchMeta, SetWins } from '../models/squash';
 
 export interface SquashNodeProps extends VertexComponentProps {
   readonly renderMode?: SquashNodeRenderMode | undefined;
@@ -49,4 +49,4 @@ export type SquashPlayerRowProps = PlayerHoverHandlers & {
   readonly colors: SquashThemeColors;
 };
 
-export { type SquashThemeColors } from '@graph-render/types';
+export { type SquashThemeColors } from '@graph-render/types/tournament';

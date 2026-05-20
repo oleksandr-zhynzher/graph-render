@@ -1,4 +1,4 @@
-import type { SquashPlayer } from '@graph-render/types';
+import type { SquashPlayer } from '@graph-render/types/tournament';
 
 export const truncateText = (value: string, maxLength: number): string => {
   if (value.length <= maxLength) {

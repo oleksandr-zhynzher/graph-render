@@ -1,4 +1,5 @@
-import type { GraphHandle, StageView } from '@graph-render/types';
+import type { GraphHandle } from '@graph-render/types/react';
+import type { StageView } from '@graph-render/types/tournament';
 
 export interface UseStageNavigationParams {
   readonly defaultNavigationMode: boolean;

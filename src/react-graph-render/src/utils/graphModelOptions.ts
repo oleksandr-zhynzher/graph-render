@@ -1,7 +1,7 @@
 import type { LayoutOptions, NormalizedGraphConfig, RouteEdgesOptions } from '@graph-render/types';
 import { RoutingStyle } from '@graph-render/types';
 
-import type { GraphLayoutOptionsInput } from '../models/utils';
+import type { GraphLayoutOptionsInput } from '../models/domain';
 
 export const buildGraphLayoutOptions = ({
   config,

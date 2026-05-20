@@ -1,4 +1,4 @@
-import { VerticalStagePosition } from '@graph-render/types';
+import { VerticalStagePosition } from '@graph-render/types/tournament';
 
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, ChevronUpIcon } from '../icons';
 import { getNavigationColors, RoundNavigationButton } from './navigation/NavigationButton';

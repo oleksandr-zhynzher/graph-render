@@ -1,4 +1,4 @@
-import { GraphControlsPosition } from '@graph-render/types';
+import { GraphControlsPosition } from '@graph-render/types/react';
 import React, { useMemo } from 'react';
 
 import {
@@ -7,12 +7,20 @@ import {
   CONTROL_DEFS,
   CONTROL_LABEL_BUTTON_WIDTH,
   CONTROL_X_POSITIONS,
+  DEFAULT_CONTROL_FILL,
+  DEFAULT_CONTROL_FOCUS_STROKE,
+  DEFAULT_CONTROL_STROKE,
+  DEFAULT_CONTROL_TEXT_COLOR,
 } from '../constants/graph';
 
 interface GraphViewportControlsProps {
   readonly width: number;
   readonly height: number;
   readonly position: GraphControlsPosition;
+  readonly fill?: string | undefined;
+  readonly stroke?: string | undefined;
+  readonly textColor?: string | undefined;
+  readonly focusStroke?: string | undefined;
   readonly zoomIn: () => void;
   readonly zoomOut: () => void;
   readonly fitView: () => void;
@@ -48,6 +56,10 @@ export const GraphViewportControls = React.memo(function GraphViewportControls({
   width,
   height,
   position,
+  fill = DEFAULT_CONTROL_FILL,
+  stroke = DEFAULT_CONTROL_STROKE,
+  textColor = DEFAULT_CONTROL_TEXT_COLOR,
+  focusStroke = DEFAULT_CONTROL_FOCUS_STROKE,
   zoomIn,
   zoomOut,
   fitView,
@@ -64,6 +76,14 @@ export const GraphViewportControls = React.memo(function GraphViewportControls({
 
   return (
     <g aria-label="viewport-controls" transform={`translate(${origin.x}, ${origin.y})`}>
+      <style>
+        {`
+          .graph-render-viewport-control:focus-visible > rect {
+            stroke: ${focusStroke};
+            stroke-width: 2.5px;
+          }
+        `}
+      </style>
       {CONTROL_DEFS.map((def, i) => {
         const x = CONTROL_X_POSITIONS[i];
         const onClick = callbacks[i];
@@ -75,7 +95,9 @@ export const GraphViewportControls = React.memo(function GraphViewportControls({
             key={def.key}
             transform={`translate(${x}, 0)`}
             role="button"
+            className="graph-render-viewport-control"
             tabIndex={0}
+            aria-label={def.ariaLabel}
             onClick={(event) => {
               event.stopPropagation();
               onClick();
@@ -93,8 +115,8 @@ export const GraphViewportControls = React.memo(function GraphViewportControls({
               height={CONTROL_BUTTON_SIZE}
               rx={7}
               ry={7}
-              fill="rgba(255,255,255,0.92)"
-              stroke="rgba(15,23,42,0.18)"
+              fill={fill}
+              stroke={stroke}
             />
             <text
               x={def.width / 2}
@@ -102,7 +124,7 @@ export const GraphViewportControls = React.memo(function GraphViewportControls({
               textAnchor="middle"
               fontSize={def.label.length > 1 ? 10 : 16}
               fontWeight={700}
-              fill="#0f172a"
+              fill={textColor}
             >
               {def.label}
             </text>

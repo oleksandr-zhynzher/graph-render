@@ -8,7 +8,7 @@
       "executor": "nx:run-commands",
       "outputs": ["{projectRoot}/dist"],
       "options": {
-        "command": "tsc -p tsconfig.json",
+        "command": "rm -rf dist && vite build && rm -f tsconfig.build.tsbuildinfo && tsc -p tsconfig.build.json --emitDeclarationOnly --declaration",
         "cwd": "{projectRoot}"
       },
       "dependsOn": ["^build"]
@@ -24,6 +24,13 @@
       "executor": "nx:run-commands",
       "options": {
         "command": "prettier --write src",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run",
         "cwd": "{projectRoot}"
       }
     }

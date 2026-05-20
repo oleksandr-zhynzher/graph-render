@@ -19,6 +19,7 @@ export function StageLabelGrid({ labels, isDarkMode }: StageLabelGridProps) {
       {labels.map((label, index) => (
         <div
           key={`${label}-${index}`}
+          data-testid="stage-label-cell"
           style={{
             display: 'grid',
             justifyItems: 'center',

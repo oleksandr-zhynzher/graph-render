@@ -1,4 +1,4 @@
-import { SquashNodeRenderMode } from '@graph-render/types';
+import { SquashNodeRenderMode } from '@graph-render/types/tournament';
 
 export const isSvgCompatibleRenderMode = (renderMode: SquashNodeRenderMode): boolean => {
   return (

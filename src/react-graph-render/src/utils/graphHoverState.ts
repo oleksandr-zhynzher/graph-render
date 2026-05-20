@@ -1,7 +1,7 @@
 import type { EdgeId, PathTraversalResult, PositionedEdge } from '@graph-render/types';
 import { EdgeType } from '@graph-render/types';
 
-import type { HoveredNodeState, HoveredNodeStateParams } from '../models/utils';
+import type { HoveredNodeState, HoveredNodeStateParams } from '../models/domain';
 
 const addNodeState = (
   map: Map<string, HoveredNodeState>,
@@ -92,4 +92,4 @@ export const getHighlightedEdgeIds = (
   return ids;
 };
 
-export { type HoveredNodeState } from '../models/utils';
+export { type HoveredNodeState } from '../models/domain';

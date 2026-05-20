@@ -1,4 +1,4 @@
-import type { GraphNodeFrameStateOptions } from '../models/utils';
+import type { GraphNodeFrameStateOptions } from '../models/domain';
 
 export const getGraphNodeFrameState = ({
   isSelected,

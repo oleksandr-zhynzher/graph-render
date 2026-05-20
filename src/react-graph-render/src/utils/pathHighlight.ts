@@ -2,7 +2,7 @@ import type { EdgeId, PathTraversalResult, PositionedEdge } from '@graph-render/
 
 import { normalizePathKey } from './pathKeys';
 
-export { type FocusedPath } from '../models/utils';
+export { type FocusedPath } from '../models/domain';
 
 export function traverseHighlightedPath(options: {
   readonly startNodeId: string;

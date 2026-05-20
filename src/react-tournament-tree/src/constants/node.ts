@@ -1,4 +1,4 @@
-import type { SquashPlayer } from '@graph-render/types';
+import type { SquashPlayer } from '@graph-render/types/tournament';
 
 export const NODE_DIMENSIONS = {
   WIDTH: 280,
@@ -15,92 +15,9 @@ export const NODE_DIMENSIONS_STAGE_NAV = {
   HEIGHT: 44,
 } as const;
 
-export const THEME_COLORS_LIGHT = {
-  BASE_BG: '#ffffff',
-  SURFACE_BG: '#f7f6f3',
-  HEADER_BG: '#ffffff',
-  HEADER_TITLE: '#2d2d2d',
-  HEADER_MUTED: '#6b6b6b',
-  HEADER_BORDER: '#ece9e2',
-  ICON_BG: '#7c9070',
-  ICON_FG: '#ffffff',
-  BADGE_BG: '#f1eee8',
-  BADGE_DOT: '#7c9070',
-  BADGE_TEXT: '#6b6b6b',
-  HOVER_BG: '#faf8f2',
-  CREST_BG: '#c9b8a8',
-  CREST_TEXT: '#5d4d3f',
-  WINNER_CREST_BG: '#7c9070',
-  WINNER_CREST_TEXT: '#ffffff',
-  ROW_BG: '#ffffff',
-  ROW_BG_WINNER: '#ffffff',
-  ROW_HOVER_BG: '#f7f3ec',
-  FOREGROUND: '#2d2d2d',
-  MUTED_TEXT: '#8e8e93',
-  DARK_TEXT: '#2d2d2d',
-  BORDER: '#f0efec',
-  DARK_BORDER: '#e5e4e1',
-  CARD_BORDER: '#d9d6cf',
-  WINNER_ACCENT: '#2d2d2d',
-  WINNING_SCORE: '#2d2d2d',
-  LIVE_WINNING_SCORE: '#2d2d2d',
-  LIVE_INDICATOR: '#d97706',
-  UPCOMING_TEXT: '#b0aba3',
-  EDGE_COLOR: '#d9d6cf',
-  LABEL_TEXT: '#8e8e93',
-  TOOLBAR_BG: '#f7f3ec',
-  TOOLBAR_BORDER: '#e4ded2',
-  TOOLBAR_ICON: '#4b5563',
-  TOOLBAR_ICON_ACTIVE: '#2d2d2d',
-  SHADOW: '0 20px 48px rgba(45, 45, 45, 0.08)',
-  CARD_SHADOW: '0 10px 24px rgba(45, 45, 45, 0.06)',
-} as const;
-
-export const THEME_COLORS_DARK = {
-  BASE_BG: '#1f242b',
-  SURFACE_BG: '#191e24',
-  HEADER_BG: '#232931',
-  HEADER_TITLE: '#f7f5ef',
-  HEADER_MUTED: '#c4beb1',
-  HEADER_BORDER: '#313844',
-  ICON_BG: '#7c9070',
-  ICON_FG: '#ffffff',
-  BADGE_BG: '#232b33',
-  BADGE_DOT: '#9ab08d',
-  BADGE_TEXT: '#d8d2c7',
-  HOVER_BG: '#242b33',
-  CREST_BG: '#53473e',
-  CREST_TEXT: '#efe7db',
-  WINNER_CREST_BG: '#8da180',
-  WINNER_CREST_TEXT: '#09120a',
-  ROW_BG: '#232931',
-  ROW_BG_WINNER: '#232931',
-  ROW_HOVER_BG: '#2a313a',
-  FOREGROUND: '#f7f5ef',
-  MUTED_TEXT: '#a7aaaf',
-  DARK_TEXT: '#f7f5ef',
-  BORDER: '#313844',
-  DARK_BORDER: '#47515f',
-  CARD_BORDER: '#5d6470',
-  WINNER_ACCENT: '#f7f5ef',
-  WINNING_SCORE: '#f7f5ef',
-  LIVE_WINNING_SCORE: '#f7f5ef',
-  LIVE_INDICATOR: '#f59e0b',
-  UPCOMING_TEXT: '#70757d',
-  EDGE_COLOR: '#5d6470',
-  LABEL_TEXT: '#a7aaaf',
-  TOOLBAR_BG: '#232b33',
-  TOOLBAR_BORDER: '#38424d',
-  TOOLBAR_ICON: '#d7d1c6',
-  TOOLBAR_ICON_ACTIVE: '#ffffff',
-  SHADOW: '0 22px 54px rgba(0, 0, 0, 0.28)',
-  CARD_SHADOW: '0 12px 32px rgba(0, 0, 0, 0.24)',
-} as const;
-
-// Default to light theme
-export const THEME_COLORS = THEME_COLORS_LIGHT;
-
 export const DEFAULT_PLAYERS: readonly SquashPlayer[] = [
   { name: 'TBD', seed: 0 },
   { name: 'TBD', seed: 0 },
 ];
+
+export { THEME_COLORS, THEME_COLORS_DARK, THEME_COLORS_LIGHT } from './themeColors';

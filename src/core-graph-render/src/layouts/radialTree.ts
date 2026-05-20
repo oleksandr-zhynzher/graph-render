@@ -34,8 +34,8 @@ export const radialTreeLayout = (
   const levels = groupNodesByLevel(nodes, levelsMap);
   const centerX = width / 2;
   const centerY = height / 2;
-  // FIX: use reduce instead of spread+Math.max to avoid a RangeError when the
-  // node array exceeds the JS engine's argument-count limit (~125 k in V8).
+  // Reduce avoids spreading large node arrays into Math.max, which can exceed
+  // JS engine argument-count limits.
   const maxNodeSize = nodes.reduce(
     (max, node) =>
       Math.max(
@@ -48,8 +48,7 @@ export const radialTreeLayout = (
   const maxRadius = Math.max(0, Math.min(width, height) / 2 - pad - maxNodeSize / 2);
   const radiusStep = levels.length > 1 ? maxRadius / (levels.length - 1) : 0;
 
-  // FIX: pre-build an id→node map to avoid an O(n) Array.find inside the
-  // levels.flatMap loop, which was O(n²) overall.
+  // Keep level rendering linear by resolving node IDs through an index.
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
 
   return levels.flatMap((level, levelIndex) => {

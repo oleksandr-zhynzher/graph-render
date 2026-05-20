@@ -20,7 +20,7 @@ yarn add @graph-render/react react react-dom
 ## Quick Start
 
 ```tsx
-import { Graph } from '@graph-render/react';
+import { DefaultGraphVertex, Graph } from '@graph-render/react';
 import { EdgeType, LayoutType } from '@graph-render/types';
 
 const graph = {
@@ -43,6 +43,7 @@ export default function App() {
   return (
     <Graph
       graph={graph}
+      vertexComponent={DefaultGraphVertex}
       config={{
         layout: LayoutType.Tree,
         defaultEdgeType: EdgeType.Directed,
@@ -97,6 +98,39 @@ function ServiceNode({ node }: VertexComponentProps) {
 - Viewport control via imperative ref handle
 - SVG export support through `@graph-render/core`
 - React 19 required
+
+## Theme and appearance
+
+Pass colors and chrome through `config.theme` on `<Graph />`. Values are normalized with library defaults when omitted.
+
+```tsx
+<Graph
+  graph={graph}
+  vertexComponent={DefaultGraphVertex}
+  config={{
+    theme: {
+      background: '#0f172a',
+      edgeColor: '#94a3b8',
+      fontFamily: 'Inter, system-ui, sans-serif',
+      nodeFill: '#f8fafc',
+      nodeStroke: '#cbd5e1',
+      nodeTextColor: '#0f172a',
+      nodeTextSize: 13,
+      nodeRadius: 10,
+      nodeBorderColor: '#64748b',
+      nodeBorderWidth: 1,
+      marqueeFill: 'rgba(59, 130, 246, 0.12)',
+      marqueeStroke: 'rgba(59, 130, 246, 0.8)',
+      controlFill: 'rgba(255,255,255,0.92)',
+      controlStroke: 'rgba(15,23,42,0.18)',
+      controlTextColor: '#0f172a',
+      controlFocusStroke: '#2563eb',
+    },
+  }}
+/>
+```
+
+Custom `vertexComponent` implementations receive the same resolved values on `VertexComponentProps` (`nodeFill`, `nodeStroke`, `nodeTextColor`, `nodeTextSize`, `nodeRadius`, `nodeBorderWidth`, `fontFamily`) so you can use the theme or override per node.
 
 ## Layout Options
 

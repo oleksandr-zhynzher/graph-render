@@ -1,21 +1,41 @@
+export class SvgExportError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SvgExportError';
+  }
+}
+
+export function downloadSvgString(svgString: string, filename?: string) {
+  if (!svgString.trim()) {
+    throw new SvgExportError('Cannot export an empty SVG document.');
+  }
+
+  const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = filename ?? `tournament-bracket-${Date.now()}.svg`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 export function downloadSvgFromElement(rootElement: Element | null) {
+  if (!rootElement) {
+    throw new SvgExportError('Cannot export SVG because the export root element is missing.');
+  }
+
   const svgElement = rootElement?.querySelector('svg');
-  if (!svgElement) return;
+  if (!svgElement) {
+    throw new SvgExportError('Cannot export SVG because no <svg> element was found.');
+  }
 
   const clonedSvg = svgElement.cloneNode(true) as SVGElement;
   clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
   clonedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
 
   const serializer = new XMLSerializer();
-  const svgString = serializer.serializeToString(clonedSvg);
-  const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-
-  link.href = url;
-  link.download = `tournament-bracket-${Date.now()}.svg`;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+  downloadSvgString(serializer.serializeToString(clonedSvg));
 }

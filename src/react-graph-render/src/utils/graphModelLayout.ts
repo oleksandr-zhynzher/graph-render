@@ -4,87 +4,95 @@ import {
   toError,
   validatePositionedNodes,
 } from '@graph-render/core';
-import type { PositionedNode } from '@graph-render/types';
-import { GraphErrorPhase } from '@graph-render/types';
+import { GraphErrorPhase } from '@graph-render/types/react';
 
-import type { ResolvePositionedNodesOptions } from '../models/utils';
+import type { ResolvePositionedNodesOptions, ResolvePositionedNodesResult } from '../models/domain';
+import type { GraphModelError } from '../models/graph';
 
 export const resolvePositionedNodes = ({
   allowDegradedGraph,
   graph,
   layoutNodesOverride,
   layoutOptions,
-  onError,
   visibleNodes,
-}: ResolvePositionedNodesOptions): readonly PositionedNode[] => {
+}: ResolvePositionedNodesOptions): ResolvePositionedNodesResult => {
   if (!layoutNodesOverride) {
     return resolveDefaultLayout({
       allowDegradedGraph,
       graph,
       layoutOptions,
-      onError,
       visibleNodes,
     });
   }
 
+  const errors: GraphModelErrors = [];
   try {
     const overrideNodes = layoutNodesOverride(layoutOptions);
     validatePositionedNodes(overrideNodes, visibleNodes, 'layout override');
-    return overrideNodes;
+    return { errors, nodes: overrideNodes };
   } catch (error) {
     const normalizedError = toError(error);
-    onError?.(normalizedError, { graph, phase: GraphErrorPhase.LayoutOverride });
     if (!allowDegradedGraph) {
       throw normalizedError;
     }
+    errors.push({
+      context: { graph, phase: GraphErrorPhase.LayoutOverride },
+      error: normalizedError,
+    });
   }
 
   try {
     const fallbackNodes = layoutNodes(layoutOptions);
     validatePositionedNodes(fallbackNodes, visibleNodes, 'layout');
-    return fallbackNodes;
+    return { errors, nodes: fallbackNodes };
   } catch (fallbackError) {
-    onError?.(toError(fallbackError), { graph, phase: GraphErrorPhase.Layout });
+    errors.push({
+      context: { graph, phase: GraphErrorPhase.Layout },
+      error: toError(fallbackError),
+    });
   }
 
-  return resolveFallbackLayout({ graph, layoutOptions, onError, visibleNodes });
+  const fallbackResult = resolveFallbackLayout({ layoutOptions, visibleNodes });
+  return { errors: [...errors, ...fallbackResult.errors], nodes: fallbackResult.nodes };
 };
 
 const resolveDefaultLayout = ({
   allowDegradedGraph,
   graph,
   layoutOptions,
-  onError,
   visibleNodes,
-}: Omit<ResolvePositionedNodesOptions, 'layoutNodesOverride'>): readonly PositionedNode[] => {
+}: Omit<ResolvePositionedNodesOptions, 'layoutNodesOverride'>): ResolvePositionedNodesResult => {
+  const errors: GraphModelErrors = [];
   try {
     const laidOutNodes = layoutNodes(layoutOptions);
     validatePositionedNodes(laidOutNodes, visibleNodes, 'layout');
-    return laidOutNodes;
+    return { errors, nodes: laidOutNodes };
   } catch (error) {
     const normalizedError = toError(error);
-    onError?.(normalizedError, { graph, phase: GraphErrorPhase.Layout });
     if (!allowDegradedGraph) {
       throw normalizedError;
     }
+    errors.push({ context: { graph, phase: GraphErrorPhase.Layout }, error: normalizedError });
   }
 
-  return resolveFallbackLayout({ graph, layoutOptions, onError, visibleNodes });
+  const fallbackResult = resolveFallbackLayout({ layoutOptions, visibleNodes });
+  return { errors: [...errors, ...fallbackResult.errors], nodes: fallbackResult.nodes };
 };
 
 const resolveFallbackLayout = ({
-  graph,
   layoutOptions,
-  onError,
   visibleNodes,
-}: Omit<ResolvePositionedNodesOptions, 'allowDegradedGraph' | 'layoutNodesOverride'>) => {
+}: Pick<
+  ResolvePositionedNodesOptions,
+  'layoutOptions' | 'visibleNodes'
+>): ResolvePositionedNodesResult => {
   try {
     const fallbackNodes = buildFallbackLayout(layoutOptions);
     validatePositionedNodes(fallbackNodes, visibleNodes, 'layout');
-    return fallbackNodes;
+    return { errors: [], nodes: fallbackNodes };
   } catch (fallbackError) {
-    const normalizedFallbackError = toError(fallbackError);
-    onError?.(normalizedFallbackError, { graph, phase: GraphErrorPhase.Layout });
-    throw normalizedFallbackError;
+    throw toError(fallbackError);
   }
 };
+
+type GraphModelErrors = GraphModelError[];

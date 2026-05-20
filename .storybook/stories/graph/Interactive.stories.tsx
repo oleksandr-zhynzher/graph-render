@@ -1,9 +1,10 @@
-import React from 'react';
 import { Graph } from '@graph-render/react';
 import type { NxGraphInput, VertexComponentProps } from '@graph-render/types';
 import { LayoutType } from '@graph-render/types';
 import type { Meta, StoryObj } from '@storybook/react';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
+
+import { graphStoryActionArgs } from '../../graphStoryArgs';
 
 // ── Node: dark card ───────────────────────────────────────────────────────
 
@@ -78,7 +79,7 @@ function InteractiveWrapper({
   children,
   events,
 }: {
-  readonly children: React.ReactNode;
+  readonly children: ReactNode;
   readonly events: string[];
 }) {
   return (
@@ -148,7 +149,6 @@ function SearchWrapper() {
             padding: '6px 12px',
             color: '#e5ecff',
             fontSize: 13,
-            outline: 'none',
             width: 260,
           }}
         />
@@ -260,6 +260,7 @@ const meta: Meta<typeof Graph> = {
   component: Graph,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
+  args: graphStoryActionArgs,
 };
 
 export default meta;

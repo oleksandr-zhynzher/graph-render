@@ -1,5 +1,5 @@
-import type { GraphSelection, GraphViewport } from '@graph-render/types';
-import { GraphControlsPosition } from '@graph-render/types';
+import type { GraphSelection, GraphViewport } from '@graph-render/types/react';
+import { GraphControlsPosition } from '@graph-render/types/react';
 
 export const DEFAULT_VIEWPORT: GraphViewport = { x: 0, y: 0, zoom: 1 };
 export const DEFAULT_SELECTION: GraphSelection = { nodeIds: [], edgeIds: [] };
@@ -18,13 +18,30 @@ export const DEFAULT_NODE_HEIGHT = 72;
 export const DEFAULT_NODE_RADIUS = 8;
 export const DEFAULT_NODE_WIDTH = 180;
 
+/** Kept in sync with `@graph-render/core` defaults (see `utils/constants.ts`). */
+export const DEFAULT_NODE_FILL = 'white';
+export const DEFAULT_NODE_STROKE = '#d7dbe3';
+export const DEFAULT_TEXT_FILL = '#111827';
+export const DEFAULT_TEXT_SIZE = 14;
+export const DEFAULT_MARQUEE_FILL = 'rgba(59, 130, 246, 0.12)';
+export const DEFAULT_MARQUEE_STROKE = 'rgba(59, 130, 246, 0.8)';
+export const DEFAULT_CONTROL_FILL = 'rgba(255,255,255,0.92)';
+export const DEFAULT_CONTROL_STROKE = 'rgba(15,23,42,0.18)';
+export const DEFAULT_CONTROL_TEXT_COLOR = '#0f172a';
+export const DEFAULT_CONTROL_FOCUS_STROKE = '#2563eb';
+
 export const DEFAULT_COLUMN_TOLERANCE = 24;
 
 export const CONTROL_DEFS = [
-  { key: 'zoom-in', label: '+', width: CONTROL_BUTTON_SIZE },
-  { key: 'zoom-out', label: '−', width: CONTROL_BUTTON_SIZE },
-  { key: 'fit-view', label: 'Fit', width: CONTROL_LABEL_BUTTON_WIDTH },
-  { key: 'reset-view', label: '1:1', width: CONTROL_LABEL_BUTTON_WIDTH },
+  { key: 'zoom-in', label: '+', ariaLabel: 'Zoom in', width: CONTROL_BUTTON_SIZE },
+  { key: 'zoom-out', label: '−', ariaLabel: 'Zoom out', width: CONTROL_BUTTON_SIZE },
+  { key: 'fit-view', label: 'Fit', ariaLabel: 'Fit view', width: CONTROL_LABEL_BUTTON_WIDTH },
+  {
+    key: 'reset-view',
+    label: '1:1',
+    ariaLabel: 'Reset to 100%',
+    width: CONTROL_LABEL_BUTTON_WIDTH,
+  },
 ] as const;
 
 export const CONTROL_X_POSITIONS = CONTROL_DEFS.reduce<number[]>((acc, _def, i) => {
