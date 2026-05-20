@@ -1,7 +1,9 @@
 import { Graph } from '@graph-render/react';
 import type { NxGraphInput, VertexComponentProps } from '@graph-render/types';
-import { LayoutType } from '@graph-render/types';
+import { LayoutDirection, LayoutType } from '@graph-render/types';
 import type { Meta, StoryObj } from '@storybook/react';
+
+import { graphStoryActionArgs } from '../../graphStoryArgs';
 
 // ── Shared node renderers ─────────────────────────────────────────────────
 
@@ -197,6 +199,7 @@ const meta: Meta<typeof Graph> = {
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
   args: {
+    ...graphStoryActionArgs,
     vertexComponent: DarkNode,
     config: {
       width: 960,
@@ -239,7 +242,7 @@ export const TreeLTR: Story = {
       height: 540,
       padding: 40,
       layout: LayoutType.Tree,
-      layoutDirection: 'ltr',
+      layoutDirection: LayoutDirection.LTR,
       curveEdges: true,
       curveStrength: 0.35,
       hoverHighlight: true,

@@ -3,6 +3,8 @@ import type { NxGraphInput, VertexComponentProps } from '@graph-render/types';
 import { LayoutType } from '@graph-render/types';
 import type { Meta, StoryObj } from '@storybook/react';
 
+import { graphStoryActionArgs } from '../../graphStoryArgs';
+
 // ── Status colours ────────────────────────────────────────────────────────
 
 const STATUS_COLOR: Record<string, string> = {
@@ -264,6 +266,7 @@ const meta: Meta<typeof Graph> = {
   component: Graph,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
+  args: graphStoryActionArgs,
 };
 
 export default meta;

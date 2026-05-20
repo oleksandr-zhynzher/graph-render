@@ -3,6 +3,8 @@ import type { NxGraphInput, VertexComponentProps } from '@graph-render/types';
 import { LayoutType, RoutingStyle } from '@graph-render/types';
 import type { Meta, StoryObj } from '@storybook/react';
 
+import { graphStoryActionArgs } from '../../graphStoryArgs';
+
 function DarkNode({ node, isSelected, isHovered }: VertexComponentProps) {
   const w = node.size?.width ?? 180;
   const h = node.size?.height ?? 64;
@@ -92,6 +94,7 @@ const meta: Meta<typeof Graph> = {
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
   args: {
+    ...graphStoryActionArgs,
     vertexComponent: DarkNode,
     graph: graphCrossLayer,
     config: {

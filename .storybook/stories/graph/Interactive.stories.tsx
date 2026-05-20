@@ -4,6 +4,8 @@ import { LayoutType } from '@graph-render/types';
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 
+import { graphStoryActionArgs } from '../../graphStoryArgs';
+
 // ── Node: dark card ───────────────────────────────────────────────────────
 
 function DarkNode({ node, isSelected, isHovered }: VertexComponentProps) {
@@ -258,6 +260,7 @@ const meta: Meta<typeof Graph> = {
   component: Graph,
   tags: ['autodocs'],
   parameters: { layout: 'fullscreen' },
+  args: graphStoryActionArgs,
 };
 
 export default meta;
